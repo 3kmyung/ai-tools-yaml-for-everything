@@ -22,21 +22,30 @@
 
 Read `docs/superpowers/specs/2026-08-10-youtube-to-playlist-video-gui-tokens-design.md` for the full rationale. The one file this plan touches is `examples/media-processing/youtube-to-playlist-video/webui/app.css` — every task below rewrites it in place; there is no separate "create" step.
 
-**How to visually verify a task:** open
-`examples/media-processing/youtube-to-playlist-video/webui/index.html`
-directly in a browser (double-click it, or `start` on Windows / `open` on
-macOS — no server needed). The editor boots with one blank track by
-default (`app.js`'s `if (!load()) addTrack();`), so the field editor,
-track list, settings bar, and preview iframe (`webui/render/animation-waveform.html`,
-loaded via a relative `src` that works over `file://`) are all live without
-`model-compose up` running. Check: settings bar, track list + add-track
-button, field editor (text/url/color/image rows), status bar (trigger it
-by clicking Render with an empty URL — it shows the validation message
-without needing a server).
+**How to visually verify a task:** `index.html` loads `app.js` as
+`<script type="module">`, and Chromium (and most browsers) refuse to fetch
+a same-directory module over `file://` — it fails with a CORS console
+error and the app never boots (empty page, no tracks, no fields). Serve
+the directory over plain HTTP instead, no build step required:
 
-**How to sanity-check nothing broke:** open
-`examples/media-processing/youtube-to-playlist-video/webui/test.html` in a
-browser. It runs the existing JS test suite (`webui/test/run.js`) inline —
+```bash
+cd examples/media-processing/youtube-to-playlist-video/webui
+python -m http.server 8765
+```
+
+then open `http://localhost:8765/index.html`. The editor boots with one
+blank track by default (`app.js`'s `if (!load()) addTrack();`), so the
+field editor, track list, settings bar, and preview iframe
+(`webui/render/animation-waveform.html`, loaded via a relative `src`) are
+all live without `model-compose up` running. Check: settings bar, track
+list + add-track button, field editor (text/url/color/image rows), status
+bar (trigger it by clicking Render with an empty URL — it shows the
+validation message without needing the real backend).
+
+**How to sanity-check nothing broke:** with the same server running, open
+`http://localhost:8765/test.html` (this file also loads a `type="module"`
+script, so it needs the HTTP server too — `file://` fails here the same
+way). It runs the existing JS test suite (`webui/test/run.js`) inline —
 look for `PASS` on every line, `0 failed` in the page. This suite never
 reads `app.css` (`test.html` doesn't even link it), so it isn't expected to
 catch anything CSS-related — it's a cheap gate against having accidentally
@@ -144,15 +153,13 @@ main { display: grid; grid-template-columns: 240px 340px 1fr; gap: 18px; padding
 
 - [ ] **Step 2: Sanity-check the JS suite**
 
-Open `examples/media-processing/youtube-to-playlist-video/webui/test.html`
-in a browser. Expected: every test still `PASS`, `0 failed` — this task
-never touched markup or IDs.
+Open `http://localhost:8765/test.html`. Expected: every test still `PASS`,
+`0 failed` — this task never touched markup or IDs.
 
 - [ ] **Step 3: Visual check**
 
-Open `examples/media-processing/youtube-to-playlist-video/webui/index.html`
-directly in a browser. Expected: **visually indistinguishable** from
-before this task — same colors, same spacing, same corners. The only
+Open `http://localhost:8765/index.html` (server from "Before You Start").
+Expected: **visually indistinguishable** from before this task — same colors, same spacing, same corners. The only
 pixel-level differences are `#status`'s text going from 13px to 14px and
 the two thumbnail-background/dashed-border consolidations above, all of
 which should be imperceptible at a glance.
@@ -281,11 +288,11 @@ main { display: grid; grid-template-columns: 240px 340px 1fr; gap: var(--space-5
 
 - [ ] **Step 2: Sanity-check the JS suite**
 
-Open `webui/test.html`. Expected: every test still `PASS`.
+Open `http://localhost:8765/test.html`. Expected: every test still `PASS`.
 
 - [ ] **Step 3: Visual check**
 
-Open `webui/index.html`. Expected: a visibly roomier layout than Task 1's
+Open `http://localhost:8765/index.html`. Expected: a visibly roomier layout than Task 1's
 snapshot — wider gutters around `main`'s three columns, more padding in
 the settings bar/status bar/track rows/render button — but no column
 reflow, no wrapping that wasn't already happening, no element overlapping
@@ -422,11 +429,11 @@ main { display: grid; grid-template-columns: 240px 340px 1fr; gap: var(--space-5
 
 - [ ] **Step 2: Sanity-check the JS suite**
 
-Open `webui/test.html`. Expected: every test still `PASS`.
+Open `http://localhost:8765/test.html`. Expected: every test still `PASS`.
 
 - [ ] **Step 3: Visual check**
 
-Open `webui/index.html`. Expected: inputs, the track list, the preview
+Open `http://localhost:8765/index.html`. Expected: inputs, the track list, the preview
 frame, and thumbnails now have square corners; the Render button, the
 field-revert (`↺`) button, the Cancel button (trigger it by starting a
 render against a fake/incomplete URL — or just eyeball its CSS, since
@@ -585,11 +592,11 @@ main { display: grid; grid-template-columns: 240px 340px 1fr; gap: var(--space-5
 
 - [ ] **Step 2: Sanity-check the JS suite**
 
-Open `webui/test.html`. Expected: every test still `PASS`.
+Open `http://localhost:8765/test.html`. Expected: every test still `PASS`.
 
 - [ ] **Step 3: Visual check**
 
-Open `webui/index.html`.
+Open `http://localhost:8765/index.html`.
 
 - Tab through the page with the keyboard: every input, the Render button,
   the `↺` revert buttons, and (once a track exists) any focusable control
