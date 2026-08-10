@@ -31,6 +31,11 @@
 
 body { margin: 0; font: var(--text-base)/1.5 system-ui, sans-serif; background: var(--bg); color: var(--text); }
 
+:is(button, a, input, select):focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .field { display: grid; grid-template-columns: 110px 1fr; gap: var(--space-4); align-items: start; margin-bottom: var(--space-3); }
 .field-label { color: var(--text-muted); font-size: var(--text-sm); text-transform: uppercase; letter-spacing: 0.06em;
   padding-top: var(--space-2); }
@@ -50,6 +55,7 @@ body { margin: 0; font: var(--text-base)/1.5 system-ui, sans-serif; background: 
 
 .field-revert { flex: none; width: 28px; height: 28px; border: 1px solid var(--border); border-radius: var(--radius-full);
   background: var(--bg-elevated); color: var(--text-secondary); cursor: pointer; font-size: var(--text-base); line-height: 1; }
+.field-revert:hover:not(:disabled) { background: color-mix(in srgb, var(--bg-elevated) 85%, white); }
 .field-revert:disabled { opacity: 0.3; cursor: default; }
 
 .preview { display: flex; align-items: center; justify-content: center; overflow: hidden;
@@ -64,19 +70,24 @@ body { margin: 0; font: var(--text-base)/1.5 system-ui, sans-serif; background: 
 #settings #bands { width: 64px; }
 #render { margin-left: auto; padding: var(--space-2) var(--space-5); border: 0; border-radius: var(--radius-full);
   background: var(--accent); color: #fff; font-weight: 600; cursor: pointer; }
+#render:hover { background: color-mix(in srgb, var(--accent) 85%, white); }
 .warning { color: var(--warning); font-size: var(--text-sm); }
 
 main { display: grid; grid-template-columns: 240px 340px 1fr; gap: var(--space-5); padding: var(--space-5); align-items: start; }
 
 #track-list { list-style: none; margin: 0 0 var(--space-3); padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
 .track { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-3); border-radius: var(--radius);
-  background: var(--bg-elevated); border: 1px solid transparent; cursor: pointer; }
-.track.is-selected { border-color: var(--accent); }
+  background: var(--bg-elevated); cursor: pointer; }
+.track:not(.is-selected):hover { background: color-mix(in srgb, var(--bg-elevated) 90%, white); }
+.track.is-selected { background: color-mix(in srgb, var(--accent) 18%, var(--bg-elevated)); }
 .track-thumb { width: 32px; height: 32px; object-fit: cover; border-radius: var(--radius); background: var(--bg-inset); }
 .track-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.track-remove { border: 0; background: none; color: var(--text-dim); cursor: pointer; font-size: var(--text-lg); }
+.track-remove { border: 0; background: none; padding: var(--space-1) var(--space-2); border-radius: var(--radius-full);
+  color: var(--text-dim); cursor: pointer; font-size: var(--text-lg); }
+.track-remove:hover { background: color-mix(in srgb, var(--text-dim) 15%, transparent); }
 #add-track { width: 100%; padding: var(--space-3); border: 1px dashed var(--border); border-radius: var(--radius-full);
   background: none; color: var(--text-muted); cursor: pointer; }
+#add-track:hover { background: color-mix(in srgb, var(--text-muted) 10%, transparent); }
 
 .empty { color: var(--text-dim); }
 #status { padding: var(--space-3) var(--space-5); border-top: 1px solid var(--border-subtle); background: var(--bg-sunken); font-size: var(--text-base); }
@@ -84,6 +95,7 @@ main { display: grid; grid-template-columns: 240px 340px 1fr; gap: var(--space-5
 
 .status-cancel { margin-left: var(--space-3); padding: var(--space-1) var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-full);
   background: var(--bg-elevated); color: var(--text-secondary); cursor: pointer; }
+.status-cancel:hover:not(:disabled) { background: color-mix(in srgb, var(--bg-elevated) 85%, white); }
 .status-cancel:disabled { opacity: 0.5; cursor: default; }
 .status-video { display: block; margin-top: var(--space-3); max-width: 480px; border-radius: var(--radius); }
 #status a { color: var(--link); }
