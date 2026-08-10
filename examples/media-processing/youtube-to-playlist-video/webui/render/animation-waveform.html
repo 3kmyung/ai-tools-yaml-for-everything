@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Waveform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Code:wght@500&family=Noto+Sans+KR:wght@500&display=swap" />
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: "Courier New", ui-monospace, monospace;
+      background: #111111;
+    }
+
+    #stage {
+      /* Both captions are the same face, weight and size, and sit the same
+         distance in from the frame edge — the kicker at the top, the credit
+         at the bottom, the cover centred between them. */
+      --label-size: 18px;
+      --label-tracking: 5px;
+      --page-padding: 48px;
+      --cover-size: 252px;
+      --cover-stroke: 2px;
+      /* The waveform band is a fraction of the stage height rather than a
+         fixed 560px, so a portrait frame gives it proportionally the same
+         room it has in landscape. */
+      --eq-height: 78%;
+      position: relative;
+      width: var(--stage-w, 1280px);
+      height: var(--stage-h, 720px);
+      background: var(--primary, #111111);
+      overflow: hidden;
+    }
+
+    #stage[data-ratio="4:3"]       { --cover-size: 268px; }
+    #stage[data-orient="square"]   { --cover-size: 300px; --eq-height: 62%; --page-padding: 40px; }
+    #stage[data-orient="portrait"] { --cover-size: 340px; --eq-height: 46%; --page-padding: 40px; }
+    #stage[data-ratio="9:16"]      { --cover-size: 360px; --eq-height: 38%; }
+
+    /* An <img>, not a <canvas>. A canvas fixes the art's resolution at its
+       backing-store size the moment it is drawn, so a 252px canvas throws
+       away everything above 252px and any display denser than 1x is left
+       upscaling that. An <img> keeps the full decoded image and lets the
+       browser resample once, at whatever resolution it is actually painting
+       — sharp on a HiDPI preview, and sharp again if the render is ever
+       captured above 1x. Nothing here needs pixel access, so there is no
+       reason to pay the canvas's cost. */
+    #cover {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: block;
+      width: var(--cover-size);
+      height: var(--cover-size);
+      object-fit: cover;
+      /* Album art is the one photographic thing on an otherwise flat frame,
+         and against a --primary close to its own edges it dissolves into the
+         background. The stroke guarantees it reads as a placed object.
+
+         In --label-ink rather than --accent on purpose: it puts the cover in
+         the captions' family and leaves --accent meaning the audio and
+         nothing else. An accent border would also sit exactly where the
+         waveform switches colour to stay legible over the art, and the two
+         would read as one confused edge instead of a frame and a crossing.
+
+         box-sizing is border-box, so this grows inward — the art loses 2px a
+         side while the footprint stays --cover-size. That keeps offsetWidth,
+         and with it the coverRect the waveform clips against, unchanged. */
+      border: var(--cover-stroke) solid var(--label-ink, #ffffff);
+    }
+
+    /* One typographic voice for every caption on the frame; only colour and
+       placement differ between them. */
+    #kicker, #credit, #elapsed, #total, #prev, #next {
+      margin: 0;
+      /* Noto Sans KR trails as the Hangul fallback — Cascadia Code has no
+         Korean coverage, and track titles routinely do. */
+      font-family: "Cascadia Code", "Noto Sans KR", monospace;
+      font-size: var(--label-size);
+      font-weight: 500;
+      letter-spacing: var(--label-tracking);
+      text-transform: uppercase;
+      /* Plain black or white, whichever the background can carry — see the
+         script, which resolves it against --primary. Not the accent: that
+         colour is chosen to stand out against the palette, not to be read
+         at 18px, and a palette free to pick any accent is free to pick one
+         that turns the captions into decoration. */
+      color: var(--label-ink, #ffffff);
+    }
+
+    /* Two rows of the same shape, one pinned to each margin: something short
+       at either end and one flexible cell between them. Laying them out as
+       rows rather than positioning six items into corners means nothing can
+       overlap however long a title runs — the centre cell only ever gets the
+       space the ends leave. And because the ends of a given row are equal
+       width (two timecodes of equal character count above, two nav labels of
+       equal length below), the centre cell stays optically centred on the
+       frame rather than merely centred in what is left. */
+    #header, #footer {
+      position: absolute;
+      left: var(--page-padding);
+      right: var(--page-padding);
+      display: flex;
+      align-items: baseline;
+      gap: var(--page-padding);
+    }
+
+    #header { top: var(--page-padding); }
+    #footer { bottom: var(--page-padding); }
+
+    /* letter-spacing also lands after the final glyph, which drags centered
+       text left by half of it. The matching padding-left cancels that out. */
+    #kicker, #credit {
+      flex: 1;
+      /* min-width on a flex item defaults to auto, which refuses to shrink
+         below the content's own width — a long title would push the ends off
+         the frame instead of ellipsing/clamping. */
+      min-width: 0;
+      /* Same footing as the cells either side of it, so all three columns
+         resolve equal and the centre one lands on the frame's centre. */
+      flex-basis: 0;
+      /* Both cells clip to their own column, and neither may ever paint over
+         the ends of its row. #credit needs this every bit as much as #kicker
+         does, and for a case that is easy to miss: its children carry no
+         whitespace between them, so "artist·title" is one unbreakable inline
+         run whenever the title is short enough that Renderer.fitText leaves
+         it alone. Nothing wraps it, nothing ellipses it, and with overflow
+         visible it simply ran straight through #prev and #next — which is
+         exactly what shipped at 1:1, 3:4 and 9:16 while the long-title
+         verification stayed clean, because a long title trips fitText into a
+         -webkit-box that wraps safely. Clipping the cell is what makes the
+         short case behave like the long one. */
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: center;
+      padding-left: var(--label-tracking);
+    }
+
+    /* #kicker's text ("Playlist") is static and short, so it stays the
+       simple single-line-ellipsis case. #credit carries a real title, which
+       Renderer.fitText clamps to two lines instead — which is why nowrap is
+       #kicker's alone; see #title below. */
+    #kicker {
+      white-space: nowrap;
+    }
+
+    /* Renders as a block once Renderer.fitText sets display: -webkit-box on
+       it (never before start(), so seek() stays deterministic) — which is
+       what lets the title wrap onto its own line(s) under "artist ·"
+       instead of the whole credit line being cut to one line at the first
+       character that doesn't fit. white-space: normal is belt-and-braces:
+       #credit no longer sets nowrap (that rule is #kicker's alone above),
+       but stating it here keeps the title wrapping even if it ever does
+       again. */
+    #title {
+      white-space: normal;
+      margin-top: 2px;
+    }
+
+    #elapsed, #total {
+      color: var(--accent, #ff5b04);
+      white-space: nowrap;
+      /* Digits on a fixed advance so the elapsed label doesn't twitch as the
+         seconds tick over. */
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Thirds rather than two content-sized ends around a flexible middle. A
+       playlist's neighbouring titles are arbitrary and unequal, and with
+       content-sized ends the credit would centre in whatever they left and
+       so drift off the frame's centre by half their difference. Equal
+       columns put it back on the middle of the frame whatever they contain. */
+    #prev, #next {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      /* Accent, matching the arrows they sit with, so each nav cell reads as
+         one control rather than as a coloured mark beside a caption. It also
+         separates them from the credit between them: that is the track being
+         played, these are tracks that are not. */
+      color: var(--accent, #ff5b04);
+    }
+
+    #next { text-align: right; }
+
+    /* The ellipsis lives on the title itself, not on the cell. Clipping the
+       cell would eat whichever end the overflow ran towards — the title on
+       the left, but the arrow on the right, where the text is right-aligned.
+       Boxing the title alone keeps the arrow out of it either way. The
+       reserve is the arrow plus its gap. */
+    #prev-title, #next-title {
+      display: inline-block;
+      max-width: calc(100% - 1.2em);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      vertical-align: bottom;
+    }
+
+    /* Cancels the trailing letter-space, which would otherwise hold the
+       right-hand cell that far off the frame's margin while the left one sits
+       flush. It lands after the last inline box whether that box is a glyph
+       or one of the triangles below. */
+    #total, #next {
+      margin-right: calc(-1 * var(--label-tracking));
+    }
+
+    /* Drawn triangles, not the "◀" and "▶" characters. U+25C0/U+25B6 are in
+       the range fonts are free to render as colour emoji, and the preview
+       browser and the headless renderer need not resolve them the same way —
+       the one thing this project asks of a template is that those two agree.
+       Geometry has no fallback to get wrong.
+
+       Sized in em off the shared caption size, at roughly the cap height of
+       the text they sit with, and left on the baseline like glyphs. In accent
+       so the row keeps a tie to the timecodes above while its wording stays
+       in the caption ink. */
+    .chevron {
+      width: 0.58em;
+      height: 0.7em;
+      fill: var(--accent, #ff5b04);
+    }
+
+    /* Pulls the arrow against its label, out of the wide caption tracking —
+       the two are one control, not two adjacent words. With no neighbouring
+       track the title is empty and the margin falls on the outward side of
+       the arrow, inside a cell aligned the other way, so it costs nothing:
+       the arrow ends up alone against the margin, which is the intent. */
+    #prev .chevron { margin-right: 0.35em; }
+    #next .chevron { margin-left: 0.35em; }
+
+    /* Margin on top of the inherited letter-spacing — the separator needs to
+       read as a gap between two names, not as another character in one. */
+    #credit .separator {
+      margin: 0 0.6em;
+    }
+
+    /* Spans the full frame and sits in front of #cover purely by document
+       order — the waveform crosses the cover rather than passing behind it,
+       which is why it has to recolor over that stretch. */
+    #eq {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      transform: translateY(-50%);
+      display: block;
+      width: 100%;
+      height: var(--eq-height);
+    }
+  </style>
+</head>
+<body>
+  <div id="stage">
+    <img id="cover" />
+    <canvas id="eq"></canvas>
+
+    <div id="header">
+      <p id="elapsed"></p>
+      <p id="kicker">Playlist</p>
+      <p id="total"></p>
+    </div>
+
+    <div id="footer">
+      <p id="prev"><svg class="chevron" viewBox="0 0 10 12"><polygon points="10,0 0,6 10,12" /></svg><span id="prev-title"></span></p>
+      <p id="credit">
+        <span id="artist"></span><span class="separator">·</span><span id="title"></span>
+      </p>
+      <p id="next"><span id="next-title"></span><svg class="chevron" viewBox="0 0 10 12"><polygon points="0,0 10,6 0,12" /></svg></p>
+    </div>
+  </div>
+
+  <script src="./common.js"></script>
+  <script>
+    (async function () {
+      // Edge-to-edge lines instead of a bar equalizer: a waveform
+      // resynthesised from the spectrum, one harmonic per band. Progress
+      // rides it as a short tick, so nothing else has to mark time.
+      const LINE_WIDTH = 2;         // stroke weight of the waveform
+      const SIGNAL_STEP = 2;        // px between waveform samples
+      // Deliberately larger than the 280px half-canvas, because the ceiling
+      // it is measured against is one the spectrum never reaches: the
+      // harmonics below are summed at whatever phase each lands on at that
+      // column, and they cancel far more than they reinforce. Over the
+      // preview fixture the widest excursion any frame produces is 0.29 of
+      // full deflection, so this gain draws it at ~158px against 280px of
+      // room. A track that somehow drove every harmonic into phase at once
+      // would clip against the canvas edge — worth knowing if this number
+      // goes up much further, not worth flattening every real frame to
+      // guard against.
+      const SIGNAL_GAIN = 550;      // pixels of travel at full deflection
+      const PLAYHEAD_LENGTH = 14;   // px of tick, centred on the curve
+
+      // Raising the deflection to a power above 1 makes the response
+      // extreme rather than linear: a loud frame still reaches full travel,
+      // but everything under it is pushed down, so the line sits flatter
+      // through the quiet stretches and snaps up on the peaks. The
+      // deflection is bounded to +/-1 going in, and any exponent leaves that
+      // bound where it is, so this only ever costs travel — it cannot be
+      // what pushes the curve off canvas. Raise for more snap, 1 for the old
+      // linear behaviour.
+      //
+      // It shapes the shared signal, so every line takes it. The heavy line
+      // is where it shows, having far more travel to exaggerate, but leaving
+      // the thin ones linear would have them swell against a heavy line that
+      // had gone flat — they read as one waveform only while they answer the
+      // same input the same way.
+      const SIGNAL_SHAPE = 1.5;
+
+      // Further passes over the same spectrum at a fraction of the travel —
+      // the same resynthesis driven by the same bands, so they answer the
+      // music together rather than reading as unrelated decoration. None
+      // carries a playhead: one tick marks progress, more would only
+      // compete.
+      const ECHO_LINE_WIDTH = 1;    // stroke weight of every thin line
+      const ECHO_PRIMARY_MIX = 0.35;// fraction of primary blended into their colour
+
+      // The left edge of the frame is the palette's colour exactly; the right
+      // edge is that same colour lightened by this much. Every stroke takes
+      // the ramp, so the lines brighten together and the frame reads as lit
+      // from one side rather than as lines that happen to differ in colour.
+      // The playhead is filled with the same ramp, so it picks up whatever
+      // belongs to the column it currently sits in — no separate rule.
+      //
+      // Lightening rather than darkening keeps the palette's colour as the
+      // floor of the range: nothing on the frame is ever dimmer than what was
+      // asked for, which matters most on a dark --primary, where a ramp that
+      // dimmed instead would fade its own low end into the background.
+      const EQ_LIGHTEN = 0.35;      // how far toward white the right edge goes
+
+      // Every harmonic is a whole number of cycles across its own span, so a
+      // curve laid out over exactly the frame is pinned to zero deflection
+      // at both edges. Lines all doing that meet at a point there and fan
+      // out from it, which reads as a knot rather than as separate lines.
+      //
+      // So each thin line is laid out over a span wider than the frame and
+      // positioned to overhang it on both sides. Its zero-deflection ends
+      // fall off-canvas and never rasterise; what the frame shows is a slice
+      // taken out of the middle, arriving already deflected and leaving
+      // still deflected. That leaves the heavy line alone in pinning to the
+      // baseline at the edges, so it stays the one centred thing on the
+      // frame.
+      //
+      // Note the overhang stretches the waveform horizontally rather than
+      // merely drawing more of it — phase is measured against the span, so a
+      // wider span is a longer wavelength. That is what keeps the thin lines
+      // from tracing one another: same spectrum, same instant, but each at
+      // its own scale, so they cross and separate instead of running
+      // parallel. Vary the overhangs more than the gains for that reason.
+      const ECHO_LINES = [
+        { gain: 105, overhang: 160 },
+        { gain: 64, overhang: 430 },
+      ];
+
+      // Canvas y grows downward, so a negative value would sit above. Zero
+      // because the overhang above already solves the knot the offset was
+      // originally there for.
+      const ECHO_OFFSET = 0;        // px the thin lines ride above the baseline
+
+      // A near-horizontal 2px stroke has to antialias across whole rows of
+      // the grid it is drawn on, which is what makes the curve look stepped.
+      // At 2x that grid is finer than the output frame, so the softening
+      // lands below what the render can resolve.
+      const SUPERSAMPLE = 2;
+
+      // Track and palette come from common.js's shared preview fixture; only
+      // the knobs this style actually owns are set here.
+      const ctx = await Renderer.createHostedContext({
+        bandCount: 16,
+        duration: 4,
+      });
+
+      const stage = document.getElementById("stage");
+      const coverEl = document.getElementById("cover");
+      const elapsedLabel = document.getElementById("elapsed");
+      const canvas = document.getElementById("eq");
+      const canvasCtx = canvas.getContext("2d");
+
+      Renderer.createStage(ctx);
+
+      // Minutes are not clamped to two digits — a long mix should read 104:12
+      // rather than silently wrap to 44:12. The pad is a floor, not a width.
+      const formatTime = (seconds) => {
+        const whole = Math.max(0, Math.floor(seconds));
+        return String(Math.floor(whole / 60)).padStart(2, "0") +
+          ":" + String(whole % 60).padStart(2, "0");
+      };
+
+      Renderer.applyColors(stage, ctx.colors);
+      const titleEl = document.getElementById("title");
+      titleEl.textContent = ctx.props.title || "Untitled";
+      document.getElementById("artist").textContent = ctx.props.artist || "Unknown Artist";
+      // #credit's own nowrap+ellipsis only ever protected the "artist ·
+      // title" line as a whole, which for a real YouTube title left almost
+      // none of it visible. fitText instead lets the title wrap onto its
+      // own line(s) under the artist and clamps only what still overflows.
+      // Run once here, after createStage and before start(), so seek()
+      // stays deterministic.
+      Renderer.fitText(titleEl, { maxLines: 2, minSize: 18 });
+
+      // Empty at the ends of a playlist, and for a track rendered on its own.
+      // Left empty rather than filled with a placeholder: the arrow on its
+      // own already says there is nothing that way, and inventing a label
+      // would claim a track that does not exist.
+      document.getElementById("prev-title").textContent = ctx.props.prev_title || "";
+      document.getElementById("next-title").textContent = ctx.props.next_title || "";
+
+      // Fixed for the whole clip, so it is written once here; only the
+      // elapsed label is touched per frame.
+      document.getElementById("total").textContent = formatTime(ctx.duration);
+
+      // "anonymous" because the mean colour below needs the pixels back, and
+      // a preview cover served over http:// is cross-origin to a file:// page.
+      let coverAverage = null;
+
+      if (ctx.props.cover) {
+        // Awaited before the src is assigned so the image is decoded by the
+        // time Renderer.start() exposes seek() — the engine screenshots
+        // immediately, and the assignment below is served from cache. The
+        // loaded object is also what averageColor() reads; the <img> in the
+        // document has no pixels to offer.
+        const cover = await Renderer.loadImage(ctx.props.cover, "anonymous");
+        coverEl.src = ctx.props.cover;
+        coverAverage = Renderer.averageColor(cover);
+      }
+
+      const WHITE = { r: 255, g: 255, b: 255 };
+      const BLACK = { r: 0, g: 0, b: 0 };
+
+      const toRgb = (hex) => {
+        const value = parseInt(hex.replace("#", ""), 16);
+        return { r: (value >> 16) & 255, g: (value >> 8) & 255, b: value & 255 };
+      };
+
+      const luminance = (rgb) => {
+        const channel = (raw) => {
+          const unit = raw / 255;
+          return unit <= 0.03928 ? unit / 12.92 : Math.pow((unit + 0.055) / 1.055, 2.4);
+        };
+        return 0.2126 * channel(rgb.r) + 0.7152 * channel(rgb.g) + 0.0722 * channel(rgb.b);
+      };
+
+      const contrast = (a, b) => {
+        const light = Math.max(luminance(a), luminance(b));
+        const dark = Math.min(luminance(a), luminance(b));
+        return (light + 0.05) / (dark + 0.05);
+      };
+
+      // Off the cover the waveform is drawn in accent against a flat primary
+      // background, so it always reads. Crossing the art it can disappear
+      // into it, so that stretch switches to whichever of accent/primary
+      // sits furthest from the cover's mean colour. WCAG contrast ratio
+      // rather than RGB distance: the question is legibility, not hue.
+      const OVER_COVER = (function () {
+        if (!coverAverage) return ctx.colors.accent;
+        const accent = contrast(toRgb(ctx.colors.accent), coverAverage);
+        const primary = contrast(toRgb(ctx.colors.primary), coverAverage);
+        return primary > accent ? ctx.colors.primary : ctx.colors.accent;
+      })();
+
+      // Captions go black or white against the background, whichever wins on
+      // contrast ratio. Black and white are the two endpoints of the scale
+      // every other colour is measured on, so one of them is always at least
+      // as legible as anything the palette could offer, and picking between
+      // them by the same measure used for the waveform keeps one rule for
+      // legibility across the frame.
+      stage.style.setProperty(
+        "--label-ink",
+        contrast(BLACK, toRgb(ctx.colors.primary)) >=
+          contrast(WHITE, toRgb(ctx.colors.primary))
+          ? "#000000"
+          : "#ffffff"
+      );
+
+      // Colours stay as {r,g,b} through every derivation and are only turned
+      // into strings at the point canvas is handed one. The brightness ramp
+      // below has to reach inside them, and re-parsing an "rgb(...)" it had
+      // just produced would be the kind of round trip that quietly loses a
+      // channel to rounding.
+      const rgbCss = (c) => "rgb(" + c.r + "," + c.g + "," + c.b + ")";
+
+      const mixRgb = (from, to, amount) => {
+        const channel = (a, b) => Math.round(a + (b - a) * amount);
+        return {
+          r: channel(from.r, to.r),
+          g: channel(from.g, to.g),
+          b: channel(from.b, to.b),
+        };
+      };
+
+      const mixToward = (hex, target, amount) =>
+        mixRgb(toRgb(hex), toRgb(target), amount);
+
+      // Lightening is a mix toward white rather than a multiply: channels are
+      // already near their ceiling in any bright accent, so scaling up would
+      // clip whichever one hits 255 first and swing the hue as it did. Mixing
+      // moves every channel by the same proportion of the distance left, so
+      // the hue holds. It does cost saturation — that is what a tint is —
+      // which is why EQ_LIGHTEN stays small.
+      const lighten = (c, amount) => mixRgb(c, WHITE, amount);
+
+      // The thin line is pulled toward primary — the flat background off the
+      // cover — so it sits behind the heavy line instead of competing with
+      // it at equal weight. Both blends are resolved once here rather than
+      // per frame; neither depends on t.
+      //
+      // Note this deliberately collapses when OVER_COVER is already primary:
+      // mixing primary into primary is a no-op, so the stretch that crossed
+      // the art precisely because accent was illegible there keeps its full
+      // contrast. The recede is a nicety; legibility is not.
+      const ACCENT_RGB = toRgb(ctx.colors.accent);
+      const OVER_COVER_RGB = toRgb(OVER_COVER);
+      const ECHO_RGB = mixToward(ctx.colors.accent, ctx.colors.primary, ECHO_PRIMARY_MIX);
+      const ECHO_OVER_COVER_RGB = mixToward(OVER_COVER, ctx.colors.primary, ECHO_PRIMARY_MIX);
+
+      // The canvas has no width/height attributes any more — its logical size
+      // comes from the laid-out element, so it follows --eq-height and the
+      // stage width without a second place to keep in sync. Multiplying the
+      // supersample by the stage scale keeps the waveform sharp when the
+      // output is above 1x.
+      canvas.width = Math.round(canvas.offsetWidth);
+      canvas.height = Math.round(canvas.offsetHeight);
+      const view = Renderer.superSample(canvas, SUPERSAMPLE * ctx.stage.scale);
+
+      // #eq and #cover are both centred on the stage, so the cover's
+      // footprint inside the waveform canvas is just the size difference.
+      // Measured off the laid-out element rather than restated here, so
+      // --cover-size stays the one place the size is decided.
+      const coverRect = {
+        x: (view.width - coverEl.offsetWidth) / 2,
+        y: (view.height - coverEl.offsetHeight) / 2,
+        w: coverEl.offsetWidth,
+        h: coverEl.offsetHeight,
+      };
+
+      // The webfonts are a render-blocking asset like the cover art is: the
+      // engine screenshots the moment Renderer.start() exposes seek(), so
+      // without this the opening frames come out in the fallback face and
+      // then visibly snap once Black Han Sans lands.
+      if (document.fonts) await document.fonts.ready;
+
+      // originX is where the first sample sits, which is negative for a
+      // curve that starts off the left edge. Anything drawn outside the
+      // canvas is simply not rasterised, so the overhang costs a few
+      // offscreen segments and needs no clipping of its own.
+      function strokeWave(points, width, originX) {
+        canvasCtx.lineWidth = width;
+        canvasCtx.beginPath();
+        points.forEach(function (y, i) {
+          const x = originX + i * SIGNAL_STEP;
+          if (i === 0) canvasCtx.moveTo(x, y);
+          else canvasCtx.lineTo(x, y);
+        });
+        canvasCtx.stroke();
+      }
+
+      Renderer.start(ctx, (t) => {
+        const w = view.width;
+        const h = view.height;
+        const baseline = Math.round(h / 2);
+
+        elapsedLabel.textContent = formatTime(t);
+
+        view.apply(canvasCtx);
+        canvasCtx.clearRect(0, 0, w, h);
+
+        const frame = ctx.frameAt(t);
+        if (!frame || ctx.bandCount === 0) return;
+
+        // Normalised deflection, one sample per column, over whatever span
+        // is asked for. The two lines cover different spans, so they each
+        // need their own pass — the heavy one exactly the frame, the thin
+        // one wider than it.
+        const synthesize = (fromX, toX) => {
+          const span = toX - fromX;
+          const out = [];
+
+          for (let x = fromX; x <= toX; x += SIGNAL_STEP) {
+            // Phase runs 0..1 across the requested span, not across the
+            // frame. That is the whole mechanism: a curve asked for over a
+            // span wider than the canvas puts its own zero-deflection ends
+            // outside it, so what the frame shows is a slice cut out of the
+            // middle rather than a complete cycle tapering to a point.
+            const phase = (x - fromX) / span;
+
+            // Additive resynthesis: band i drives the (i+1)th harmonic
+            // across the frame, so the curve is the spectrum itself rather
+            // than a decoration driven by it. Weighting by 1/harmonic both
+            // mimics how real audio rolls off and, because the weights are
+            // what the sum gets normalised by, bounds the result to +/-1
+            // however hot the bands run — SIGNAL_GAIN is then a travel in px
+            // against a known ceiling rather than an open-ended number.
+            //
+            // The phase depends on x alone, never on t. That pins every node
+            // and crest to a fixed column, so the curve breathes vertically
+            // as the bands change instead of scrolling sideways.
+            let sum = 0;
+            let norm = 0;
+
+            for (let i = 0; i < ctx.bandCount; i++) {
+              const harmonic = i + 1;
+              const weight = 1 / harmonic;
+              sum += (frame[i] || 0) * weight * Math.sin(2 * Math.PI * harmonic * phase);
+              norm += weight;
+            }
+
+            // Sign is carried around the power so troughs expand exactly as
+            // crests do, and zero maps to zero — the columns a line goes
+            // flat in survive untouched.
+            const unit = sum / norm;
+            out.push(Math.sign(unit) * Math.pow(Math.abs(unit), SIGNAL_SHAPE));
+          }
+
+          return out;
+        };
+
+        const project = (units, gain, offset) =>
+          units.map((unit) => baseline + offset - unit * gain);
+
+        const points = project(synthesize(0, w), SIGNAL_GAIN, 0);
+        const echoes = ECHO_LINES.map((line) => ({
+          originX: -line.overhang,
+          points: project(
+            synthesize(-line.overhang, w + line.overhang),
+            line.gain,
+            ECHO_OFFSET
+          ),
+        }));
+
+        // Round joins and a fine sample step: the curves are the one soft
+        // thing on a frame of hard edges, and they carry the whole sense of
+        // motion, so any faceting in them is what the eye lands on.
+        canvasCtx.lineJoin = "round";
+        canvasCtx.lineCap = "round";
+
+        // Built per frame because the gradient's coordinates are read in the
+        // user space in force when it paints, and view.apply() reinstalls
+        // that transform at the top of every one. Spanning 0..w means the
+        // ramp is anchored to the frame, not to each line's own span — the
+        // thin lines overhang the edges, and a per-line ramp would have them
+        // reaching full brightness at different columns.
+        const ramp = (color) => {
+          const gradient = canvasCtx.createLinearGradient(0, 0, w, 0);
+          gradient.addColorStop(0, rgbCss(color));
+          gradient.addColorStop(1, rgbCss(lighten(color, EQ_LIGHTEN)));
+          return gradient;
+        };
+
+        // Every line is laid down by one helper so the plain pass and the
+        // over-cover repaint below can never drift out of step. The thin
+        // ones go first, leaving the heavy line on top wherever they cross.
+        const paintWaves = (lineColor, echoColor) => {
+          canvasCtx.strokeStyle = ramp(echoColor);
+          echoes.forEach((line) => {
+            strokeWave(line.points, ECHO_LINE_WIDTH, line.originX);
+          });
+
+          canvasCtx.strokeStyle = ramp(lineColor);
+          strokeWave(points, LINE_WIDTH, 0);
+        };
+
+        paintWaves(ACCENT_RGB, ECHO_RGB);
+
+        if (OVER_COVER !== ctx.colors.accent) {
+          // Clear the cover's footprint before repainting it rather than
+          // stroking over the top: at this line width the two passes would
+          // not land on exactly the same antialiased pixels, leaving the
+          // accent fringing the edges of the replacement.
+          canvasCtx.clearRect(coverRect.x, coverRect.y, coverRect.w, coverRect.h);
+          canvasCtx.save();
+          canvasCtx.beginPath();
+          canvasCtx.rect(coverRect.x, coverRect.y, coverRect.w, coverRect.h);
+          canvasCtx.clip();
+          paintWaves(OVER_COVER_RGB, ECHO_OVER_COVER_RGB);
+          canvasCtx.restore();
+        }
+
+        // Progress is a short tick riding the curve rather than a fill: it
+        // sits at the played fraction horizontally and takes its height from
+        // the waveform itself, so it stays welded to the line as that
+        // breathes. Same width as the stroke, and the same colour rule.
+        //
+        // Filled with the ramp rather than a flat colour, so it is lit like
+        // the stretch of line it is sitting on. A gradient covers the whole
+        // frame and the tick only occupies one column of it, which leaves
+        // exactly the right brightness under the tick with nothing to compute.
+        const played = (ctx.duration > 0 ? Math.min(1, t / ctx.duration) : 0) * w;
+        const sample = points[Math.min(points.length - 1, Math.round(played / SIGNAL_STEP))];
+        const overCover = played >= coverRect.x && played <= coverRect.x + coverRect.w;
+
+        canvasCtx.fillStyle = ramp(overCover ? OVER_COVER_RGB : ACCENT_RGB);
+        canvasCtx.fillRect(
+          played - LINE_WIDTH / 2,
+          sample - PLAYHEAD_LENGTH / 2,
+          LINE_WIDTH,
+          PLAYHEAD_LENGTH
+        );
+      });
+    })();
+  </script>
+</body>
+</html>

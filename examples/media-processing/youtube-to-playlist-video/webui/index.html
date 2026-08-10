@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>YouTube Playlist Video</title>
+  <link rel="stylesheet" href="./app.css" />
+</head>
+<body>
+  <header id="settings">
+    <label>Style <select id="style"></select></label>
+    <label>Ratio <select id="ratio"></select></label>
+    <label>Resolution <select id="resolution"></select></label>
+    <label>FPS <select id="fps"></select></label>
+    <label>Bands <input id="bands" type="number" min="8" max="96" step="1" /></label>
+    <span id="cost-warning" class="warning" hidden></span>
+    <button id="render" type="button">Render</button>
+  </header>
+
+  <main>
+    <section id="tracks">
+      <ol id="track-list"></ol>
+      <button id="add-track" type="button">+ Add track</button>
+    </section>
+
+    <section id="editor"></section>
+
+    <section id="preview" class="preview"></section>
+  </main>
+
+  <footer id="status" hidden></footer>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,695 @@
+controller:
+  adapter:
+    type: http-server
+    port: 8080
+    base_path: /api
+  webui:
+    driver: static
+    static_dir: ./webui
+    port: 8081
+
+workflows:
+  - id: render-playlist
+    title: YouTube Playlist Video
+    description: |
+      Render a whole playlist: each entry in `tracks` becomes its own clip
+      (by running the render-track sub-workflow once per track via a
+      for-each), then every clip is concatenated with ffmpeg into a single
+      final video. `style` picks which animation template (in
+      webui/render/) renders every track — currently just `waveform`; copy
+      a template to add another.
+    jobs:
+      - id: render-tracks
+        # Dispatches the render-track sub-workflow once per playlist
+        # entry, concurrently. ${item} is one entry from `tracks`.
+        type: for-each
+        # A mapping, not the bare list: the before-hook below needs the
+        # playlist-wide colours alongside the entries, and a hook only ever
+        # sees this job's own input. It still iterates a list — the hook
+        # returns one, and for-each decides what to iterate over *after* the
+        # before-hook has run.
+        input:
+          tracks: '${input.tracks as list | [{"youtube_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ", "cover_image": "./cover.jpg", "title": "Track 1", "artist": "Artist Name"}, {"youtube_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ", "cover_image": "./cover2.jpg", "title": "Track 2", "artist": "Artist Name"}]}'
+          main_color: ${input.main_color}
+          accent_color: ${input.accent_color}
+        hook:
+          before:
+            # for-each binds only ${item}, so a clip cannot see its
+            # neighbours from inside the loop. Their titles are stamped onto
+            # each entry here, while the list is still whole, and ride along
+            # as ordinary fields from then on. Absent at the ends of the
+            # playlist by design — the template draws the arrow alone rather
+            # than inventing a wrap-around.
+            #
+            # The colours are folded down the same way and for the same
+            # reason: `do.input` reads ${item.…}, which cannot see the
+            # workflow's own input, so a playlist-wide `main_color` /
+            # `accent_color` (the CLI override documented in the README) is
+            # stamped onto every entry that did not bring one of its own.
+            # Per-track wins; playlist-wide fills the rest; neither is
+            # invented when both are absent, so the palette derived from the
+            # cover still stands.
+            script: |
+              def hook(input, *, task_id, job_id, run_id, phase):
+                  tracks = list((input or {}).get("tracks") or [])
+                  playlist_colors = {
+                      "main_color": (input or {}).get("main_color"),
+                      "accent_color": (input or {}).get("accent_color"),
+                  }
+
+                  for index, track in enumerate(tracks):
+                      previous = tracks[index - 1] if index > 0 else None
+                      following = tracks[index + 1] if index + 1 < len(tracks) else None
+                      track["prev_title"] = (previous or {}).get("title") or ""
+                      track["next_title"] = (following or {}).get("title") or ""
+
+                      for key, fallback in playlist_colors.items():
+                          if not track.get(key):
+                              track[key] = fallback
+
+                  return tracks
+        do:
+          component: track-runner
+          input:
+            youtube_url: ${item.youtube_url}
+            # Defaulted here as well as in render-track, so an entry that
+            # omits a cover (or sends an explicit null, which is what the
+            # editor produces for a cover that has not resolved yet) reaches
+            # the sub-workflow as a path it can actually open instead of
+            # failing deep inside process-cover. See README's "Everything
+            # except youtube_url is optional".
+            cover_image: ${item.cover_image | ./cover.jpg}
+            title: ${item.title}
+            artist: ${item.artist}
+            prev_title: ${item.prev_title}
+            next_title: ${item.next_title}
+            fps: ${input.fps as select/24,30,60 | 30}
+            band_count: ${input.band_count as integer | 28}
+            # ${item.…}, not ${input.…}: a for-each registers `item` and
+            # `input` as separate sources, so reading the workflow input here
+            # would silently drop whatever the before-hook stamped onto the
+            # entry — which is every per-track colour the editor sends.
+            main_color: ${item.main_color}
+            accent_color: ${item.accent_color}
+            style: ${input.style as select/waveform | waveform}
+            width: ${input.width as integer | 1280}
+            height: ${input.height as integer | 720}
+
+      - id: concat-clips
+        # No component stitches multiple video clips together, so this
+        # job just carries the clip list through a trivial file-store
+        # 'exists' call and does the real work (drain each clip to a
+        # temp file, ffmpeg concat demuxer, -c copy since every clip
+        # comes from the same encoder settings) in the after-hook.
+        component: probe
+        input:
+          path: .
+          clips: ${jobs.render-tracks.output}
+        hook:
+          after:
+            script: |
+              async def hook(input, output, *, task_id, job_id, run_id, phase):
+                  import asyncio, os, tempfile
+                  from mindor.core.foundation.streaming.resources import save_stream_to_temporary_file
+
+                  clips = input["clips"]
+                  if not clips:
+                      raise ValueError("No tracks produced a clip to concatenate.")
+
+                  clip_paths = []
+                  for clip in clips:
+                      stream = clip.stream if hasattr(clip, "stream") else clip
+                      fmt = getattr(clip, "format", None) or "mp4"
+                      clip_paths.append(await save_stream_to_temporary_file(stream, fmt))
+
+                  list_fd, list_path = tempfile.mkstemp(suffix=".txt")
+                  os.close(list_fd)
+                  with open(list_path, "w", encoding="utf-8") as f:
+                      for p in clip_paths:
+                          f.write("file '{}'\n".format(p.replace("'", "'\\''")))
+
+                  out_fd, out_path = tempfile.mkstemp(suffix=".mp4")
+                  os.close(out_fd)
+
+                  command = ["ffmpeg", "-y", "-hide_banner", "-f", "concat", "-safe", "0", "-i", list_path, "-c", "copy", out_path]
+                  process = await asyncio.create_subprocess_exec(
+                      *command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+                  )
+                  _, stderr = await process.communicate()
+
+                  for p in clip_paths + [list_path]:
+                      try:
+                          os.remove(p)
+                      except FileNotFoundError:
+                          pass
+
+                  if process.returncode != 0:
+                      raise RuntimeError(
+                          "ffmpeg concat failed (exit {}): {}".format(
+                              process.returncode, stderr.decode("utf-8", errors="replace")
+                          )
+                      )
+
+                  return out_path
+        output: ${output as video;path}
+        depends_on: [ render-tracks ]
+
+      - id: publish
+        component: result-store
+        input:
+          source: ${jobs.concat-clips.output}
+        hook:
+          before:
+            script: |
+              def hook(input, *, task_id, job_id, run_id, phase):
+                  input["path"] = f"{task_id}.mp4"
+                  return input
+        output: ${output}
+        depends_on: [ concat-clips ]
+
+    output:
+      path: ${jobs.publish.output.path}
+      url: /output/${jobs.publish.output.path}
+
+  - id: render-track
+    private: true
+    title: Render Single Track (internal)
+    description: |
+      Renders one track's clip: audio is pulled with yt-dlp inside a job
+      hook (no core code involved), the cover art's dominant colors drive
+      the palette via another hook, and the extracted frequency spectrum
+      drives the animation. `style` selects which
+      webui/render/animation-*.html template renders the frame — currently
+      just `waveform`; every style gets the same props (cover, colors,
+      spectrum) and just uses what it needs. Used internally by
+      render-playlist (once per track) but can also be run directly for a
+      single track.
+    jobs:
+      - id: download-audio
+        # yt-dlp isn't a project component; it's invoked from a plain
+        # job hook so the rest of the pipeline can stay on existing
+        # components untouched. See README for the yt-dlp prerequisite.
+        component: downloader
+        input:
+          youtube_url: ${input.youtube_url}
+        hook:
+          before:
+            script: |
+              async def hook(input, *, task_id, job_id, run_id, phase):
+                  import asyncio, os, glob, shutil, tempfile, time
+                  import yt_dlp
+
+                  # Sweep scratch directories earlier runs left behind. This
+                  # cannot be an after-hook on this job, however much it looks
+                  # like one: the extractor below streams from the downloaded
+                  # file lazily, and save-audio is what actually pulls the
+                  # bytes through it, so a directory removed when this job
+                  # "finishes" is removed while ffmpeg still has the file open
+                  # — the render then dies with "No such file or directory" on
+                  # a path it was handed itself. Arrival is the one moment at
+                  # which an old directory is provably nobody's. The age guard
+                  # is what keeps a concurrent for-each from deleting a
+                  # sibling track's download out from under it: a live one is
+                  # minutes old at most, so only long-dead ones are touched.
+                  tmp_root = tempfile.gettempdir()
+                  cutoff = time.time() - 6 * 3600
+                  try:
+                      stale_names = os.listdir(tmp_root)
+                  except OSError:
+                      stale_names = []
+                  for name in stale_names:
+                      if not name.startswith("ytaudio_"):
+                          continue
+                      stale = os.path.join(tmp_root, name)
+                      try:
+                          if os.path.isdir(stale) and os.path.getmtime(stale) < cutoff:
+                              shutil.rmtree(stale, ignore_errors=True)
+                      except OSError:
+                          pass
+
+                  url = input["youtube_url"]
+                  tmp_dir = tempfile.mkdtemp(prefix="ytaudio_")
+                  outtmpl = os.path.join(tmp_dir, "audio.%(ext)s")
+
+                  def _download():
+                      ydl_opts = {
+                          "format": "bestaudio/best",
+                          "outtmpl": outtmpl,
+                          "noplaylist": True,
+                          "quiet": True,
+                          "no_warnings": True,
+                      }
+                      with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                          ydl.download([url])
+
+                  await asyncio.get_running_loop().run_in_executor(None, _download)
+
+                  downloaded = glob.glob(os.path.join(tmp_dir, "audio.*"))
+                  if not downloaded:
+                      raise RuntimeError(f"yt-dlp produced no output file for {url!r}")
+
+                  # Handed straight to the audio-extractor action below as a
+                  # local path; the framework wraps plain strings destined
+                  # for a media parameter into a file-backed resource.
+                  input["source"] = downloaded[0]
+                  return input
+        output: ${output}
+
+      - id: save-audio
+        # Persist once so 'spectrum' and 'encode' can each re-read it
+        # independently, same fan-out-via-file-store pattern as
+        # audio-spectrum-to-video. Path is keyed by this job run's own
+        # run_id (not just task_id) so concurrent tracks in a playlist
+        # for-each never collide on the same file.
+        component: audio-store
+        input:
+          source: ${jobs.download-audio.output}
+        hook:
+          before:
+            script: |
+              def hook(input, *, task_id, job_id, run_id, phase):
+                  input["path"] = f"{task_id}/{run_id}/audio.mp3"
+                  return input
+        output: ${output}
+        depends_on: [ download-audio ]
+
+      - id: spectrum
+        component: spectrum-extractor
+        input:
+          audio: ${jobs.save-audio.output.url as audio;url}
+          fps: ${input.fps as select/24,30,60 | 30}
+          band_count: ${input.band_count as integer | 28}
+        output: ${output as json}
+        depends_on: [ save-audio ]
+
+      - id: process-cover
+        # The palette and the base64 cover both come from cover-ingest, which
+        # is also what the GUI calls to compute its color defaults. One
+        # implementation, so a preview cannot disagree with a render.
+        component: cover-ingester
+        input:
+          # Same default as the playlist's own fallback list: a track with no
+          # cover is rendered against the example's bundled art rather than
+          # killing the run on a null path.
+          image: ${input.cover_image as image;path | ./cover.jpg}
+        output: ${output}
+
+      - id: frames
+        component: renderer
+        input:
+          title: ${input.title | Untitled}
+          artist: ${input.artist | Unknown Artist}
+          # Absent when this clip is first or last in the playlist, or when
+          # the track is rendered on its own. Left without a `|` default on
+          # purpose: the default segment has to match at least one character,
+          # so an empty one would not parse as "" — it resolves to null, and
+          # the template reads that as no neighbouring track.
+          prev_title: ${input.prev_title}
+          next_title: ${input.next_title}
+          cover: ${jobs.process-cover.output.data_uri}
+          colors: ${jobs.process-cover.output.colors}
+          main_color: ${input.main_color}
+          accent_color: ${input.accent_color}
+          spectrum: ${jobs.spectrum.output}
+          fps: ${input.fps as select/24,30,60 | 30}
+          style: ${input.style as select/waveform | waveform}
+          width: ${input.width as integer | 1280}
+          height: ${input.height as integer | 720}
+        hook:
+          before:
+            script: |
+              def hook(input, *, task_id, job_id, run_id, phase):
+                  colors = dict(input.get("colors") or {})
+                  if input.get("main_color"):
+                      colors["primary"] = input["main_color"]
+                  if input.get("accent_color"):
+                      colors["accent"] = input["accent_color"]
+                  input["colors"] = colors
+                  return input
+        output: ${output}
+        depends_on: [ spectrum, process-cover ]
+
+      - id: encode
+        component: encoder
+        input:
+          frames: ${jobs.frames.output}
+          frame_rate: ${input.fps as select/24,30,60 | 30}
+          audio: ${jobs.save-audio.output.url as audio;url}
+        output: ${output as video}
+        depends_on: [ frames ]
+
+  - id: cover-ingest
+    private: true
+    title: Ingest a Cover Image (internal)
+    description: |
+      Stores a cover image and derives everything the rest of the system
+      needs from it: a preview data URI and the palette. This is the only
+      implementation of the palette extraction — `process-cover` and the
+      GUI's color defaults both come through here, so the colors shown in
+      the browser are the colors the render uses.
+    jobs:
+      - id: store
+        component: cover-store
+        input:
+          source: ${input.image}
+        hook:
+          before:
+            # Keyed by run_id so concurrent ingests never collide. The
+            # extension is taken from the upload's content type when it
+            # exposes one, because file-store's `guess_content_type` reads
+            # the path, not the bytes.
+            script: |
+              def hook(input, *, task_id, job_id, run_id, phase):
+                  source = input.get("source")
+                  content_type = (getattr(source, "content_type", None) or "").lower()
+                  extension = {
+                      "image/png": "png",
+                      "image/webp": "webp",
+                      "image/gif": "gif",
+                  }.get(content_type, "jpg")
+                  input["path"] = f"covers/{run_id}.{extension}"
+                  return input
+        output: ${output}
+
+      - id: describe
+        component: cover-processor
+        input:
+          image: ${jobs.store.output.url as image;url}
+          width: 1000
+          height: 1000
+        hook:
+          after:
+            script: |
+              def hook(input, output, *, task_id, job_id, run_id, phase):
+                  import io, base64
+
+                  image = output.convert("RGB")
+
+                  buf = io.BytesIO()
+                  image.save(buf, format="JPEG", quality=88)
+                  image_base64 = "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode("ascii")
+
+                  swatch = image.resize((120, 120)).quantize(colors=6)
+                  palette = swatch.getpalette()
+                  counts = sorted(swatch.getcolors(), reverse=True)
+
+                  hexes = []
+                  for count, idx in counts:
+                      r, g, b = palette[idx * 3: idx * 3 + 3]
+                      hexes.append("#{:02x}{:02x}{:02x}".format(r, g, b))
+
+                  def brightness(hexcolor):
+                      r = int(hexcolor[1:3], 16)
+                      g = int(hexcolor[3:5], 16)
+                      b = int(hexcolor[5:7], 16)
+                      return (r * 299 + g * 587 + b * 114) / 1000
+
+                  primary = hexes[0] if hexes else "#111111"
+                  rest = hexes[1:] or ["#ffcc00"]
+                  rest_sorted = sorted(rest, key=brightness, reverse=(brightness(primary) < 128))
+                  accent = rest_sorted[0]
+                  secondary = rest_sorted[1] if len(rest_sorted) > 1 else accent
+                  text_color = "#111111" if brightness(primary) > 150 else "#f5f5f0"
+
+                  return {
+                      "image_base64": image_base64,
+                      "colors": {
+                          "primary": primary,
+                          "secondary": secondary,
+                          "accent": accent,
+                          "text": text_color,
+                      },
+                  }
+        output: ${output}
+        depends_on: [ store ]
+
+    output:
+      # `store`'s own `url` output is always a file:// URI — LocalFileStore
+      # builds it from the absolute filesystem path regardless of base_path,
+      # so no browser could ever fetch it. `path` and `url` are therefore
+      # built here by hand instead of taken verbatim from the store job,
+      # the same way render-playlist's own `output.url` is built below from
+      # `publish`'s path: cover-store's base_path is now inside the static
+      # web UI's document root (./webui, same root result-store writes
+      # finished videos into), so `path` is a filesystem path the server can
+      # open directly (what render-playlist's `cover_image` needs) and
+      # `/output/…` is the same file's browser-fetchable URL (what an
+      # <img src> needs) — two views of the one stored file, not two stores.
+      path: webui/output/${jobs.store.output.path}
+      url: /output/${jobs.store.output.path}
+      # Still needed here even though the browser no longer touches it: the
+      # renderer (below, via process-cover) is fed this same output and
+      # reads `data_uri` for `frames`' `cover` prop — Playwright renders
+      # webui/render/animation-*.html from disk, so it needs the bytes
+      # inline rather than a same-process URL to fetch.
+      data_uri: ${jobs.describe.output.image_base64}
+      colors: ${jobs.describe.output.colors}
+
+  - id: resolve-cover-defaults
+    title: Resolve Defaults from a Cover Image
+    description: |
+      Called by the web UI when the user supplies their own cover image.
+      Stores it and returns the same object shape as
+      resolve-youtube-defaults' `cover` field, so the UI has exactly one
+      code path for "the effective cover changed, re-derive the colors".
+    job:
+      component: cover-ingester
+      input:
+        image: ${input.cover_image as image;path}
+      output: ${output as json}
+
+  - id: resolve-youtube-defaults
+    title: Resolve Defaults from a YouTube Link
+    description: |
+      Everything the web UI can derive from a link alone: the video's
+      title and channel, and its thumbnail run through cover-ingest so the
+      palette comes from the same code a render uses. Metadata only — no
+      audio is downloaded, so this returns in about a second.
+    jobs:
+      - id: metadata
+        component: probe
+        input:
+          path: .
+          youtube_url: ${input.youtube_url}
+        hook:
+          after:
+            # extract_info(download=False) hits the watch page only. The
+            # thumbnail is fetched here rather than handed on as a URL so
+            # that cover-ingest sees bytes, exactly as it does for an
+            # uploaded file.
+            script: |
+              async def hook(input, output, *, task_id, job_id, run_id, phase):
+                  import asyncio, os, tempfile, urllib.request
+                  import yt_dlp
+
+                  url = input["youtube_url"]
+
+                  def _extract():
+                      ydl_opts = {
+                          "noplaylist": True,
+                          "quiet": True,
+                          "no_warnings": True,
+                          "skip_download": True,
+                      }
+                      with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                          return ydl.extract_info(url, download=False)
+
+                  info = await asyncio.get_running_loop().run_in_executor(None, _extract)
+
+                  thumbnail_url = info.get("thumbnail")
+                  if not thumbnail_url:
+                      thumbnails = info.get("thumbnails") or []
+                      thumbnail_url = thumbnails[-1]["url"] if thumbnails else None
+                  if not thumbnail_url:
+                      raise RuntimeError(f"No thumbnail available for {url!r}")
+
+                  def _download():
+                      fd, path = tempfile.mkstemp(suffix=".jpg", prefix="ytthumb_")
+                      os.close(fd)
+                      request = urllib.request.Request(
+                          thumbnail_url, headers={"User-Agent": "Mozilla/5.0"}
+                      )
+                      with urllib.request.urlopen(request) as response, open(path, "wb") as file:
+                          file.write(response.read())
+                      return path
+
+                  thumbnail_path = await asyncio.get_running_loop().run_in_executor(None, _download)
+
+                  return {
+                      "title": info.get("title") or "",
+                      "artist": info.get("uploader") or info.get("channel") or "",
+                      "thumbnail_path": thumbnail_path,
+                  }
+        output: ${output}
+
+      - id: cover
+        component: cover-ingester
+        input:
+          image: ${jobs.metadata.output.thumbnail_path as image;path}
+          thumbnail_path: ${jobs.metadata.output.thumbnail_path}
+        hook:
+          after:
+            # By now cover-ingest has copied the thumbnail's bytes into the
+            # file store; the local temp copy has done its job. This runs
+            # on every debounced URL edit, so it's removed here (best-effort
+            # — a cleanup failure must never fail a request whose real work
+            # already succeeded) rather than left to accumulate.
+            script: |
+              def hook(input, output, *, task_id, job_id, run_id, phase):
+                  import os
+
+                  try:
+                      os.remove(input["thumbnail_path"])
+                  except OSError:
+                      pass
+
+                  return output
+        output: ${output}
+        depends_on: [ metadata ]
+
+    output:
+      title: ${jobs.metadata.output.title}
+      artist: ${jobs.metadata.output.artist}
+      cover: ${jobs.cover.output}
+
+components:
+  - id: track-runner
+    type: workflow
+    action:
+      workflow: render-track
+      input:
+        youtube_url: ${input.youtube_url}
+        cover_image: ${input.cover_image | ./cover.jpg}
+        title: ${input.title}
+        artist: ${input.artist}
+        prev_title: ${input.prev_title}
+        next_title: ${input.next_title}
+        fps: ${input.fps}
+        band_count: ${input.band_count}
+        main_color: ${input.main_color}
+        accent_color: ${input.accent_color}
+        style: ${input.style}
+        width: ${input.width}
+        height: ${input.height}
+
+  - id: cover-ingester
+    type: workflow
+    action:
+      workflow: cover-ingest
+      input:
+        image: ${input.image}
+
+  - id: probe
+    type: file-store
+    driver: local
+    base_path: ./output
+    action:
+      method: exists
+      path: ${input.path}
+
+  - id: downloader
+    type: audio-extractor
+    action:
+      source: ${input.source}
+      format: mp3
+      encoding:
+        codec: libmp3lame
+        bitrate: 192k
+
+  - id: audio-store
+    type: file-store
+    driver: local
+    base_path: ./output
+    action:
+      method: put
+      path: ${input.path}
+      source: ${input.source}
+
+  - id: cover-store
+    # Same document root as result-store below, and for the same reason: a
+    # cover stored under ./output (outside ./webui) has no URL any browser
+    # could ever fetch, which is exactly why an uploaded cover's thumbnail
+    # used to go blank on reload. cover-ingest's output block builds both
+    # the server-relative path and the browser URL from this store's path.
+    type: file-store
+    driver: local
+    base_path: ./webui/output
+    action:
+      method: put
+      path: ${input.path}
+      source: ${input.source}
+
+  - id: result-store
+    # Separate from the ./output store on purpose: this one is inside the
+    # static web UI's document root, so the browser can play the finished
+    # video straight from :8081 without any extra route.
+    type: file-store
+    driver: local
+    base_path: ./webui/output
+    action:
+      method: put
+      path: ${input.path}
+      source: ${input.source}
+
+  - id: spectrum-extractor
+    type: audio-feature-extractor
+    action:
+      feature: spectrum
+      audio: ${input.audio}
+      fps: ${input.fps}
+      band_count: ${input.band_count}
+      min_frequency: 40.0
+      window_size: 2048
+      window_type: hann
+      frequency_scale: log
+      normalize_mode: peak-percentile
+
+  - id: cover-processor
+    type: image-processor
+    action:
+      method: resize
+      image: ${input.image}
+      width: ${input.width}
+      height: ${input.height}
+      scale_mode: fill
+
+  - id: renderer
+    type: html-frame-renderer
+    driver: playwright
+    headless: true
+    action:
+      # Everything visual lives in webui/render/ — this workflow only feeds it
+      # raw material (cover art, palette, spectrum) and never processes
+      # pixels itself. That keeps the templates the single source of truth
+      # for how a frame looks: open webui/render/animation-<style>.html straight
+      # in a browser and you get a live preview running the exact same
+      # code path this renderer will run. See webui/render/common.js.
+      html: ./webui/render/animation-${input.style | waveform}.html
+      fps: ${input.fps}
+      width: ${input.width as integer | 1280}
+      height: ${input.height as integer | 720}
+      props:
+        title: ${input.title}
+        artist: ${input.artist}
+        prev_title: ${input.prev_title}
+        next_title: ${input.next_title}
+        cover: ${input.cover}
+        colors: ${input.colors}
+        spectrum: ${input.spectrum}
+        width: ${input.width}
+        height: ${input.height}
+      streaming: true
+      output: ${result[].image}
+
+  - id: encoder
+    type: video-encoder
+    driver: ffmpeg
+    action:
+      frames: ${input.frames}
+      frame_rate: ${input.frame_rate}
+      audio: ${input.audio}
+      encoding:
+        format: mp4
+        video:
+          codec: libx264
+          bitrate: 4M

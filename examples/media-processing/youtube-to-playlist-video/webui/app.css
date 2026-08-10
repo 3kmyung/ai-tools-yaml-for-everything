@@ -1,0 +1,80 @@
+:root { color-scheme: dark; }
+body { margin: 0; font: 14px/1.5 system-ui, sans-serif; background: #16171a; color: #e8e8ea; }
+
+.field { display: grid; grid-template-columns: 110px 1fr; gap: 12px; align-items: start; margin-bottom: 10px; }
+.field-label { color: #9aa0a6; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;
+  padding-top: 8px; }
+/* flex-wrap is the load-bearing rule here: a native <input type="file">
+   cannot shrink below its own intrinsic content width (unlike the text/url
+   inputs, which opt into shrinking via min-width: 0 below), and that
+   intrinsic width plus the thumbnail and revert button does not fit in the
+   editor column's ~218px of available row width. Wrapping the file input
+   onto its own line, rather than trying to force it to shrink, keeps the
+   revert button reachable regardless of filename length instead of
+   depending on truncation of browser-native chrome this stylesheet has no
+   access to. */
+/* min-width: 0 here is the other load-bearing rule: .field-control is
+   itself a grid item of `.field`'s 1fr column, and a grid item's automatic
+   minimum width defaults to its content's max-content size -- so without
+   this, the column would grow to fit the file input's intrinsic width
+   instead of the file input wrapping inside a column held to 1fr. */
+.field-control { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; row-gap: 6px; min-width: 0; }
+.field-control input[type="text"],
+.field-control input[type="url"] { flex: 1 1 auto; min-width: 0; padding: 7px 10px; border: 1px solid #33353a;
+  border-radius: 6px; background: #1d1e22; color: inherit; font: inherit; }
+.field-control input[type="color"] { flex: none; width: 38px; height: 30px; padding: 0; border: 1px solid #33353a;
+  border-radius: 6px; background: none; }
+.field-hex { flex: none; font: 12px ui-monospace, monospace; color: #9aa0a6; }
+.field-thumb { flex: none; width: 40px; height: 40px; object-fit: cover; border-radius: 6px; background: #23252a; }
+/* The file input is capped rather than left to size itself: an unconstrained
+   native file control is wider than the whole editor column once it wraps
+   onto its own line, and a long filename widens it further still. Capping
+   it to the row's full width and clipping keeps a pathological filename
+   from ever pushing the revert button out again. */
+.field-control input[type="file"] { flex: 1 1 100%; min-width: 0; max-width: 100%; overflow: hidden; }
+
+/* Derived, not typed. Applies to the whole control so the color swatch and
+   the thumbnail read the same way the text inputs do. */
+.field-control.is-default input,
+.field-control.is-default .field-hex { color: #7f858c; font-style: italic; }
+.field-control.is-default input[type="color"] { opacity: 0.7; }
+
+.field-revert { flex: none; width: 28px; height: 28px; border: 1px solid #33353a; border-radius: 6px;
+  background: #1d1e22; color: #c8ccd1; cursor: pointer; font-size: 14px; line-height: 1; }
+.field-revert:disabled { opacity: 0.3; cursor: default; }
+
+.preview { display: flex; align-items: center; justify-content: center; overflow: hidden;
+  background: #000; border-radius: 10px; min-height: 320px; }
+.preview-frame { border: 0; flex: 0 0 auto; transform-origin: center center; }
+
+#settings { display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  padding: 12px 18px; border-bottom: 1px solid #2a2c31; background: #1b1c20; }
+#settings label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #9aa0a6; }
+#settings select, #settings input { padding: 5px 8px; border: 1px solid #33353a; border-radius: 6px;
+  background: #1d1e22; color: #e8e8ea; font: inherit; }
+#settings #bands { width: 64px; }
+#render { margin-left: auto; padding: 7px 18px; border: 0; border-radius: 6px;
+  background: #3b6cf6; color: #fff; font-weight: 600; cursor: pointer; }
+.warning { color: #fbbf24; font-size: 12px; }
+
+main { display: grid; grid-template-columns: 240px 340px 1fr; gap: 18px; padding: 18px; align-items: start; }
+
+#track-list { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.track { display: flex; align-items: center; gap: 10px; padding: 7px 9px; border-radius: 8px;
+  background: #1d1e22; border: 1px solid transparent; cursor: pointer; }
+.track.is-selected { border-color: #3b6cf6; }
+.track-thumb { width: 32px; height: 32px; object-fit: cover; border-radius: 5px; background: #26282d; }
+.track-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.track-remove { border: 0; background: none; color: #7f858c; cursor: pointer; font-size: 16px; }
+#add-track { width: 100%; padding: 7px; border: 1px dashed #3a3d43; border-radius: 8px;
+  background: none; color: #9aa0a6; cursor: pointer; }
+
+.empty { color: #7f858c; }
+#status { padding: 10px 18px; border-top: 1px solid #2a2c31; background: #1b1c20; font-size: 13px; }
+#preview { height: 60vh; }
+
+.status-cancel { margin-left: 12px; padding: 3px 10px; border: 1px solid #33353a; border-radius: 5px;
+  background: #1d1e22; color: #c8ccd1; cursor: pointer; }
+.status-cancel:disabled { opacity: 0.5; cursor: default; }
+.status-video { display: block; margin-top: 10px; max-width: 480px; border-radius: 8px; }
+#status a { color: #7aa2ff; }
