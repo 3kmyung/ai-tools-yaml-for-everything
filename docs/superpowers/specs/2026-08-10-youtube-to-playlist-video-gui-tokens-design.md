@@ -34,10 +34,10 @@ reinvented: `--bg`, `--bg-elevated`, `--bg-sunken`, `--border`, `--text`,
 `--text-muted`, `--accent`, `--warning`, plus `--link` (`#status a`'s color,
 the one remaining value only ever used once).
 
-**Typography** — the current 11/12/13/14/16px spread collapses to a 4-step
-scale: `--text-xs` (11px), `--text-sm` (12px), `--text-base` (14px),
-`--text-lg` (16px). Every font-size declaration in the file maps to one of
-these four.
+**Typography** — the file only ever uses 12/13/14/16px, and 13px
+(`#status`) is the sole outlier — everything else is already 12, 14, or 16.
+Collapses to a 3-step scale: `--text-sm` (12px), `--text-base` (14px),
+`--text-lg` (16px), with `#status` rounding 13px up to `--text-base`.
 
 **Spacing** — a 5-step scale (`--space-1` 4px … `--space-5` 24px) that the
 current padding/gap values (currently anywhere from 6px to 18px) round to.
