@@ -332,7 +332,7 @@ components:
     driver: playwright
     headless: true
     action:
-      html: ./ui/render/animation-${input.style | minimal}.html
+      html: ./ui/templates/${input.style | minimal}.html
       fps: ${input.fps}
       width: ${input.width as integer | 1280}
       height: ${input.height as integer | 720}
