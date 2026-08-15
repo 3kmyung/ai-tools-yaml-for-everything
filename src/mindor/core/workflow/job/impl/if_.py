@@ -3,6 +3,7 @@ from mindor.dsl.schema.job import IfJobConfig
 from mindor.core.component import ComponentGlobalConfigs
 from mindor.core.foundation.condition import evaluate_condition
 from mindor.core.logger import logging
+from mindor.core.logger.payload import loggable
 from ..base import Job, JobType, JobContext, RoutingTarget, register_job
 import asyncio
 
@@ -22,7 +23,7 @@ class IfJob(Job):
         for condition in self.config.conditions:
             value = await context.render_variable(None, condition.value)
 
-            logging.debug("[task-%s] Evaluating condition: %s %s %s", context.workflow.task_id, input, condition.operator, value)
+            logging.debug("[task-%s] Evaluating condition: %s %s %s", context.workflow.task_id, loggable(input), condition.operator, loggable(value))
 
             if evaluate_condition(condition.operator, input, value):
                 if condition.if_true:
