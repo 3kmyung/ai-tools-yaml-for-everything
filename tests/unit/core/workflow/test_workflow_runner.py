@@ -641,3 +641,46 @@ class TestScheduleJobEdgeCases:
         ta.cancel()
         tb.cancel()
         assert counts == {"A": 1, "B": 1}
+
+
+class TestDebugPayloadLogging:
+    """Media payloads move between jobs as `bytes`; debug logs must summarize them."""
+
+    def _capture_debug(self, monkeypatch) -> List[str]:
+        messages: List[str] = []
+
+        def _debug(message: str, *args, **kwargs) -> None:
+            messages.append(message % args)
+
+        monkeypatch.setattr(workflow_module.logging, "debug", _debug)
+        return messages
+
+    @pytest.mark.anyio
+    async def test_binary_job_output_is_not_dumped(self, monkeypatch):
+        messages = self._capture_debug(monkeypatch)
+        cfg = {"only": make_job_config("only")}
+        job = make_job("only", [{"image": b"\x89PNG\r\n\x1a\n" + b"\xff" * 4096}], cfg["only"])
+        install_rewind_scripts(monkeypatch, {})
+
+        await make_runner(cfg)._run_jobs(make_context(), {"only": job}, {})
+
+        output_messages = [m for m in messages if "output:" in m]
+        assert output_messages == ["[task-test-task] Job 'only:wf' output: {'image': <bytes 4.0 KB>}"]
+
+    @pytest.mark.anyio
+    async def test_binary_job_input_is_not_dumped(self, monkeypatch):
+        messages = self._capture_debug(monkeypatch)
+        cfg = {"only": make_job_config("only")}
+        class StartingJob(ScriptedJob):
+            async def _run(self, context) -> Any:
+                await self._started({"source": b"\xff" * 2048})
+                return await super()._run(context)
+
+        job = StartingJob("only", ["done"])
+        job.config = cfg["only"]
+        install_rewind_scripts(monkeypatch, {})
+
+        await make_runner(cfg)._schedule_job(job, make_context(), {})
+
+        input_messages = [m for m in messages if "input:" in m]
+        assert input_messages == ["[task-test-task] Job 'only:wf' input: {'source': <bytes 2.0 KB>}"]

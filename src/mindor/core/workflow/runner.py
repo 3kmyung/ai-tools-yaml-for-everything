@@ -5,6 +5,7 @@ from mindor.core.component import ComponentGlobalConfigs
 from mindor.core.foundation.streaming.iterators import StreamIterator
 from mindor.core.utils.time import TimeTracker
 from mindor.core.logger import logging
+from mindor.core.logger.payload import loggable
 from mindor.core.tracer import tracing
 from .context import WorkflowContext
 from .job import Job, RoutingTarget, create_job
@@ -233,7 +234,7 @@ class WorkflowRunner:
                         )
                         tracing.on_job_end(context.task_id, completed_job_id, self.id, completed_job_output, job_elapsed)
                         logging.info("[task-%s] Job '%s:%s' completed in %.2f seconds.", context.task_id, completed_job_id, self.id, job_elapsed)
-                        logging.debug("[task-%s] Job '%s:%s' output: %s", context.task_id, completed_job_id, self.id, completed_job_output)
+                        logging.debug("[task-%s] Job '%s:%s' output: %s", context.task_id, completed_job_id, self.id, loggable(completed_job_output))
 
                     if self._is_terminal_job(completed_job_id):
                         if isinstance(output, dict) and isinstance(completed_job_output, dict):
@@ -277,7 +278,7 @@ class WorkflowRunner:
             )
             tracing.on_job_start(context.task_id, job_id, self.id, input)
             logging.info("[task-%s] Job '%s:%s' started.", context.task_id, job_id, self.id)
-            logging.debug("[task-%s] Job '%s:%s' input: %s", context.task_id, job_id, self.id, input)
+            logging.debug("[task-%s] Job '%s:%s' input: %s", context.task_id, job_id, self.id, loggable(input))
 
         return asyncio.create_task(job.run(
             JobContext(context, job.id, is_terminal=self._is_terminal_job(job.id)),
