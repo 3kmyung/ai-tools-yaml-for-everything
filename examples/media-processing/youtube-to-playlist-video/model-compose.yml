@@ -1,0 +1,354 @@
+controller:
+  adapter:
+    type: http-server
+    port: 8080
+    base_path: /api
+  webui:
+    driver: static
+    static_dir: ./ui
+    port: 8081
+
+logger:
+  type: console
+  level: debug
+
+workflows:
+  - id: render-playlist
+    title: YouTube Playlist Video
+    description: |
+      Turn a list of YouTube links into one continuous video. Every track
+      becomes an animated clip carrying its own cover art at an even
+      listening volume, and the clips play back to back in the order you
+      listed them.
+    jobs:
+      - id: render-tracks
+        type: for-each
+        batch_size: 2
+        input:
+          "*": ${input.tracks as list}
+          "...": ${item}
+          track_index: ${index}
+        do:
+          component: per-track-runner
+          input:
+            youtube_url: ${item.youtube_url}
+            cover_image: ${item.cover_image}
+            title: ${item.title}
+            artist: ${item.artist}
+            track_index: ${item.track_index}
+            fps: ${input.fps as select/24,30,60 | 30}
+            band_count: ${input.band_count as integer | 18}
+            colors: ${item.colors}
+            style: ${input.style as select/minimal,waveform,split | minimal}
+            width: ${input.width as integer | 1280}
+            height: ${input.height as integer | 720}
+
+      - id: merge
+        component: video-merger
+        input:
+          video: ${jobs.render-tracks.output[*].video}
+        depends_on: [ render-tracks ]
+
+      - id: publish
+        component: result-store
+        input:
+          source: ${jobs.merge.output}
+          path: ${context.task_id}.mp4
+        output: ${output}
+        depends_on: [ merge ]
+
+    output:
+      path: ${jobs.publish.output.path}
+      url: /.output/${jobs.publish.output.path}
+
+  - id: render-track
+    private: true
+    title: Render Single Track (internal)
+    description: |
+      Render one track into an animated video clip, using its audio and
+      cover art to drive the visuals.
+    jobs:
+      - id: fetch-audio
+        component: youtube-audio-fetcher
+        input:
+          youtube_url: ${input.youtube_url}
+
+      - id: normalize-audio
+        component: loudness-normalizer
+        input:
+          audio: ${jobs.fetch-audio.output}
+        output: ${output}
+        depends_on: [ fetch-audio ]
+
+      - id: encode-audio
+        component: audio-encoder
+        input:
+          audio: ${jobs.normalize-audio.output}
+        output: ${output}
+        depends_on: [ normalize-audio ]
+
+      - id: save-audio
+        component: audio-store
+        input:
+          source: ${jobs.encode-audio.output}
+          task_id: ${context.task_id}
+        output: ${output}
+        depends_on: [ encode-audio ]
+
+      - id: extract-spectrum
+        component: spectrum-extractor
+        input:
+          audio: ${jobs.save-audio.output.url as audio;url}
+          fps: ${input.fps as select/24,30,60 | 30}
+          band_count: ${input.band_count as integer | 18}
+        output: ${output as json}
+        depends_on: [ save-audio ]
+
+      - id: process-cover
+        component: cover-ingester
+        input:
+          image: ${input.cover_image as image;path | ./ui/render/blank.png}
+        output: ${output}
+
+      - id: render-frames
+        component: renderer
+        input:
+          title: ${input.title | Untitled}
+          artist: ${input.artist | Unknown Artist}
+          track_index: ${input.track_index}
+          cover:
+            "?":
+              input: ${input.cover_image}
+              operator: neq
+              value: null
+              if_true: ${jobs.process-cover.output.url}
+          colors:
+            "?":
+              input: ${input.colors}
+              operator: neq
+              value: null
+              if_true: ${input.colors}
+              if_false: { primary: "#111111", secondary: "#2a2a2a", accent: "#ffffff", text: "#f5f5f5" }
+          spectrum: ${jobs.extract-spectrum.output}
+          fps: ${input.fps as select/24,30,60 | 30}
+          style: ${input.style as select/minimal,waveform,split | minimal}
+          width: ${input.width as integer | 1280}
+          height: ${input.height as integer | 720}
+        output: ${output}
+        depends_on: [ extract-spectrum, process-cover ]
+
+      - id: encode
+        component: encoder
+        input:
+          frames: ${jobs.render-frames.output}
+          frame_rate: ${input.fps as select/24,30,60 | 30}
+          audio: ${jobs.save-audio.output.url as audio;url}
+        output: ${output as video}
+        depends_on: [ render-frames ]
+
+    output:
+      video: ${jobs.encode.output}
+      track_index: ${input.track_index}
+
+  - id: cover-ingest
+    private: true
+    title: Ingest a Cover Image (internal)
+    description: |
+      Store a cover image and derive everything needed to preview and
+      render it.
+    jobs:
+      - id: normalize
+        component: cover-normalizer
+        input:
+          image: ${input.image}
+        output: ${output}
+
+      - id: store
+        component: cover-store
+        input:
+          source: ${jobs.normalize.output}
+        output: ${output}
+        depends_on: [ normalize ]
+
+    output:
+      path: ui/.output/${jobs.store.output.path}
+      url: /.output/${jobs.store.output.path}
+
+  - id: resolve-cover-defaults
+    title: Resolve Defaults from a Cover Image
+    description: |
+      Resolve preview and color defaults from a cover image the user
+      uploads directly.
+    job:
+      component: cover-ingester
+      input:
+        image: ${input.cover_image as image;path}
+      output: ${output as json}
+
+  - id: resolve-youtube-defaults
+    title: Resolve Defaults from a YouTube Link
+    description: |
+      Resolve a track's title, artist, and color defaults from a YouTube
+      link alone. Audio isn't downloaded, so it responds in about a
+      second.
+    jobs:
+      - id: fetch-metadata
+        component: youtube-metadata-fetcher
+        input:
+          youtube_url: ${input.youtube_url}
+
+      - id: ingest-cover
+        component: cover-ingester
+        input:
+          image: ${jobs.fetch-metadata.output.thumbnail}
+        output: ${output}
+        depends_on: [ fetch-metadata ]
+
+    output:
+      title: ${jobs.fetch-metadata.output.title}
+      artist: ${jobs.fetch-metadata.output.artist}
+      cover: ${jobs.ingest-cover.output}
+
+components:
+  - id: per-track-runner
+    type: workflow
+    action:
+      workflow: render-track
+      input:
+        youtube_url: ${input.youtube_url}
+        cover_image: ${input.cover_image}
+        title: ${input.title}
+        artist: ${input.artist}
+        track_index: ${input.track_index}
+        fps: ${input.fps}
+        band_count: ${input.band_count}
+        colors: ${input.colors}
+        style: ${input.style}
+        width: ${input.width}
+        height: ${input.height}
+
+  - id: cover-ingester
+    type: workflow
+    action:
+      workflow: cover-ingest
+      input:
+        image: ${input.image}
+
+  - id: youtube-audio-fetcher
+    type: youtube-audio-fetcher
+    driver: yt-dlp
+    action:
+      youtube_url: ${input.youtube_url}
+
+  - id: loudness-normalizer
+    type: audio-processor
+    driver: native
+    action:
+      method: normalize
+      mode: lufs
+      audio: ${input.audio}
+      level: -14.0
+      true_peak_ceiling: -1.0
+
+  - id: audio-encoder
+    type: audio-converter
+    driver: ffmpeg
+    action:
+      audio: ${input.audio}
+      format: mp3
+      encoding:
+        codec: libmp3lame
+        bitrate: 192k
+
+  - id: audio-store
+    type: file-store
+    driver: local
+    base_path: ./.output
+    action:
+      method: put
+      path: ${input.task_id}/${context.run_id}/audio.mp3
+      source: ${input.source}
+
+  - id: video-merger
+    type: video-merger
+    driver: ffmpeg
+    action:
+      video: ${input.video}
+
+  - id: youtube-metadata-fetcher
+    type: youtube-metadata-fetcher
+    driver: yt-dlp
+    action:
+      youtube_url: ${input.youtube_url}
+
+  - id: cover-store
+    type: file-store
+    driver: local
+    base_path: ./ui/.output
+    action:
+      method: put
+      path: ${context.run_id}.png
+      source: ${input.source}
+
+  - id: cover-normalizer
+    type: image-processor
+    action:
+      method: compress
+      image: ${input.image}
+      strategy: lossless
+
+  - id: result-store
+    type: file-store
+    driver: local
+    base_path: ./ui/.output
+    action:
+      method: put
+      path: ${input.path}
+      source: ${input.source}
+
+  - id: spectrum-extractor
+    type: audio-feature-extractor
+    action:
+      feature: spectrum
+      audio: ${input.audio}
+      fps: ${input.fps}
+      band_count: ${input.band_count}
+      min_frequency: 40.0
+      window_size: 2048
+      window_type: hann
+      frequency_scale: log
+      normalize_mode: peak-percentile
+
+  - id: renderer
+    type: html-frame-renderer
+    driver: playwright
+    headless: true
+    action:
+      html: ./ui/render/animation-${input.style | minimal}.html
+      fps: ${input.fps}
+      width: ${input.width as integer | 1280}
+      height: ${input.height as integer | 720}
+      props:
+        title: ${input.title}
+        artist: ${input.artist}
+        track_index: ${input.track_index}
+        cover: ${input.cover}
+        colors: ${input.colors}
+        spectrum: ${input.spectrum}
+        width: ${input.width}
+        height: ${input.height}
+      streaming: true
+      output: ${result[].image}
+
+  - id: encoder
+    type: video-encoder
+    driver: ffmpeg
+    action:
+      frames: ${input.frames}
+      frame_rate: ${input.frame_rate}
+      audio: ${input.audio}
+      encoding:
+        format: mp4
+        video:
+          codec: libx264
+          bitrate: 8M
