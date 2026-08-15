@@ -104,11 +104,24 @@ workflows:
         output: ${output as json}
         depends_on: [ save-audio ]
 
+      - id: check-cover
+        type: if
+        input: ${input.cover_image}
+        operator: neq
+        value: null
+        if_true: process-cover
+        if_false: skip-cover
+
       - id: process-cover
         component: cover-ingester
         input:
-          image: ${input.cover_image as image;path | ./ui/render/blank.png}
+          image: ${input.cover_image as image;path}
         output: ${output}
+
+      - id: skip-cover
+        type: filter
+        input: null
+        output: null
 
       - id: render-frames
         component: renderer
@@ -116,12 +129,7 @@ workflows:
           title: ${input.title | Untitled}
           artist: ${input.artist | Unknown Artist}
           track_index: ${input.track_index}
-          cover:
-            "?":
-              input: ${input.cover_image}
-              operator: neq
-              value: null
-              if_true: ${jobs.process-cover.output.url}
+          cover: ${jobs.process-cover.output.url}
           colors:
             "?":
               input: ${input.colors}
@@ -135,7 +143,7 @@ workflows:
           width: ${input.width as integer | 1280}
           height: ${input.height as integer | 720}
         output: ${output}
-        depends_on: [ extract-spectrum, process-cover ]
+        depends_on: [ extract-spectrum, [ process-cover, skip-cover ] ]
 
       - id: encode
         component: encoder
