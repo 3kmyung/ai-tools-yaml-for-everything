@@ -1,0 +1,27 @@
+:root {
+  --font-label: "Noto Sans", "Noto Sans KR", "Noto Sans SC", "Noto Sans JP", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+#stage {
+  position: relative;
+  width: var(--stage-w, 1280px);
+  height: var(--stage-h, 720px);
+  background: var(--primary, #ffffff);
+  overflow: hidden;
+}
