@@ -18,10 +18,10 @@ body {
   background: #ffffff;
 }
 
-#stage {
+#screen {
   position: relative;
-  width: var(--stage-w, 1280px);
-  height: var(--stage-h, 720px);
+  width: var(--screen-width, 1280px);
+  height: var(--screen-height, 720px);
   background: var(--primary, #ffffff);
   overflow: hidden;
 }
