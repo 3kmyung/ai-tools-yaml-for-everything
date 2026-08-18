@@ -53,7 +53,7 @@ workflows:
 
       - id: render-tracks
         type: for-each
-        batch_size: 2
+        batch_size: 6
         input:
           "*": ${input.tracks as list}
           "...": ${item}
