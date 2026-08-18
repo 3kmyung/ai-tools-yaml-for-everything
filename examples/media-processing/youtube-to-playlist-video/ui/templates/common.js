@@ -27,7 +27,7 @@
 
   const FALLBACK_RATIO = DEFAULT_RENDER_SETTINGS.ratio;
   const FALLBACK_FPS = DEFAULT_RENDER_SETTINGS.fps;
-  const FALLBACK_DURATION_SECONDS = 5.0;
+  const FALLBACK_DURATION_SECONDS = 60.0;
 
   const ROOT_FONT_DIVISOR = 45;
 
@@ -124,17 +124,59 @@
     return spec;
   }
 
+  function hash(n) {
+    const x = Math.sin(n * 12.9898) * 43758.5453;
+    return x - Math.floor(x);
+  }
+
+  function loopedNoise(x, period) {
+    const i = Math.floor(x);
+    const f = x - i;
+    const u = f * f * (3 - 2 * f);
+    const i0 = ((i % period) + period) % period;
+    const i1 = (i0 + 1) % period;
+    return hash(i0) * (1 - u) + hash(i1) * u;
+  }
+
+  function bandNoise(band, x, period) {
+    return loopedNoise(x + band * 17.37, period);
+  }
+
+  function mockBandShape(band) {
+    return Math.pow(0.85, band) + 0.08;
+  }
+
   function buildMockSpectrum(bandCount, fps, duration) {
     const frames = [];
+
+    const beatsPerLoop = Math.max(1, Math.round(duration / 0.5));
+    const beatSeconds = duration / beatsPerLoop;
+    const swellCyclesPerLoop = Math.max(1, Math.round(duration / 18));
+    const swellHz = swellCyclesPerLoop / duration;
+    const wobblePeriod = Math.max(4, Math.round(duration * 6));
+    const flickerPeriod = Math.max(4, Math.round(duration * 26));
+    const wobbleCellsPerSecond = wobblePeriod / duration;
+    const flickerCellsPerSecond = flickerPeriod / duration;
 
     for (let frame = 0; frame < duration * fps; frame++) {
       const t = frame / fps;
       const row = [];
 
+      const kickPhase = (t % beatSeconds) / beatSeconds;
+      const hatPhase = ((t + beatSeconds / 2) % beatSeconds) / beatSeconds;
+      const kick = Math.exp(-kickPhase * 9);
+      const hat = Math.exp(-hatPhase * 14);
+      const swell = 0.6 + 0.4 * (Math.sin(2 * Math.PI * swellHz * t) * 0.5 + 0.5);
+
       for (let band = 0; band < bandCount; band++) {
-        const sweep = Math.sin(t * 2.4 + band * 0.5) * 0.5 + 0.5;
-        const wobble = Math.sin(t * 7 + band) * 0.15;
-        row.push(clamp(sweep * 0.8 + wobble + 0.1, 0, 1));
+        const shape = mockBandShape(band);
+        const kickPull = kick * Math.exp(-band / (bandCount * 0.3 + 1));
+        const hatPull = hat * (1 - Math.exp(-band / (bandCount * 0.4 + 1))) * 0.6;
+        const wobble = (bandNoise(band, t * wobbleCellsPerSecond, wobblePeriod) - 0.5) * 0.35 * shape;
+        const flicker = (bandNoise(band, t * flickerCellsPerSecond + 500, flickerPeriod) - 0.5) * 0.12;
+
+        const level = shape * swell * (0.35 + 0.65 * (kickPull + hatPull)) + wobble + flicker;
+        row.push(clamp(level, 0, 1));
       }
 
       frames.push(row);
