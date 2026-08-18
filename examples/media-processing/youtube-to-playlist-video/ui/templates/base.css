@@ -19,6 +19,9 @@ body {
 
 #screen {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: var(--screen-width, 1280px);
   height: var(--screen-height, 720px);
   background: var(--primary, #ffffff);
