@@ -3,12 +3,11 @@
 
   const BAR_WIDTH_EM = 0.1;
   const BAR_GAP_EM = 0.05;
-  const BAR_MIN_HEIGHT = 4;
+  const BAR_MIN_HEIGHT_EM = 0.1;
   const SMOOTHING_WINDOW_SECONDS = 0.3;
   const SUPERSAMPLE = 2;
 
   const context = await Renderer.createHostedContext({
-    duration: 4,
     bandCount: BAR_COUNT,
     colors: Object.fromEntries(
       window.STYLE_COLOR_ROLES.minimal.map((role) => [role, window.DEFAULT_TRACK_COLORS[role]])
@@ -37,6 +36,7 @@
   const barFill = canvasStyle.getPropertyValue("--muted").trim();
   const barWidth = BAR_WIDTH_EM * anchor;
   const slot = barWidth + BAR_GAP_EM * anchor;
+  const barMinHeight = BAR_MIN_HEIGHT_EM * anchor;
 
   const artistStyle = getComputedStyle(artistElement);
   canvasContext.font =
@@ -57,7 +57,7 @@
     canvasContext.fillStyle = barFill;
     for (let band = 0; band < context.bandCount; band++) {
       const value = Math.min(1, frame[band] || 0);
-      const barHeight = Math.max(BAR_MIN_HEIGHT, value * canvasView.height);
+      const barHeight = Math.max(barMinHeight, value * canvasView.height);
       canvasContext.fillRect(
         (context.bandCount - 1 - band) * slot,
         canvasView.height - barHeight,
