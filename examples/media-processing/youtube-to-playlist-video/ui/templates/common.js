@@ -63,8 +63,8 @@
     let nearestDistance = Infinity;
 
     Object.keys(SCREEN_RATIOS).forEach((name) => {
-      const spec = SCREEN_RATIOS[name];
-      const distance = Math.abs(spec.width / spec.height - aspect);
+      const screen = SCREEN_RATIOS[name];
+      const distance = Math.abs(screen.width / screen.height - aspect);
       if (distance < nearestDistance) {
         nearestDistance = distance;
         nearestName = name;
@@ -82,64 +82,64 @@
 
     return {
       ratio: name,
-      orient: logical.orient,
+      orientation: logical.orientation,
       width: logical.width,
       height: logical.height,
       scale: width ? width / logical.width : 1,
     };
   }
 
-  function sizeScreenToLogicalUnits(screenEl, spec) {
-    const shortSide = Math.min(spec.width, spec.height);
+  function sizeScreenToLogicalUnits(screenElement, screen) {
+    const shortSide = Math.min(screen.width, screen.height);
     document.documentElement.style.fontSize = shortSide / ROOT_FONT_DIVISOR + "px";
 
-    screenEl.style.setProperty("--screen-width", spec.width + "px");
-    screenEl.style.setProperty("--screen-height", spec.height + "px");
-    screenEl.style.width = spec.width + "px";
-    screenEl.style.height = spec.height + "px";
-    screenEl.style.transformOrigin = "0 0";
-    screenEl.setAttribute("data-ratio", spec.ratio);
-    screenEl.setAttribute("data-orient", spec.orient);
+    screenElement.style.setProperty("--screen-width", screen.width + "px");
+    screenElement.style.setProperty("--screen-height", screen.height + "px");
+    screenElement.style.width = screen.width + "px";
+    screenElement.style.height = screen.height + "px";
+    screenElement.style.transformOrigin = "0 0";
+    screenElement.setAttribute("data-ratio", screen.ratio);
+    screenElement.setAttribute("data-orientation", screen.orientation);
   }
 
-  function scaleScreenToOutputResolution(screenEl, spec) {
+  function scaleScreenToOutputResolution(screenElement, screen) {
     [document.documentElement, document.body].forEach((element) => {
-      element.style.width = spec.width * spec.scale + "px";
-      element.style.height = spec.height * spec.scale + "px";
+      element.style.width = screen.width * screen.scale + "px";
+      element.style.height = screen.height * screen.scale + "px";
       element.style.margin = "0";
       element.style.overflow = "hidden";
     });
-    screenEl.style.transform = "scale(" + spec.scale + ")";
+    screenElement.style.transform = "scale(" + screen.scale + ")";
   }
 
-  function createScreen(ctx) {
-    const screenEl = document.getElementById("screen");
-    const spec = ctx.screen;
+  function createScreen(context) {
+    const screenElement = document.getElementById("screen");
+    const screen = context.screen;
 
-    if (!screenEl) return spec;
+    if (!screenElement) return screen;
 
-    sizeScreenToLogicalUnits(screenEl, spec);
-    if (ctx.isEngineDriven) scaleScreenToOutputResolution(screenEl, spec);
+    sizeScreenToLogicalUnits(screenElement, screen);
+    if (context.isEngineDriven) scaleScreenToOutputResolution(screenElement, screen);
 
-    return spec;
+    return screen;
   }
 
-  function hash(n) {
-    const x = Math.sin(n * 12.9898) * 43758.5453;
-    return x - Math.floor(x);
+  function hash(seed) {
+    const noise = Math.sin(seed * 12.9898) * 43758.5453;
+    return noise - Math.floor(noise);
   }
 
-  function loopedNoise(x, period) {
-    const i = Math.floor(x);
-    const f = x - i;
-    const u = f * f * (3 - 2 * f);
-    const i0 = ((i % period) + period) % period;
-    const i1 = (i0 + 1) % period;
-    return hash(i0) * (1 - u) + hash(i1) * u;
+  function loopedNoise(position, period) {
+    const cell = Math.floor(position);
+    const fraction = position - cell;
+    const smoothed = fraction * fraction * (3 - 2 * fraction);
+    const currentCell = ((cell % period) + period) % period;
+    const nextCell = (currentCell + 1) % period;
+    return hash(currentCell) * (1 - smoothed) + hash(nextCell) * smoothed;
   }
 
-  function bandNoise(band, x, period) {
-    return loopedNoise(x + band * 17.37, period);
+  function bandNoise(band, position, period) {
+    return loopedNoise(position + band * 17.37, period);
   }
 
   function mockBandShape(band) {
@@ -159,21 +159,21 @@
     const flickerCellsPerSecond = flickerPeriod / duration;
 
     for (let frame = 0; frame < duration * fps; frame++) {
-      const t = frame / fps;
+      const time = frame / fps;
       const row = [];
 
-      const kickPhase = (t % beatSeconds) / beatSeconds;
-      const hatPhase = ((t + beatSeconds / 2) % beatSeconds) / beatSeconds;
+      const kickPhase = (time % beatSeconds) / beatSeconds;
+      const hatPhase = ((time + beatSeconds / 2) % beatSeconds) / beatSeconds;
       const kick = Math.exp(-kickPhase * 9);
       const hat = Math.exp(-hatPhase * 14);
-      const swell = 0.6 + 0.4 * (Math.sin(2 * Math.PI * swellHz * t) * 0.5 + 0.5);
+      const swell = 0.6 + 0.4 * (Math.sin(2 * Math.PI * swellHz * time) * 0.5 + 0.5);
 
       for (let band = 0; band < bandCount; band++) {
         const shape = mockBandShape(band);
         const kickPull = kick * Math.exp(-band / (bandCount * 0.3 + 1));
         const hatPull = hat * (1 - Math.exp(-band / (bandCount * 0.4 + 1))) * 0.6;
-        const wobble = (bandNoise(band, t * wobbleCellsPerSecond, wobblePeriod) - 0.5) * 0.35 * shape;
-        const flicker = (bandNoise(band, t * flickerCellsPerSecond + 500, flickerPeriod) - 0.5) * 0.12;
+        const wobble = (bandNoise(band, time * wobbleCellsPerSecond, wobblePeriod) - 0.5) * 0.35 * shape;
+        const flicker = (bandNoise(band, time * flickerCellsPerSecond + 500, flickerPeriod) - 0.5) * 0.12;
 
         const level = shape * swell * (0.35 + 0.65 * (kickPull + hatPull)) + wobble + flicker;
         row.push(clamp(level, 0, 1));
@@ -195,18 +195,18 @@
     const bandCount = spectrum.band_count || (frames[0] ? frames[0].length : 0);
     const duration = spectrum.duration || FALLBACK_DURATION_SECONDS;
 
-    function frameIndexAt(t) {
-      return clamp(Math.round(t * fps), 0, frames.length - 1);
+    function frameIndexAt(time) {
+      return clamp(Math.round(time * fps), 0, frames.length - 1);
     }
 
-    function frameAt(t) {
-      return frames.length ? frames[frameIndexAt(t)] : null;
+    function frameAt(time) {
+      return frames.length ? frames[frameIndexAt(time)] : null;
     }
 
-    function smoothedFrameAt(t, seconds) {
+    function smoothedFrameAt(time, seconds) {
       if (!frames.length || bandCount === 0) return null;
 
-      const center = frameIndexAt(t);
+      const center = frameIndexAt(time);
       const halfWidth = Math.floor((fps * seconds) / 2);
 
       if (halfWidth < 1) return frames[center];
@@ -240,7 +240,7 @@
     };
   }
 
-  function synthesizeHostedProps(template) {
+  function synthesizeHostedProperties(template) {
     return {
       title: template.title,
       artist: template.artist,
@@ -255,8 +255,8 @@
     };
   }
 
-  function screenFor(props) {
-    return pickScreen(props.width, props.height);
+  function screenFor(properties) {
+    return pickScreen(properties.width, properties.height);
   }
 
   function createContext(mock) {
@@ -264,30 +264,30 @@
     const isEngineDriven = !!global.__renderer;
 
     if (!isEngineDriven) {
-      global.__renderer = { props: synthesizeHostedProps(template) };
+      global.__renderer = { props: synthesizeHostedProperties(template) };
     }
 
-    const props = global.__renderer.props || {};
+    const properties = global.__renderer.props || {};
 
     return Object.assign(
       {
         isEngineDriven: isEngineDriven,
-        screen: screenFor(props),
-        props: props,
-        colors: mergeColorRoles(template.colors, props.colors),
+        screen: screenFor(properties),
+        properties: properties,
+        colors: mergeColorRoles(template.colors, properties.colors),
       },
-      readSpectrum(props.spectrum || {})
+      readSpectrum(properties.spectrum || {})
     );
   }
 
-  function requestPropsFromHost() {
+  function requestPropertiesFromHost() {
     if (!isFramed()) return Promise.resolve(null);
 
     return new Promise((resolve) => {
       function onMessage(event) {
-        if (!event.data || event.data.type !== PREVIEW_MESSAGES.props) return;
+        if (!event.data || event.data.type !== PREVIEW_MESSAGES.properties) return;
         global.removeEventListener("message", onMessage);
-        resolve(event.data.props || {});
+        resolve(event.data.properties || {});
       }
 
       global.addEventListener("message", onMessage);
@@ -304,18 +304,18 @@
   }
 
   async function createHostedContext(mock) {
-    const hosted = await requestPropsFromHost();
+    const hosted = await requestPropertiesFromHost();
     if (!hosted) return createContext(mock);
 
-    const ctx = createContext(withHostedTrack(mock || {}, hosted));
+    const context = createContext(withHostedTrack(mock || {}, hosted));
 
     if (hosted.width && hosted.height) {
-      ctx.props.width = hosted.width;
-      ctx.props.height = hosted.height;
-      ctx.screen = pickScreen(hosted.width, hosted.height);
+      context.properties.width = hosted.width;
+      context.properties.height = hosted.height;
+      context.screen = pickScreen(hosted.width, hosted.height);
     }
 
-    return ctx;
+    return context;
   }
 
   function applyColors(element, colors) {
@@ -344,7 +344,7 @@
 
     try {
       const pixel = context.getImageData(0, 0, 1, 1).data;
-      return { r: pixel[0], g: pixel[1], b: pixel[2] };
+      return { red: pixel[0], green: pixel[1], blue: pixel[2] };
     } catch (canvasIsTainted) {
       return null;
     }
@@ -379,18 +379,18 @@
     document.body.style.background = "#000";
   }
 
-  function fitToWindow(spec) {
-    const screenEl = document.getElementById("screen");
-    if (!screenEl) return;
+  function fitToWindow(screen) {
+    const screenElement = document.getElementById("screen");
+    if (!screenElement) return;
 
     centerBodyInViewport();
 
-    screenEl.style.flex = "0 0 auto";
-    screenEl.style.transformOrigin = "center center";
+    screenElement.style.flex = "0 0 auto";
+    screenElement.style.transformOrigin = "center center";
 
     function scaleToFit() {
-      const scale = Math.min(window.innerWidth / spec.width, window.innerHeight / spec.height);
-      screenEl.style.transform = "scale(" + scale + ")";
+      const scale = Math.min(window.innerWidth / screen.width, window.innerHeight / screen.height);
+      screenElement.style.transform = "scale(" + scale + ")";
     }
 
     scaleToFit();
@@ -402,47 +402,47 @@
     Object.assign(global.__renderer, { duration: duration, seek: seek });
   }
 
-  function redrawOnHostColorChange(ctx, redraw) {
+  function redrawOnHostColorChange(context, redraw) {
     global.addEventListener("message", (event) => {
       if (!event.data || event.data.type !== PREVIEW_MESSAGES.colors) return;
 
-      const screenEl = document.getElementById("screen");
-      Object.assign(ctx.colors, event.data.colors || {});
-      if (screenEl) applyColors(screenEl, ctx.colors);
+      const screenElement = document.getElementById("screen");
+      Object.assign(context.colors, event.data.colors || {});
+      if (screenElement) applyColors(screenElement, context.colors);
       redraw(0);
     });
   }
 
-  function playSelfDrivenLoop(ctx, seek) {
+  function playSelfDrivenLoop(context, seek) {
     const startedAt = performance.now();
 
     (function loop(now) {
-      seek(((now - startedAt) / 1000) % ctx.duration);
+      seek(((now - startedAt) / 1000) % context.duration);
       requestAnimationFrame(loop);
     })(startedAt);
   }
 
-  function start(ctx, draw) {
-    const progressFill = document.getElementById("progress-fill");
+  function start(context, draw) {
+    const elapsed = document.getElementById("elapsed");
 
-    createScreen(ctx);
+    createScreen(context);
 
-    function seek(t) {
-      if (progressFill) {
-        const progress = ctx.duration > 0 ? Math.min(1, t / ctx.duration) : 0;
-        progressFill.style.width = (progress * 100).toFixed(2) + "%";
+    function seek(time) {
+      if (elapsed) {
+        const progress = context.duration > 0 ? Math.min(1, time / context.duration) : 0;
+        elapsed.style.width = (progress * 100).toFixed(2) + "%";
       }
-      draw(t, ctx);
+      draw(time, context);
     }
 
     seek(0);
-    publishRendererContract(ctx.duration, seek);
+    publishRendererContract(context.duration, seek);
 
-    if (isFramed()) redrawOnHostColorChange(ctx, seek);
+    if (isFramed()) redrawOnHostColorChange(context, seek);
 
-    if (!ctx.isEngineDriven) {
-      fitToWindow(ctx.screen);
-      playSelfDrivenLoop(ctx, seek);
+    if (!context.isEngineDriven) {
+      fitToWindow(context.screen);
+      playSelfDrivenLoop(context, seek);
     }
   }
 
