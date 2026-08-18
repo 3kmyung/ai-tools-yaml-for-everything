@@ -29,6 +29,8 @@
   const FALLBACK_FPS = DEFAULT_RENDER_SETTINGS.fps;
   const FALLBACK_DURATION_SECONDS = 5.0;
 
+  const ROOT_FONT_DIVISOR = 45;
+
   const HOSTED_TRACK_KEYS = [
     "title",
     "artist",
@@ -88,6 +90,9 @@
   }
 
   function sizeScreenToLogicalUnits(screenEl, spec) {
+    const shortSide = Math.min(spec.width, spec.height);
+    document.documentElement.style.fontSize = shortSide / ROOT_FONT_DIVISOR + "px";
+
     screenEl.style.setProperty("--screen-width", spec.width + "px");
     screenEl.style.setProperty("--screen-height", spec.height + "px");
     screenEl.style.width = spec.width + "px";
@@ -117,35 +122,6 @@
     if (ctx.isEngineDriven) scaleScreenToOutputResolution(screenEl, spec);
 
     return spec;
-  }
-
-  function authoredFontSize(element) {
-    return parseFloat(getComputedStyle(element).fontSize);
-  }
-
-  function overflowsItsWidth(element) {
-    return element.scrollWidth > element.clientWidth;
-  }
-
-  function shrinkFontUntil(element, authoredSize, minSize, fits) {
-    let size = authoredSize;
-
-    while (size > minSize && !fits()) {
-      size -= 1;
-      element.style.fontSize = size + "px";
-    }
-
-    return size;
-  }
-
-  function fitTextWidth(element, options) {
-    const minSize = options.minSize;
-    const authoredSize = authoredFontSize(element);
-
-    const fitsOnOneLine = () => !overflowsItsWidth(element);
-    if (fitsOnOneLine()) return authoredSize;
-
-    return shrinkFontUntil(element, authoredSize, minSize, fitsOnOneLine);
   }
 
   function buildMockSpectrum(bandCount, fps, duration) {
@@ -435,7 +411,6 @@
     createContext: createContext,
     createHostedContext: createHostedContext,
     applyColors: applyColors,
-    fitTextWidth: fitTextWidth,
     loadImage: loadImage,
     averageColor: averageColor,
     superSample: superSample,
