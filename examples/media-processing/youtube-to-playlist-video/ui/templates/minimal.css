@@ -1,0 +1,61 @@
+#screen[data-ratio="16:9"] { --font-size: 2.5rem; }
+#screen[data-ratio="4:3"]  { --font-size: 2.125rem; }
+#screen[data-ratio="1:1"]  { --font-size: 2rem; }
+#screen[data-ratio="3:4"]  { --font-size: 2.125rem; }
+#screen[data-ratio="9:16"] { --font-size: 2.5rem; }
+
+#screen {
+  --stroke: #000000;
+  --muted: rgba(0, 0, 0, 0.4);
+}
+
+#frame {
+  display: flex;
+  flex-direction: column;
+  gap: 0.325em;
+  font-size: var(--font-size);
+  padding: 0.325em;
+  background: #faf9f6;
+  width: 7.125em;
+}
+
+#cover {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+#cover.empty {
+  background: transparent;
+}
+
+#content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.325em;
+}
+
+#byline {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.125em;
+}
+
+#title {
+  font-size: 0.9em;
+  font-weight: 700;
+}
+
+#artist {
+  font-size: 0.475em;
+  font-weight: 500;
+  text-transform: uppercase;
+  text-align: right;
+}
+
+#eq {
+  display: block;
+  flex: none;
+}
