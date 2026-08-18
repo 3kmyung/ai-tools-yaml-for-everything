@@ -82,7 +82,6 @@
 
     return {
       ratio: name,
-      orientation: logical.orientation,
       width: logical.width,
       height: logical.height,
       scale: width ? width / logical.width : 1,
@@ -99,7 +98,6 @@
     screenElement.style.height = screen.height + "px";
     screenElement.style.transformOrigin = "0 0";
     screenElement.setAttribute("data-ratio", screen.ratio);
-    screenElement.setAttribute("data-orientation", screen.orientation);
   }
 
   function scaleScreenToOutputResolution(screenElement, screen) {
