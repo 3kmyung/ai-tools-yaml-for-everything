@@ -21,6 +21,36 @@ workflows:
       listening volume, and the clips play back to back in the order you
       listed them.
     jobs:
+      - id: open-youtube
+        component: browser
+        action: navigate
+        input:
+          url: https://www.youtube.com/
+
+      - id: check-signin
+        component: browser
+        action: check-signin
+        depends_on: [ open-youtube ]
+
+      - id: wait-for-signin
+        component: browser
+        action: wait-for-avatar
+        interrupt:
+          before:
+            condition:
+              input: ${jobs.check-signin.output}
+              value: false
+            message: >
+              Sign into YouTube in the Chrome window attached at
+              localhost:9222, then click Resume. The workflow will wait
+              for your avatar to appear before continuing.
+        depends_on: [ check-signin ]
+
+      - id: collect-cookies
+        component: browser
+        action: get-youtube-cookies
+        depends_on: [ wait-for-signin ]
+
       - id: render-tracks
         type: for-each
         batch_size: 2
@@ -36,26 +66,40 @@ workflows:
             title: ${item.title}
             artist: ${item.artist}
             track_index: ${item.track_index}
+            cookies: ${jobs.collect-cookies.output}
             fps: ${input.fps as select/24,30,60 | 30}
             band_count: ${input.band_count as integer | 18}
             colors: ${item.colors}
             style: ${input.style as select/minimal,refined,monochrome | minimal}
             width: ${input.width as integer | 1280}
             height: ${input.height as integer | 720}
+        depends_on: [ collect-cookies ]
+
+      - id: check-track-count
+        type: if
+        input: ${input.tracks[1]}
+        operator: neq
+        value: null
+        if_true: merge
+        if_false: use-single-clip
+        depends_on: [ render-tracks ]
 
       - id: merge
-        component: video-merger
+        component: video-mixer
         input:
-          video: ${jobs.render-tracks.output[*].video}
-        depends_on: [ render-tracks ]
+          videos: ${jobs.render-tracks.output[*].video}
+
+      - id: use-single-clip
+        type: filter
+        input: ${jobs.render-tracks.output[0].video}
 
       - id: publish
         component: result-store
         input:
-          source: ${jobs.merge.output}
+          source: ${jobs.merge.output | ${jobs.use-single-clip.output}}
           path: ${context.task_id}.mp4
         output: ${output}
-        depends_on: [ merge ]
+        depends_on: [ [ merge, use-single-clip ] ]
 
     output:
       path: ${jobs.publish.output.path}
@@ -69,9 +113,10 @@ workflows:
       cover art to drive the visuals.
     jobs:
       - id: fetch-audio
-        component: youtube-audio-fetcher
+        component: audio-downloader
         input:
           youtube_url: ${input.youtube_url}
+          cookies: ${input.cookies}
 
       - id: normalize-audio
         component: loudness-normalizer
@@ -195,20 +240,20 @@ workflows:
       second.
     jobs:
       - id: fetch-metadata
-        component: youtube-metadata-fetcher
+        component: youtube-oembed
         input:
           youtube_url: ${input.youtube_url}
 
       - id: ingest-cover
         component: cover-ingester
         input:
-          image: ${jobs.fetch-metadata.output.thumbnail}
+          image: ${jobs.fetch-metadata.output.thumbnail_url as image;url}
         output: ${output}
         depends_on: [ fetch-metadata ]
 
     output:
       title: ${jobs.fetch-metadata.output.title}
-      artist: ${jobs.fetch-metadata.output.artist}
+      artist: ${jobs.fetch-metadata.output.author_name}
       cover: ${jobs.ingest-cover.output}
 
 components:
@@ -222,6 +267,7 @@ components:
         title: ${input.title}
         artist: ${input.artist}
         track_index: ${input.track_index}
+        cookies: ${input.cookies}
         fps: ${input.fps}
         band_count: ${input.band_count}
         colors: ${input.colors}
@@ -236,11 +282,50 @@ components:
       input:
         image: ${input.image}
 
-  - id: youtube-audio-fetcher
-    type: youtube-audio-fetcher
-    driver: yt-dlp
+  - id: browser
+    type: web-browser
+    driver: chrome
+    debugger:
+      host: localhost
+      port: 9222
+    timeout: 60s
+    actions:
+      - id: navigate
+        method: navigate
+        url: ${input.url}
+        wait_until: domcontentloaded
+
+      - id: check-signin
+        method: evaluate
+        expression: >
+          (async () => {
+            const selector = "button[aria-label*='Account'], #avatar-btn";
+            for (let attempt = 0; attempt < 10; attempt++) {
+              if (document.querySelector(selector)) return true;
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            return false;
+          })()
+
+      - id: wait-for-avatar
+        method: wait-for
+        selector: "button[aria-label*='Account'], #avatar-btn"
+        condition: visible
+        timeout: 300s
+
+      - id: get-youtube-cookies
+        method: get-cookies
+        urls:
+          - https://www.youtube.com/
+          - https://accounts.google.com/
+
+  - id: audio-downloader
+    type: media-downloader
+    driver: ytdlp
     action:
-      youtube_url: ${input.youtube_url}
+      url: ${input.youtube_url}
+      extract_audio: true
+      cookies: ${input.cookies}
 
   - id: loudness-normalizer
     type: audio-processor
@@ -271,17 +356,22 @@ components:
       path: ${input.task_id}/${context.run_id}/audio.mp3
       source: ${input.source}
 
-  - id: video-merger
-    type: video-merger
+  - id: video-mixer
+    type: video-mixer
     driver: ffmpeg
     action:
-      video: ${input.video}
+      method: concat
+      videos: ${input.videos}
 
-  - id: youtube-metadata-fetcher
-    type: youtube-metadata-fetcher
-    driver: yt-dlp
+  - id: youtube-oembed
+    type: http-client
+    base_url: https://www.youtube.com
     action:
-      youtube_url: ${input.youtube_url}
+      path: /oembed
+      method: GET
+      params:
+        url: ${input.youtube_url}
+        format: json
 
   - id: cover-store
     type: file-store
@@ -293,11 +383,11 @@ components:
       source: ${input.source}
 
   - id: cover-normalizer
-    type: image-processor
+    type: image-compressor
+    driver: native
     action:
-      method: compress
       image: ${input.image}
-      strategy: lossless
+      compress_level: 9
 
   - id: result-store
     type: file-store
