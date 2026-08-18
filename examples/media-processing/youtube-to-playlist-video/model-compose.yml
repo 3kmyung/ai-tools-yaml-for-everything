@@ -39,7 +39,7 @@ workflows:
             fps: ${input.fps as select/24,30,60 | 30}
             band_count: ${input.band_count as integer | 18}
             colors: ${item.colors}
-            style: ${input.style as select/minimal,waveform,split | minimal}
+            style: ${input.style as select/minimal,refined,monochrome | minimal}
             width: ${input.width as integer | 1280}
             height: ${input.height as integer | 720}
 
@@ -133,7 +133,7 @@ workflows:
           colors: ${input.colors}
           spectrum: ${jobs.extract-spectrum.output}
           fps: ${input.fps as select/24,30,60 | 30}
-          style: ${input.style as select/minimal,waveform,split | minimal}
+          style: ${input.style as select/minimal,refined,monochrome | minimal}
           width: ${input.width as integer | 1280}
           height: ${input.height as integer | 720}
         output: ${output}
