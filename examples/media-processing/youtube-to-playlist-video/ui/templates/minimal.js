@@ -22,10 +22,10 @@
   Renderer.createScreen(context);
   Renderer.applyColors(document.getElementById("screen"), context.colors);
 
-  document.getElementById("title").textContent = context.props.title || "Untitled";
-  artistElement.textContent = context.props.artist || "Unknown Artist";
+  document.getElementById("title").textContent = context.properties.title || "Untitled";
+  artistElement.textContent = context.properties.artist || "Unknown Artist";
 
-  if (context.props.cover) coverElement.src = context.props.cover;
+  if (context.properties.cover) coverElement.src = context.properties.cover;
   else coverElement.classList.add("empty");
 
   if (document.fonts) await document.fonts.ready;
