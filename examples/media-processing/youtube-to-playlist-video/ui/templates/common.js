@@ -13,9 +13,9 @@
     throw new Error("track-colors.js must be loaded before common.js");
   }
 
-  const STAGE_RATIOS = global.STAGE_RATIOS;
+  const SCREEN_RATIOS = global.SCREEN_RATIOS;
 
-  if (!STAGE_RATIOS) {
+  if (!SCREEN_RATIOS) {
     throw new Error("ratios.js must be loaded before common.js");
   }
 
@@ -60,8 +60,8 @@
     let nearestName = FALLBACK_RATIO;
     let nearestDistance = Infinity;
 
-    Object.keys(STAGE_RATIOS).forEach((name) => {
-      const spec = STAGE_RATIOS[name];
+    Object.keys(SCREEN_RATIOS).forEach((name) => {
+      const spec = SCREEN_RATIOS[name];
       const distance = Math.abs(spec.width / spec.height - aspect);
       if (distance < nearestDistance) {
         nearestDistance = distance;
@@ -72,11 +72,11 @@
     return nearestName;
   }
 
-  function pickStage(outputWidth, outputHeight) {
+  function pickScreen(outputWidth, outputHeight) {
     const width = positiveSize(outputWidth);
     const height = positiveSize(outputHeight);
     const name = width && height ? nearestRatioName(width / height) : FALLBACK_RATIO;
-    const logical = STAGE_RATIOS[name];
+    const logical = SCREEN_RATIOS[name];
 
     return {
       ratio: name,
@@ -87,34 +87,34 @@
     };
   }
 
-  function sizeStageToLogicalUnits(stage, spec) {
-    stage.style.setProperty("--stage-w", spec.width + "px");
-    stage.style.setProperty("--stage-h", spec.height + "px");
-    stage.style.width = spec.width + "px";
-    stage.style.height = spec.height + "px";
-    stage.style.transformOrigin = "0 0";
-    stage.setAttribute("data-ratio", spec.ratio);
-    stage.setAttribute("data-orient", spec.orient);
+  function sizeScreenToLogicalUnits(screenEl, spec) {
+    screenEl.style.setProperty("--screen-width", spec.width + "px");
+    screenEl.style.setProperty("--screen-height", spec.height + "px");
+    screenEl.style.width = spec.width + "px";
+    screenEl.style.height = spec.height + "px";
+    screenEl.style.transformOrigin = "0 0";
+    screenEl.setAttribute("data-ratio", spec.ratio);
+    screenEl.setAttribute("data-orient", spec.orient);
   }
 
-  function scaleStageToOutputResolution(stage, spec) {
+  function scaleScreenToOutputResolution(screenEl, spec) {
     [document.documentElement, document.body].forEach((element) => {
       element.style.width = spec.width * spec.scale + "px";
       element.style.height = spec.height * spec.scale + "px";
       element.style.margin = "0";
       element.style.overflow = "hidden";
     });
-    stage.style.transform = "scale(" + spec.scale + ")";
+    screenEl.style.transform = "scale(" + spec.scale + ")";
   }
 
-  function createStage(ctx) {
-    const stage = document.getElementById("stage");
-    const spec = ctx.stage;
+  function createScreen(ctx) {
+    const screenEl = document.getElementById("screen");
+    const spec = ctx.screen;
 
-    if (!stage) return spec;
+    if (!screenEl) return spec;
 
-    sizeStageToLogicalUnits(stage, spec);
-    if (ctx.isEngineDriven) scaleStageToOutputResolution(stage, spec);
+    sizeScreenToLogicalUnits(screenEl, spec);
+    if (ctx.isEngineDriven) scaleScreenToOutputResolution(screenEl, spec);
 
     return spec;
   }
@@ -237,8 +237,8 @@
     };
   }
 
-  function stageFor(props) {
-    return pickStage(props.width, props.height);
+  function screenFor(props) {
+    return pickScreen(props.width, props.height);
   }
 
   function createContext(mock) {
@@ -254,7 +254,7 @@
     return Object.assign(
       {
         isEngineDriven: isEngineDriven,
-        stage: stageFor(props),
+        screen: screenFor(props),
         props: props,
         colors: mergeColorRoles(template.colors, props.colors),
       },
@@ -294,7 +294,7 @@
     if (hosted.width && hosted.height) {
       ctx.props.width = hosted.width;
       ctx.props.height = hosted.height;
-      ctx.stage = pickStage(hosted.width, hosted.height);
+      ctx.screen = pickScreen(hosted.width, hosted.height);
     }
 
     return ctx;
@@ -362,17 +362,17 @@
   }
 
   function fitToWindow(spec) {
-    const stage = document.getElementById("stage");
-    if (!stage) return;
+    const screenEl = document.getElementById("screen");
+    if (!screenEl) return;
 
     centerBodyInViewport();
 
-    stage.style.flex = "0 0 auto";
-    stage.style.transformOrigin = "center center";
+    screenEl.style.flex = "0 0 auto";
+    screenEl.style.transformOrigin = "center center";
 
     function scaleToFit() {
       const scale = Math.min(window.innerWidth / spec.width, window.innerHeight / spec.height);
-      stage.style.transform = "scale(" + scale + ")";
+      screenEl.style.transform = "scale(" + scale + ")";
     }
 
     scaleToFit();
@@ -388,9 +388,9 @@
     global.addEventListener("message", (event) => {
       if (!event.data || event.data.type !== PREVIEW_MESSAGES.colors) return;
 
-      const stage = document.getElementById("stage");
+      const screenEl = document.getElementById("screen");
       Object.assign(ctx.colors, event.data.colors || {});
-      if (stage) applyColors(stage, ctx.colors);
+      if (screenEl) applyColors(screenEl, ctx.colors);
       redraw(0);
     });
   }
@@ -407,7 +407,7 @@
   function start(ctx, draw) {
     const progressFill = document.getElementById("progress-fill");
 
-    createStage(ctx);
+    createScreen(ctx);
 
     function seek(t) {
       if (progressFill) {
@@ -423,15 +423,15 @@
     if (isFramed()) redrawOnHostColorChange(ctx, seek);
 
     if (!ctx.isEngineDriven) {
-      fitToWindow(ctx.stage);
+      fitToWindow(ctx.screen);
       playSelfDrivenLoop(ctx, seek);
     }
   }
 
   global.Renderer = {
-    STAGE_RATIOS: STAGE_RATIOS,
-    pickStage: pickStage,
-    createStage: createStage,
+    SCREEN_RATIOS: SCREEN_RATIOS,
+    pickScreen: pickScreen,
+    createScreen: createScreen,
     createContext: createContext,
     createHostedContext: createHostedContext,
     applyColors: applyColors,
