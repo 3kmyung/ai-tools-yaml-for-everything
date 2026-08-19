@@ -49,6 +49,7 @@
 }
 
 #artist {
+  color: var(--muted);
   font-size: 0.475em;
   font-weight: 500;
   text-transform: uppercase;
