@@ -178,7 +178,7 @@ workflows:
           title: ${input.title | Untitled}
           artist: ${input.artist | Unknown Artist}
           track_index: ${input.track_index}
-          cover: ${jobs.process-cover.output.url}
+          cover: ${jobs.process-cover.output.file_url}
           colors: ${input.colors}
           spectrum: ${jobs.extract-spectrum.output}
           fps: ${input.fps as select/24,30,60 | 30}
@@ -224,6 +224,7 @@ workflows:
     output:
       path: ui/.output/${jobs.store.output.path}
       url: /.output/${jobs.store.output.path}
+      file_url: ${jobs.store.output.url}
 
   - id: resolve-cover-defaults
     title: Resolve Defaults from a Cover Image
