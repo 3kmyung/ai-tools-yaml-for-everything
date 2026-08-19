@@ -26,10 +26,12 @@ workflows:
         action: navigate
         input:
           url: https://www.youtube.com/
+        on_error: {}
 
       - id: check-signin
         component: browser
         action: check-signin
+        on_error: {}
         depends_on: [ open-youtube ]
 
       - id: wait-for-signin
@@ -44,11 +46,13 @@ workflows:
               Sign into YouTube in the Chrome window attached at
               localhost:9222, then click Resume. The workflow will wait
               for your avatar to appear before continuing.
+        on_error: {}
         depends_on: [ check-signin ]
 
       - id: collect-cookies
         component: browser
         action: get-youtube-cookies
+        on_error: {}
         depends_on: [ wait-for-signin ]
 
       - id: render-tracks
