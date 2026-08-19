@@ -6,6 +6,17 @@ MAX_MAPPING_ITEMS: int = 20
 MAX_TOTAL_CHARS: int = 800
 MAX_DEPTH: int = 6
 
+REDACTED_PLACEHOLDER: str = "<redacted>"
+REDACTED_KEYS: Set[str] = {
+    "access_key", "access_token", "api_key", "apikey", "authorization",
+    "cookie", "cookies", "credential", "credentials", "password", "passwd",
+    "private_key", "refresh_token", "secret", "secret_key", "session_token",
+    "token",
+}
+
+_COOKIE_REQUIRED_KEYS: Set[str] = { "name", "value" }
+_COOKIE_HINT_KEYS: Set[str] = { "domain", "path", "expires", "httpOnly", "secure", "sameSite" }
+
 _SIZE_UNITS: Tuple[str, ...] = ( "KB", "MB", "GB", "TB" )
 
 class LoggablePayload:
@@ -34,6 +45,11 @@ class _Budget:
         return self.remaining <= 0
 
 def _format_value(value: Any, depth: int, budget: _Budget) -> str:
+    log_repr = getattr(value, "__log__", None)
+
+    if log_repr is not None:
+        return budget.spend(_truncate(log_repr(), MAX_STRING_CHARS))
+
     if isinstance(value, (bytes, bytearray, memoryview)):
         return budget.spend(f"<{type(value).__name__} {_format_size(len(value))}>")
 
@@ -56,11 +72,16 @@ def _format_value(value: Any, depth: int, budget: _Budget) -> str:
 
 def _format_mapping(value: Dict[Any, Any], depth: int, budget: _Budget) -> str:
     items: List[str] = []
+    redacts_cookie_value = _is_cookie_like(value)
 
     for key, item in list(value.items())[:MAX_MAPPING_ITEMS]:
         if budget.exhausted():
             break
-        items.append(f"{_format_key(key, budget)}: {_format_value(item, depth - 1, budget)}")
+        rendered_key = _format_key(key, budget)
+        if _is_redacted_key(key) or (redacts_cookie_value and key == "value"):
+            items.append(f"{rendered_key}: {budget.spend(REDACTED_PLACEHOLDER)}")
+            continue
+        items.append(f"{rendered_key}: {_format_value(item, depth - 1, budget)}")
 
     remainder = len(value) - len(items)
 
@@ -85,6 +106,14 @@ def _format_sequence(value: Union[List[Any], Tuple[Any, ...], Set[Any], frozense
     open_bracket, close_bracket = ("[", "]") if isinstance(value, list) else ("(", ")") if isinstance(value, tuple) else ("{", "}")
 
     return open_bracket + ", ".join(items) + close_bracket
+
+def _is_redacted_key(key: Any) -> bool:
+    return isinstance(key, str) and key.strip().lower().replace("-", "_") in REDACTED_KEYS
+
+def _is_cookie_like(value: Dict[Any, Any]) -> bool:
+    keys = set(value.keys())
+
+    return _COOKIE_REQUIRED_KEYS <= keys and bool(_COOKIE_HINT_KEYS & keys)
 
 def _format_key(key: Any, budget: _Budget) -> str:
     return budget.spend(_format_string(key) if isinstance(key, str) else _truncate(repr(key), MAX_STRING_CHARS))

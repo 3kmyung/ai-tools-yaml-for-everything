@@ -94,3 +94,64 @@ class TestLaziness:
 
         assert "counted" in "%s" % (wrapper,)
         assert calls == [ 1 ]
+
+
+class TestLogHooks:
+    def test_log_hook_replaces_the_default_rendering(self):
+        class Spectrum(dict):
+            def __log__(self) -> str:
+                return "<AudioSpectrum bands=18 frames=900 duration=30.00s>"
+
+        spectrum = Spectrum({ "frames": [ [ 0.1 ] * 18 for _ in range(900) ], "band_count": 18 })
+
+        assert str(loggable(spectrum)) == "<AudioSpectrum bands=18 frames=900 duration=30.00s>"
+
+    def test_log_hook_is_honored_for_nested_values(self):
+        class Embedding(list):
+            def __log__(self) -> str:
+                return "<TextEmbedding dims=1536>"
+
+        rendered = str(loggable({ "vector": Embedding([ 0.1 ] * 1536) }))
+
+        assert rendered == "{'vector': <TextEmbedding dims=1536>}"
+
+    def test_log_hook_output_is_bounded(self):
+        class Chatty:
+            def __log__(self) -> str:
+                return "x" * (MAX_STRING_CHARS + 20)
+
+        rendered = str(loggable(Chatty()))
+
+        assert rendered.endswith("... (+20 chars)")
+
+
+class TestRedaction:
+    def test_sensitive_keys_are_redacted(self):
+        rendered = str(loggable({ "url": "https://youtu.be/x", "cookies": [ { "name": "SID", "value": "s3cr3t" } ] }))
+
+        assert rendered == "{'url': 'https://youtu.be/x', 'cookies': <redacted>}"
+
+    def test_key_matching_ignores_case_and_dashes(self):
+        rendered = str(loggable({ "Api-Key": "abc", "AUTHORIZATION": "Bearer xyz" }))
+
+        assert rendered == "{'Api-Key': <redacted>, 'AUTHORIZATION': <redacted>}"
+
+    def test_cookie_entries_keep_their_shape_but_drop_the_value(self):
+        cookies = [
+            { "name": "SAPISID", "value": "A" * 70, "domain": ".youtube.com", "path": "/" },
+            { "name": "SID", "value": "B" * 120, "domain": ".google.com", "path": "/" },
+        ]
+
+        rendered = str(loggable(cookies))
+
+        assert "A" * 70 not in rendered
+        assert "B" * 120 not in rendered
+        assert rendered == (
+            "[{'name': 'SAPISID', 'value': <redacted>, 'domain': '.youtube.com', 'path': '/'}, "
+            "{'name': 'SID', 'value': <redacted>, 'domain': '.google.com', 'path': '/'}]"
+        )
+
+    def test_ordinary_value_keys_are_left_alone(self):
+        rendered = str(loggable({ "name": "cover.png", "value": 42 }))
+
+        assert rendered == "{'name': 'cover.png', 'value': 42}"
