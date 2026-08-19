@@ -1,4 +1,4 @@
-(async function () {
+Renderer.startTemplate(async function () {
   const BAR_COUNT = window.STYLE_BAND_COUNTS.minimal;
 
   const BAR_WIDTH_EM = 0.1;
@@ -66,4 +66,4 @@
       );
     }
   });
-})();
+});
