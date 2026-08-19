@@ -326,6 +326,10 @@ components:
       url: ${input.youtube_url}
       extract_audio: true
       cookies: ${input.cookies}
+      extractor_args:
+        youtube:
+          player_client: [ web_embedded ]
+      js_runtimes: [ deno ]
 
   - id: loudness-normalizer
     type: audio-processor
