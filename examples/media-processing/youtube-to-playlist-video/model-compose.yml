@@ -481,6 +481,7 @@ components:
   - id: encoder
     type: video-encoder
     driver: ffmpeg
+    max_concurrent_count: ${env.RENDER_CONCURRENCY | 2}
     action:
       frames: ${input.frames}
       frame_rate: ${input.frame_rate}
