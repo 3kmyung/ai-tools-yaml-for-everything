@@ -208,8 +208,8 @@ workflows:
       Store a cover image and derive everything needed to preview and
       render it.
     jobs:
-      - id: normalize
-        component: cover-normalizer
+      - id: resize
+        component: cover-resizer
         input:
           image: ${input.image}
         output: ${output}
@@ -217,9 +217,9 @@ workflows:
       - id: store
         component: cover-store
         input:
-          source: ${jobs.normalize.output}
+          source: ${jobs.resize.output}
         output: ${output}
-        depends_on: [ normalize ]
+        depends_on: [ resize ]
 
     output:
       path: ui/.output/${jobs.store.output.path}
@@ -388,15 +388,19 @@ components:
     base_path: ./ui/.output
     action:
       method: put
-      path: ${context.run_id}.png
+      path: ${context.run_id}.webp
       source: ${input.source}
 
-  - id: cover-normalizer
-    type: image-compressor
+  - id: cover-resizer
+    type: image-processor
     driver: native
     action:
+      method: resize
       image: ${input.image}
-      compress_level: 9
+      width: 1280
+      height: 1280
+      scale_mode: fit
+      output: ${result as image/webp}
 
   - id: result-store
     type: file-store
