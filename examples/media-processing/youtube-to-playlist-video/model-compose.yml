@@ -249,12 +249,17 @@ workflows:
         input:
           youtube_url: ${input.youtube_url}
 
+      - id: build-cover-url
+        type: filter
+        input: https://i.ytimg.com/vi/${input.video_id}/maxresdefault.jpg
+
       - id: ingest-cover
         component: cover-ingester
         input:
-          image: ${jobs.fetch-metadata.output.thumbnail_url as image;url}
+          image: ${jobs.build-cover-url.output as image;url}
         output: ${output}
-        depends_on: [ fetch-metadata ]
+        on_error: ignore
+        depends_on: [ build-cover-url ]
 
     output:
       title: ${jobs.fetch-metadata.output.title}
