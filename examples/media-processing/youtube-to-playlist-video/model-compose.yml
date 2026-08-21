@@ -147,7 +147,7 @@ workflows:
       - id: extract-spectrum
         component: spectrum-extractor
         input:
-          audio: ${jobs.save-audio.output.url as audio;url}
+          audio: ${jobs.save-audio.output.url as audio/mp3;url}
           fps: ${input.fps as select/24,30,60 | 30}
           band_count: ${input.band_count as integer | 18}
         output: ${output as json}
@@ -193,7 +193,7 @@ workflows:
         input:
           frames: ${jobs.render-frames.output}
           frame_rate: ${input.fps as select/24,30,60 | 30}
-          audio: ${jobs.save-audio.output.url as audio;url}
+          audio: ${jobs.save-audio.output.url as audio/mp3;url}
         output: ${output as video}
         depends_on: [ render-frames ]
 
