@@ -122,12 +122,14 @@ workflows:
         input:
           youtube_url: ${input.youtube_url}
           cookies: ${input.cookies}
+        on_error: { to: skip-track }
 
       - id: normalize-audio
         component: loudness-normalizer
         input:
           audio: ${jobs.fetch-audio.output}
         output: ${output}
+        on_error: { to: skip-track }
         depends_on: [ fetch-audio ]
 
       - id: encode-audio
@@ -135,6 +137,7 @@ workflows:
         input:
           audio: ${jobs.normalize-audio.output}
         output: ${output}
+        on_error: { to: skip-track }
         depends_on: [ normalize-audio ]
 
       - id: save-audio
@@ -143,6 +146,7 @@ workflows:
           source: ${jobs.encode-audio.output}
           task_id: ${context.task_id}
         output: ${output}
+        on_error: { to: skip-track }
         depends_on: [ encode-audio ]
 
       - id: extract-spectrum
@@ -152,6 +156,7 @@ workflows:
           fps: ${input.fps as select/24,30,60 | 30}
           band_count: ${input.band_count as integer | 18}
         output: ${output as json}
+        on_error: { to: skip-track }
         depends_on: [ save-audio ]
 
       - id: check-cover
@@ -187,6 +192,7 @@ workflows:
           width: ${input.width as integer | 1280}
           height: ${input.height as integer | 720}
         output: ${output}
+        on_error: { to: skip-track }
         depends_on: [ extract-spectrum, [ process-cover, skip-cover ] ]
 
       - id: encode
@@ -196,7 +202,13 @@ workflows:
           frame_rate: ${input.fps as select/24,30,60 | 30}
           audio: ${jobs.save-audio.output.url as audio/mp3;url}
         output: ${output as video}
+        on_error: { to: skip-track }
         depends_on: [ render-frames ]
+
+      - id: skip-track
+        type: filter
+        input: null
+        output: null
 
     output:
       video: ${jobs.encode.output}
