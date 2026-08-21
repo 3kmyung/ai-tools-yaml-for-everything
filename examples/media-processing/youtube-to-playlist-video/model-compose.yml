@@ -80,6 +80,21 @@ workflows:
             height: ${input.height as integer | 720}
         depends_on: [ collect-cookies ]
 
+      - id: check-failed-tracks
+        type: filter
+        input: ${jobs.render-tracks.output[*].video}
+        interrupt:
+          before:
+            condition:
+              input: null
+              operator: in
+              value: ${jobs.render-tracks.output[*].video}
+            message: >
+              Some tracks could not be rendered and will be left out.
+              Click Resume to build the video from the tracks that
+              succeeded, or cancel to keep none of it.
+        depends_on: [ render-tracks ]
+
       - id: check-track-count
         type: if
         input: ${input.tracks[1]}
@@ -87,7 +102,7 @@ workflows:
         value: null
         if_true: merge
         if_false: use-single-clip
-        depends_on: [ render-tracks ]
+        depends_on: [ check-failed-tracks ]
 
       - id: merge
         component: video-mixer
