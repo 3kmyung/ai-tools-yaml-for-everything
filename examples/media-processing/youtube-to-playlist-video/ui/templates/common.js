@@ -421,6 +421,12 @@
     Object.assign(global.__renderer, { duration: duration, seek: seek });
   }
 
+  function signalFrameReady(time) {
+    if (isEngineDrivenPage && typeof global.__renderer.ready === "function") {
+      global.__renderer.ready(time);
+    }
+  }
+
   function redrawOnHostColorChange(context, redraw) {
     global.addEventListener("message", (event) => {
       if (!event.data || event.data.type !== PREVIEW_MESSAGES.colors) return;
@@ -452,6 +458,7 @@
         elapsed.style.width = (progress * 100).toFixed(2) + "%";
       }
       draw(time, context);
+      signalFrameReady(time);
     }
 
     seek(0);
