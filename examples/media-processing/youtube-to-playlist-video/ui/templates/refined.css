@@ -1,0 +1,91 @@
+#screen[data-ratio="16:9"] { --font-size: 2rem; }
+#screen[data-ratio="4:3"]  { --font-size: 1.8rem; }
+#screen[data-ratio="1:1"]  { --font-size: 1.6rem; }
+#screen[data-ratio="3:4"]  { --font-size: 1.6rem; }
+#screen[data-ratio="9:16"] { --font-size: 1.6rem; }
+
+#screen {
+  --bar-height: 0.1em;
+  --stroke: var(--accent, #fafafa);
+  color: var(--accent, #fafafa);
+  font-size: var(--font-size);
+}
+
+#eq {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+#frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10em;
+  height: 10em;
+}
+
+#frame, #frame::after {
+  border-radius: 50%;
+}
+
+#cover {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+#cover.empty {
+  background: transparent;
+  opacity: 0.5;
+}
+
+#content {
+  position: absolute;
+  z-index: 2;
+  inset: 0 0 var(--bar-height) 0;
+  padding: 0.75em;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+#mark {
+  align-self: flex-start;
+  margin-bottom: auto;
+  font-size: 0.9em;
+}
+
+#caption {
+  align-self: stretch;
+  display: flex;
+  flex-direction: row;
+  gap: 0.5em;
+  font-size: 0.9em;
+  font-weight: 400;
+}
+
+#artist {
+  margin-left: auto;
+}
+
+#progress {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--bar-height);
+  background: rgba(250, 250, 250, 0.75);
+}
+
+#elapsed {
+  width: 0;
+  height: 100%;
+  background: var(--accent, #faf9f6);
+}
