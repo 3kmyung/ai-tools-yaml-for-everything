@@ -4,14 +4,14 @@ html {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background: #ffffff;
+  background: #fafafa;
 }
 
 body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background: #ffffff;
+  background: #fafafa;
   font-family: "Noto Sans", "Noto Sans KR", "Noto Sans SC", "Noto Sans JP", sans-serif;
   line-height: 1.25;
   font-synthesis: none;
@@ -24,6 +24,6 @@ body {
   justify-content: center;
   width: var(--screen-width, 1280px);
   height: var(--screen-height, 720px);
-  background: var(--primary, #ffffff);
+  background: var(--primary, #fafafa);
   overflow: hidden;
 }
