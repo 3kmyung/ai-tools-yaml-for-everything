@@ -362,7 +362,8 @@ components:
     driver: ytdlp
     action:
       url: ${input.youtube_url}
-      extract_audio: true
+      format:
+        media: audio
       cookies: ${input.cookies}
       extractor_args:
         youtube:
