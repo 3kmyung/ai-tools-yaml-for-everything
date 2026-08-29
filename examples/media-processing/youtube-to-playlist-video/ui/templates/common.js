@@ -390,12 +390,12 @@
       element.style.width = "100%";
       element.style.height = "100%";
       element.style.overflow = "hidden";
+      element.style.background = "transparent";
     });
 
     document.body.style.display = "flex";
     document.body.style.alignItems = "center";
     document.body.style.justifyContent = "center";
-    document.body.style.background = "#000";
   }
 
   function fitToWindow(screen) {
