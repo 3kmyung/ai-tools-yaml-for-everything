@@ -48,14 +48,12 @@ Renderer.startTemplate(async function () {
   function normalize(levels) {
     const quiet = percentileOf(levels, LEVEL_TRIM);
     const range = Math.max(LEVEL_RANGE_FLOOR, percentileOf(levels, 1 - LEVEL_TRIM) - quiet);
-
     return levels.map((level) => (level - quiet) / range);
   }
 
   function percentileOf(values, fraction) {
     const sorted = Float64Array.from(values).sort();
     const last = sorted.length - 1;
-
     return sorted[Math.min(last, Math.max(0, Math.round(fraction * last)))];
   }
 
