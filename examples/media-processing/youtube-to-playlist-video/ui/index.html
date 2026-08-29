@@ -11,10 +11,10 @@
 </head>
 <body>
   <header>
-    <label>Style<span class="dropdown"><select id="style"></select></span></label>
-    <label>Ratio<span class="dropdown"><select id="ratio"></select></span></label>
-    <label>Resolution<span class="dropdown"><select id="resolution"></select></span></label>
-    <label>FPS<span class="dropdown"><select id="fps"></select></span></label>
+    <span class="setting"><span id="style-label">Style</span><button class="dropdown" id="style" type="button" aria-labelledby="style-label style"></button></span>
+    <span class="setting"><span id="ratio-label">Ratio</span><button class="dropdown" id="ratio" type="button" aria-labelledby="ratio-label ratio"></button></span>
+    <span class="setting"><span id="resolution-label">Resolution</span><button class="dropdown" id="resolution" type="button" aria-labelledby="resolution-label resolution"></button></span>
+    <span class="setting"><span id="fps-label">FPS</span><button class="dropdown" id="fps" type="button" aria-labelledby="fps-label fps"></button></span>
     <span id="warning" hidden></span>
     <button id="render-playlist" type="button">Render</button>
   </header>
