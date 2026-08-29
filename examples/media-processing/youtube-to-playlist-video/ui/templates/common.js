@@ -11,7 +11,7 @@
     if (isEngineDrivenPage) {
       global.__renderer.duration = global.__renderer.duration || STARTUP_FAILURE_DURATION_SECONDS;
       global.__renderer.seek = () => {
-        throw new Error("template failed to start: " + message);
+        throw new Error("Template failed to start: " + message);
       };
     }
 
