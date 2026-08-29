@@ -8,6 +8,8 @@ export const ICONS = {
   remove: definition(16, 16, "M4.5 4.5L11.5 11.5M11.5 4.5L4.5 11.5"),
   revert: definition(16, 16, "M3.75 10.21A4.5 4.5 0 1 0 3.75 6.12M6.48 5.49L3.75 6.12L4.19 3.35"),
   add: definition(16, 16, "M8.5 4.5V12.5M4.5 8.5H12.5"),
+  check: definition(16, 16, "M3.5 8.5L6.5 11.5L12.5 5.5"),
+  chevron: definition(16, 16, "M4.5 6.25L8 9.75L11.5 6.25"),
 };
 
 export function icon(name) {
