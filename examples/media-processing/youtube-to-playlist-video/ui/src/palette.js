@@ -30,14 +30,14 @@ function samplePixels(image) {
 }
 
 function channelRange(bucket, channelIndex) {
-  let min = 255;
-  let max = 0;
+  let minimum = 255;
+  let maximum = 0;
   bucket.forEach((pixel) => {
     const value = pixel[channelIndex];
-    if (value < min) min = value;
-    if (value > max) max = value;
+    if (value < minimum) minimum = value;
+    if (value > maximum) maximum = value;
   });
-  return max - min;
+  return maximum - minimum;
 }
 
 function medianCutBuckets(pixels, targetCount) {
@@ -63,7 +63,7 @@ function medianCutBuckets(pixels, targetCount) {
     if (splitIndex === -1) break;
 
     const bucket = buckets[splitIndex];
-    bucket.sort((a, b) => a[bestChannelIndex] - b[bestChannelIndex]);
+    bucket.sort((pixel, other) => pixel[bestChannelIndex] - other[bestChannelIndex]);
     const middle = Math.floor(bucket.length / 2);
     buckets.splice(splitIndex, 1, bucket.slice(0, middle), bucket.slice(middle));
   }
@@ -120,7 +120,7 @@ function dominantHexes(pixels, targetCount) {
 
   return centroids
     .map((centroid, index) => ({ centroid: centroid, population: populations[index] }))
-    .sort((a, b) => b.population - a.population)
+    .sort((entry, other) => other.population - entry.population)
     .map((entry) => toHex(entry.centroid));
 }
 
@@ -128,7 +128,7 @@ function assignRoles(hexes) {
   const primary = hexes[0] || "#111111";
   const remaining = hexes.slice(1).length ? hexes.slice(1) : ["#ffcc00"];
 
-  const remainingByBrightness = remaining.slice().sort((a, b) => brightness(a) - brightness(b));
+  const remainingByBrightness = remaining.slice().sort((hex, other) => brightness(hex) - brightness(other));
   if (brightness(primary) < 128) remainingByBrightness.reverse();
 
   const accent = remainingByBrightness[0];

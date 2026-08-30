@@ -2,14 +2,14 @@ import { effective, isOverridden } from "./state.js";
 import { openColorPicker } from "./color-picker.js";
 import { icon } from "./icons.js";
 
-let fieldIdSeq = 0;
+let fieldIdSequence = 0;
 
-export function renderField(spec, f, handlers) {
+export function renderField(spec, trackField, handlers) {
   const row = document.createElement("div");
   row.className = "field";
   row.dataset.field = spec.key;
 
-  const controlId = "field-" + spec.key + "-" + fieldIdSeq++;
+  const controlId = "field-" + spec.key + "-" + fieldIdSequence++;
 
   const label = document.createElement("label");
   label.className = "field-label";
@@ -23,8 +23,8 @@ export function renderField(spec, f, handlers) {
 
   let revertHost = control;
 
-  const overridden = isOverridden(f);
-  const value = effective(f);
+  const overridden = isOverridden(trackField);
+  const value = effective(trackField);
 
   if (spec.type === "image") {
     const picker = document.createElement("input");
