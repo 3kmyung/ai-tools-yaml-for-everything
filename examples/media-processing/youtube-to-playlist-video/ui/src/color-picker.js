@@ -7,7 +7,7 @@ const CHANNELS = [
 ];
 
 const GAP = 8;
-const REOPEN_GUARD_MS = 250;
+const REOPEN_GUARD_MILLISECONDS = 250;
 
 let popover = null;
 let previewSwatch = null;
@@ -200,7 +200,7 @@ export function openColorPicker(options) {
   if (!popover) build();
 
   const anchor = options.anchor;
-  if (anchor === lastDismissedAnchor && Date.now() - lastDismissedAt < REOPEN_GUARD_MS) {
+  if (anchor === lastDismissedAnchor && Date.now() - lastDismissedAt < REOPEN_GUARD_MILLISECONDS) {
     lastDismissedAnchor = null;
     return;
   }

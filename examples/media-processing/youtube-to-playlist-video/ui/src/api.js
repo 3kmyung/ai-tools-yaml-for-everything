@@ -63,8 +63,8 @@ export function createApi(baseUrl) {
       return runJson("render-playlist", input, { wait_for_completion: false });
     },
 
-    watchTask: async (taskId, onState, intervalMs) => {
-      const interval = intervalMs || 1500;
+    watchTask: async (taskId, onState, intervalMilliseconds) => {
+      const interval = intervalMilliseconds || 1500;
       const terminal = ["completed", "failed", "cancelled"];
 
       for (;;) {
