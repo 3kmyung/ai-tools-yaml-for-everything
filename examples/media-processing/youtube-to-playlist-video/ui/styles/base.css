@@ -1,0 +1,53 @@
+:root {
+  color-scheme: light;
+
+  --background: #f7f7f8;
+  --background-panel: #eef0f2;
+  --border: #8c8e93;
+  --text: #1c1d1f;
+  --text-caption: #63666c;
+  --disabled: #a9abb0;
+  --accent: #007ffb;
+  --icon: var(--text-caption);
+  --link: var(--accent);
+
+  --alpha-1: 6%;
+  --alpha-2: 12%;
+  --alpha-3: 18%;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+
+  --text-sm: 0.75rem;
+  --text-base: 0.875rem;
+  --text-lg: 1rem;
+
+  --radius-sm: 0.25rem;
+  --radius-base: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-full: 999px;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  font: 400 var(--text-base) "Noto Sans", "Noto Sans KR", "Noto Sans SC", "Noto Sans JP";
+  background: var(--background);
+  color: var(--text);
+}
+
+button {
+  font: inherit;
+}
+
+:is(button, a, input, select):focus-visible {
+  outline: 0;
+}
