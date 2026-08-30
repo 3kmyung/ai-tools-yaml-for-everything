@@ -4,12 +4,12 @@ export function field(value, initial) {
   return { value: value !== undefined ? value : null, default: initial !== undefined ? initial : null };
 }
 
-export function effective(f) {
-  return f.value != null ? f.value : f.default;
+export function effective(trackField) {
+  return trackField.value != null ? trackField.value : trackField.default;
 }
 
-export function isOverridden(f) {
-  return f.value !== null;
+export function isOverridden(trackField) {
+  return trackField.value !== null;
 }
 
 export function createTrack(id) {
@@ -26,7 +26,7 @@ export function createTrack(id) {
   };
 }
 
-export const DEPS = {
+const DEPENDENTS = {
   youtube_url: ["title", "artist", "cover"],
   cover: ["primary_color", "secondary_color", "accent_color", "text_color"],
 };
@@ -61,12 +61,12 @@ const IDENTITY = {
 };
 
 function identify(key, value) {
-  const of = IDENTITY[key];
-  return of ? of(value) : value != null ? value : null;
+  const toIdentity = IDENTITY[key];
+  return toIdentity ? toIdentity(value) : value != null ? value : null;
 }
 
 export async function invalidate(track, sourceKey, api) {
-  const targets = DEPS[sourceKey];
+  const targets = DEPENDENTS[sourceKey];
   if (!targets) return;
 
   const source = await SOURCES[sourceKey](track, api);

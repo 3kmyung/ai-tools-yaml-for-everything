@@ -5,7 +5,7 @@ import { withStatus } from "./status.js";
 import { DEFAULT_TRACK_COLORS } from "./track-colors.js";
 import { STYLE_COLOR_ROLES } from "./color-roles.js";
 
-const URL_DEBOUNCE_MS = 500;
+const URL_DEBOUNCE_MILLISECONDS = 500;
 
 const BASE_FIELD_SPECS = [
   { key: "youtube_url", label: "YouTube", type: "url", placeholder: "https://www.youtube.com/watch?v=…" },
@@ -62,7 +62,7 @@ export function createEditor(options) {
           pendingResolves.delete(track.id);
         }
         onResolved();
-      }, URL_DEBOUNCE_MS)
+      }, URL_DEBOUNCE_MILLISECONDS)
     );
   }
 
