@@ -64,7 +64,6 @@ body:has(#ratio[data-value="9:16"]) #workspace { grid-template-columns: 1fr 0.31
   display: flex;
   flex-wrap: wrap;
   align-content: start;
-  gap: var(--space-1);
 }
 
 #tracks ol {
