@@ -65,11 +65,6 @@ export function renderField(spec, trackField, handlers) {
 
     control.appendChild(swatch);
 
-    const hex = document.createElement("span");
-    hex.className = "field-hex";
-    hex.textContent = value || "";
-    control.appendChild(hex);
-
     swatch.addEventListener("click", () => {
       openColorPicker({
         anchor: swatch,
@@ -77,7 +72,6 @@ export function renderField(spec, trackField, handlers) {
         suggestions: handlers.suggestions ? handlers.suggestions() : [],
         onInput: (picked) => {
           swatch.style.setProperty("--swatch", picked);
-          hex.textContent = picked;
           handlers.onInput(picked);
         },
       });
