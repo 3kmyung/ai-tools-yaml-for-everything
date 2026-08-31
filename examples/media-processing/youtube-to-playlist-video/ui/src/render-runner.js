@@ -1,5 +1,7 @@
 import { errorMessage, showInterrupt, showProgress, showResult, showStatus } from "./status.js";
 
+const STORAGE_KEY = "youtube-to-playlist-video/render-task";
+
 export function createRenderRunner(options) {
   const getApi = options.getApi;
   const buildInput = options.buildInput;
@@ -9,6 +11,28 @@ export function createRenderRunner(options) {
   let cancelRequested = false;
   let resumeRequested = false;
 
+  function rememberTask(taskId) {
+    activeTaskId = taskId;
+    try {
+      sessionStorage.setItem(STORAGE_KEY, taskId);
+    } catch (persistFailure) {}
+  }
+
+  function forgetTask() {
+    activeTaskId = null;
+    try {
+      sessionStorage.removeItem(STORAGE_KEY);
+    } catch (persistFailure) {}
+  }
+
+  function rememberedTask() {
+    try {
+      return sessionStorage.getItem(STORAGE_KEY);
+    } catch (readFailure) {
+      return null;
+    }
+  }
+
   function reportProgress(state) {
     const cancel = async () => {
       cancelRequested = true;
@@ -16,7 +40,8 @@ export function createRenderRunner(options) {
       try {
         if (activeTaskId) await getApi().cancelTask(activeTaskId);
       } catch (error) {
-        showStatus(errorMessage(error, "The render could not be cancelled."));
+        cancelRequested = false;
+        reportProgress(state);
       }
     };
 
@@ -43,6 +68,37 @@ export function createRenderRunner(options) {
     showProgress({ cancelling: cancelRequested, onCancel: cancel });
   }
 
+  async function follow(reattaching) {
+    const button = document.getElementById("render-playlist");
+    let reported = false;
+
+    button.disabled = true;
+    try {
+      const final = await getApi().watchTask(activeTaskId, (state) => {
+        reported = true;
+        reportProgress(state);
+      });
+      const status = String(final.status).toLowerCase();
+
+      if (status === "completed") {
+        showResult(final.output);
+      } else if (status === "cancelled") {
+        showStatus("Render cancelled.");
+      } else {
+        showStatus("Render failed.");
+      }
+    } catch (error) {
+      if (reported || !reattaching) {
+        showStatus(errorMessage(error, "The render could not be completed."));
+      }
+    } finally {
+      forgetTask();
+      cancelRequested = false;
+      resumeRequested = false;
+      button.disabled = false;
+    }
+  }
+
   async function start() {
     const button = document.getElementById("render-playlist");
     const input = buildInput();
@@ -60,30 +116,28 @@ export function createRenderRunner(options) {
 
     button.disabled = true;
     cancelRequested = false;
+
+    let started = null;
     try {
-      const started = await getApi().startRender(input);
-      activeTaskId = started.task_id;
-      reportProgress(started);
-
-      const final = await getApi().watchTask(activeTaskId, reportProgress);
-      const status = String(final.status).toLowerCase();
-
-      if (status === "completed") {
-        showResult(final.output);
-      } else if (status === "cancelled") {
-        showStatus("Render cancelled.");
-      } else {
-        showStatus("Render failed.");
-      }
+      started = await getApi().startRender(input);
     } catch (error) {
       showStatus(errorMessage(error, "The render could not be completed."));
-    } finally {
-      activeTaskId = null;
-      cancelRequested = false;
-      resumeRequested = false;
       button.disabled = false;
+      return;
     }
+
+    rememberTask(started.task_id);
+    reportProgress(started);
+    await follow(false);
   }
 
-  return { start: start };
+  async function reattach() {
+    const taskId = rememberedTask();
+    if (!taskId) return;
+
+    rememberTask(taskId);
+    await follow(true);
+  }
+
+  return { start: start, reattach: reattach };
 }
