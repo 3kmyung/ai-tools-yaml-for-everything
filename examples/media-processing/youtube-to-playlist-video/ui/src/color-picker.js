@@ -110,7 +110,7 @@ function build() {
 }
 
 function paintSwatches() {
-  Array.from(suggestionSwatches.children).forEach((swatch) => {
+  suggestionSwatches.querySelectorAll(".color-picker-swatch").forEach((swatch) => {
     swatch.classList.toggle("is-selected", swatch.dataset.hex === currentHex);
   });
 }
@@ -161,7 +161,11 @@ function renderSuggestions(suggestions) {
       swatch.title = hex;
       swatch.style.setProperty("--swatch", hex);
       swatch.addEventListener("click", () => apply(hex));
-      return swatch;
+
+      const frame = document.createElement("span");
+      frame.className = "thumbnail-frame";
+      frame.appendChild(swatch);
+      return frame;
     })
   );
 }
