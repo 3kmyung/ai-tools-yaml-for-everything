@@ -92,6 +92,7 @@ footer {
   gap: var(--space-3);
   padding: var(--space-2) var(--space-3);
   background: var(--background-panel);
+  color: var(--accent);
   opacity: 1;
   translate: 0 0;
   transition: opacity .32s ease, translate .32s ease, display .32s allow-discrete;
