@@ -95,7 +95,7 @@ footer {
   color: var(--accent);
   opacity: 1;
   translate: 0 0;
-  transition: opacity .32s ease, translate .32s ease, display .32s allow-discrete;
+  transition: opacity var(--duration-base) ease, translate var(--duration-base) ease, display var(--duration-base) allow-discrete;
 }
 
 footer:not(:has(#log:not([hidden]):not(:empty))) {

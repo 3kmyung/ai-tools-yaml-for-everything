@@ -29,6 +29,10 @@
   --radius-base: 0.5rem;
   --radius-lg: 0.75rem;
   --radius-full: 999px;
+
+  --duration-fast: .24s;
+  --duration-base: .32s;
+  --duration-slow: .56s;
 }
 
 html, body {
