@@ -22,7 +22,10 @@ export function renderTrackList(tracks, options) {
         thumbnail.alt = "";
         thumbnail.src = cover.url;
       }
-      item.appendChild(thumbnail);
+      const frame = document.createElement("span");
+      frame.className = "thumbnail-frame";
+      frame.appendChild(thumbnail);
+      item.appendChild(frame);
 
       const label = document.createElement("span");
       label.className = "track-label";
