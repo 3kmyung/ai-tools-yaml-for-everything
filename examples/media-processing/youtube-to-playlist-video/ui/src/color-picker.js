@@ -10,7 +10,6 @@ const GAP = 8;
 const REOPEN_GUARD_MILLISECONDS = 250;
 
 let popover = null;
-let previewSwatch = null;
 let hexInput = null;
 let suggestionSection = null;
 let suggestionSwatches = null;
@@ -74,13 +73,6 @@ function build() {
   popover.setAttribute("popover", "auto");
   popover.setAttribute("aria-label", "Color picker");
 
-  const head = document.createElement("div");
-  head.className = "color-picker-head";
-
-  previewSwatch = document.createElement("div");
-  previewSwatch.className = "color-picker-preview";
-  head.appendChild(previewSwatch);
-
   const hexLine = document.createElement("div");
   hexLine.className = "color-picker-hex";
 
@@ -97,14 +89,12 @@ function build() {
     hexInput.value = currentHex;
   });
   hexLine.appendChild(hexInput);
-  head.appendChild(hexLine);
-
-  popover.appendChild(head);
 
   const channelRows = document.createElement("div");
   channelRows.className = "color-picker-channels";
   CHANNELS.forEach((channel) => channelRows.appendChild(buildChannelRow(channel)));
   popover.appendChild(channelRows);
+  popover.appendChild(hexLine);
 
   popover.appendChild(buildSuggestions());
 
@@ -129,7 +119,6 @@ function paint(options) {
   const drivenBy = options && options.drivenBy !== undefined ? options.drivenBy : null;
   const channels = toChannels(currentHex);
 
-  previewSwatch.style.setProperty("--swatch", currentHex);
   if (drivenBy !== "hex") hexInput.value = currentHex;
 
   CHANNELS.forEach((channel) => {
