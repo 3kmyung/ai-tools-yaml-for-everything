@@ -281,13 +281,23 @@ workflows:
         type: filter
         input: https://i.ytimg.com/vi/${input.video_id}/maxresdefault.jpg
 
+      - id: trim-cover-padding
+        component: cover-trimmer
+        input:
+          image: ${jobs.build-cover-url.output as image;url}
+          width: ${jobs.fetch-metadata.output.width as integer | 1280}
+          height: ${jobs.fetch-metadata.output.height as integer | 720}
+        output: ${output}
+        on_error: ignore
+        depends_on: [ build-cover-url, fetch-metadata ]
+
       - id: ingest-cover
         component: cover-ingester
         input:
-          image: ${jobs.build-cover-url.output as image;url}
+          image: ${jobs.trim-cover-padding.output}
         output: ${output}
         on_error: ignore
-        depends_on: [ build-cover-url ]
+        depends_on: [ trim-cover-padding ]
 
     output:
       title: ${jobs.fetch-metadata.output.title}
@@ -415,6 +425,8 @@ components:
       params:
         url: ${input.youtube_url}
         format: json
+        maxwidth: 1280
+        maxheight: 720
 
   - id: cover-store
     type: file-store
@@ -434,6 +446,17 @@ components:
       width: 1280
       height: 1280
       scale_mode: fit
+      output: ${result as image/webp}
+
+  - id: cover-trimmer
+    type: image-processor
+    driver: native
+    action:
+      method: resize
+      image: ${input.image}
+      width: ${input.width}
+      height: ${input.height}
+      scale_mode: fill
       output: ${result as image/webp}
 
   - id: result-store
