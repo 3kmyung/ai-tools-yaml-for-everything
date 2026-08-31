@@ -12,6 +12,7 @@ export function renderTrackList(tracks, options) {
     ...tracks.map((track, index) => {
       const item = document.createElement("li");
       item.className = track.id === selectedId ? "track is-selected" : "track";
+      item.dataset.track = track.id;
       item.addEventListener("click", () => onSelect(track.id));
 
       const cover = effective(track.cover);
@@ -42,4 +43,12 @@ export function renderTrackList(tracks, options) {
       return item;
     })
   );
+}
+
+export function markSelectedTrack(selectedId) {
+  const list = document.querySelector("#tracks ol");
+
+  Array.from(list.children).forEach((item) => {
+    item.classList.toggle("is-selected", item.dataset.track === selectedId);
+  });
 }
