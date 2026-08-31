@@ -42,6 +42,7 @@ export function renderField(spec, trackField, handlers) {
     control.appendChild(picker);
 
     const pickerLabel = document.createElement("label");
+    pickerLabel.className = "thumbnail-frame";
     pickerLabel.htmlFor = controlId;
     pickerLabel.title = "Choose a cover image";
 
@@ -65,7 +66,10 @@ export function renderField(spec, trackField, handlers) {
     swatch.title = "Pick a color";
     swatch.style.setProperty("--swatch", current);
 
-    control.appendChild(swatch);
+    const swatchFrame = document.createElement("span");
+    swatchFrame.className = "thumbnail-frame";
+    swatchFrame.appendChild(swatch);
+    control.appendChild(swatchFrame);
 
     swatch.addEventListener("click", () => {
       openColorPicker({
