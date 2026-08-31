@@ -38,9 +38,6 @@ export function showProgress(options) {
   const label = document.createElement("span");
   label.textContent = "Rendering…";
 
-  const progress = document.createElement("progress");
-  progress.className = "status-progress";
-
   const cancel = document.createElement("button");
   cancel.type = "button";
   cancel.className = "cancel-render";
@@ -56,7 +53,7 @@ export function showProgress(options) {
   }
 
   const trailing = trailingGroup();
-  trailing.append(progress, cancel);
+  trailing.append(cancel);
 
   status.replaceChildren(label, trailing);
 }
