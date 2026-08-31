@@ -11,17 +11,19 @@ export function renderField(spec, trackField, handlers) {
 
   const controlId = "field-" + spec.key + "-" + fieldIdSequence++;
 
+  const body = document.createElement("div");
+  body.className = "field-body";
+  row.appendChild(body);
+
   const label = document.createElement("label");
   label.className = "field-label";
   label.textContent = spec.label;
   label.htmlFor = controlId;
-  row.appendChild(label);
+  body.appendChild(label);
 
   const control = document.createElement("div");
   control.className = "field-control";
-  row.appendChild(control);
-
-  let revertHost = control;
+  body.appendChild(control);
 
   const overridden = isOverridden(trackField);
   const value = effective(trackField);
@@ -90,7 +92,6 @@ export function renderField(spec, trackField, handlers) {
     line.appendChild(input);
 
     control.appendChild(line);
-    revertHost = line;
   }
 
   if (!overridden) control.classList.add("is-default");
@@ -103,7 +104,7 @@ export function renderField(spec, trackField, handlers) {
     revert.appendChild(icon("revert"));
     revert.disabled = !overridden;
     revert.addEventListener("click", () => handlers.onRevert());
-    revertHost.appendChild(revert);
+    row.appendChild(revert);
   }
 
   return row;
