@@ -13,17 +13,21 @@
 </head>
 <body>
   <header>
-    <span class="setting"><span id="style-label">Style</span><button class="dropdown" id="style" type="button" aria-labelledby="style-label style"></button></span>
-    <span class="setting"><span id="ratio-label">Ratio</span><button class="dropdown" id="ratio" type="button" aria-labelledby="ratio-label ratio"></button></span>
-    <span class="setting"><span id="resolution-label">Resolution</span><button class="dropdown" id="resolution" type="button" aria-labelledby="resolution-label resolution"></button></span>
-    <span class="setting"><span id="fps-label">FPS</span><button class="dropdown" id="fps" type="button" aria-labelledby="fps-label fps"></button></span>
-    <span id="warning" hidden></span>
+    <div id="settings">
+      <span class="setting"><span id="style-label">Style</span><button class="dropdown" id="style" type="button" aria-labelledby="style-label style"></button></span>
+      <span class="setting"><span id="ratio-label">Ratio</span><button class="dropdown" id="ratio" type="button" aria-labelledby="ratio-label ratio"></button></span>
+      <span class="setting"><span id="resolution-label">Resolution</span><button class="dropdown" id="resolution" type="button" aria-labelledby="resolution-label resolution"></button></span>
+      <span class="setting"><span id="fps-label">FPS</span><button class="dropdown" id="fps" type="button" aria-labelledby="fps-label fps"></button></span>
+      <span id="warning" hidden></span>
+    </div>
     <button id="render-playlist" type="button">Render</button>
   </header>
   <main>
     <section id="tracks">
-      <ol></ol>
-      <button id="add-track" type="button">Add track</button>
+      <div id="track-scroller">
+        <ol></ol>
+        <button id="add-track" type="button">Add track</button>
+      </div>
     </section>
     <div id="workspace">
       <p id="hint" hidden>Add a track to begin</p>
