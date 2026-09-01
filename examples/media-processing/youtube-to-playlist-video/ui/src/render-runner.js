@@ -83,16 +83,18 @@ export function createRenderRunner(options) {
       if (status === "completed") {
         showResult(final.output);
       } else if (status === "cancelled") {
+        forgetTask();
         showStatus("Render cancelled.");
       } else {
+        forgetTask();
         showStatus("Render failed.");
       }
     } catch (error) {
+      forgetTask();
       if (reported || !reattaching) {
         showStatus(errorMessage(error, "The render could not be completed."));
       }
     } finally {
-      forgetTask();
       cancelRequested = false;
       resumeRequested = false;
       button.disabled = false;
