@@ -454,7 +454,6 @@ header .setting {
 
 .status-video {
   display: block;
-  flex-basis: 100%;
   max-width: 24rem;
   border-radius: var(--radius-lg);
 }
