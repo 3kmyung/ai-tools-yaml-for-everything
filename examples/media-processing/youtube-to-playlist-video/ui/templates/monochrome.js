@@ -42,12 +42,12 @@ Renderer.startTemplate(async function () {
 
   if (document.fonts) await document.fonts.ready;
 
-  let lastAccent = null;
+  let lastPrimary = null;
 
   Renderer.start(context, () => {
-    if (context.colors.accent === lastAccent) return;
+    if (context.colors.primary === lastPrimary) return;
 
-    lastAccent = context.colors.accent;
-    screenElement.style.setProperty("--accent-vivid", maximizeVividness(lastAccent));
+    lastPrimary = context.colors.primary;
+    screenElement.style.setProperty("--primary-vivid", maximizeVividness(lastPrimary));
   });
 });
