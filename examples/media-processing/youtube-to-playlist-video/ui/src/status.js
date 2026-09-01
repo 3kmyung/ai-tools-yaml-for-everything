@@ -10,12 +10,11 @@ function trailingGroup() {
 
 export async function withStatus(message, work, fallback) {
   const status = statusElement();
-  status.hidden = false;
-  status.textContent = message;
+  showStatus(message);
   try {
     return await work();
   } catch (error) {
-    status.textContent = errorMessage(error, fallback);
+    showStatus(errorMessage(error, fallback));
     throw error;
   } finally {
     if (status.textContent === message) status.hidden = true;

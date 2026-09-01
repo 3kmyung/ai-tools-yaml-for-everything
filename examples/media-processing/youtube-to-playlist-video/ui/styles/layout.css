@@ -137,6 +137,7 @@ footer:not(:has(#log:not([hidden]):not(:empty))) {
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
+  min-width: 0;
   gap: var(--space-1);
   margin-left: auto;
 }
