@@ -121,7 +121,7 @@ footer:not(:has(#log:not([hidden]):not(:empty))) {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: var(--space-1);
+  gap: var(--space-3);
 }
 
 #preview {
