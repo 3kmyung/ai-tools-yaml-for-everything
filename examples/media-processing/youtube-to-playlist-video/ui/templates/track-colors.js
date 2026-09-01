@@ -1,6 +1,6 @@
 window.DEFAULT_TRACK_COLORS = Object.freeze({
-  primary: "#111111",
-  secondary: "#2a2a2a",
-  accent: "#ffffff",
-  text: "#f5f5f5",
+  primary: "#f7f7f8",
+  secondary: "#eef0f2",
+  accent: "#007ffb",
+  text: "#1c1d1f",
 });
