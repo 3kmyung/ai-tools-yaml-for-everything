@@ -26,10 +26,6 @@
 
 .field-body:has(.thumbnail) > .field-label {
   flex: 1 1 0;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .field-body:has(.thumbnail) > .field-control {
@@ -68,6 +64,7 @@
   background: none;
   color: inherit;
   font: inherit;
+  text-overflow: ellipsis;
 }
 
 .field-control > label {
@@ -254,6 +251,14 @@ button.thumbnail, .color-picker-swatch {
   color: var(--text-caption);
 }
 
+.field-label, .track-label, .dropdown-option > span,
+#log > span, .status-trailing a {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .field-label, header .setting {
   text-transform: uppercase;
 }
@@ -359,6 +364,7 @@ header .setting {
 }
 
 .dropdown-menu {
+  max-width: calc(100vw - 2 * var(--space-3));
   max-height: 16rem;
   overflow-y: auto;
   opacity: 0;
@@ -420,10 +426,6 @@ header .setting {
 
 .track-label {
   flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   color: var(--text);
   text-align: left;
 }
@@ -444,6 +446,10 @@ header .setting {
 
 :is(.revert-field, .remove-track):is(:hover, :focus-visible):not(:disabled) {
   background: color-mix(in srgb, currentColor var(--alpha-2), transparent);
+}
+
+#log > span {
+  flex: 1 1 0;
 }
 
 .status-video {
