@@ -26,6 +26,41 @@ header {
   background: var(--background-panel);
 }
 
+@property --scroll-fade-start {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --scroll-fade-end {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@keyframes scroll-fade-start {
+  from { --scroll-fade-start: 0px; }
+  to { --scroll-fade-start: var(--space-5); }
+}
+
+@keyframes scroll-fade-end {
+  from { --scroll-fade-end: var(--space-5); }
+  to { --scroll-fade-end: 0px; }
+}
+
+#settings, #track-scroller {
+  scrollbar-width: none;
+  mask-image: linear-gradient(
+    var(--scroll-fade-direction),
+    transparent 0,
+    #000 var(--scroll-fade-start),
+    #000 calc(100% - var(--scroll-fade-end)),
+    transparent 100%
+  );
+  animation: scroll-fade-start linear both, scroll-fade-end linear both;
+  animation-range: 0px var(--space-5), calc(100% - var(--space-5)) 100%;
+}
+
 #settings {
   flex: 1 1 auto;
   min-width: 0;
@@ -33,6 +68,8 @@ header {
   align-items: center;
   gap: var(--space-3);
   overflow-x: auto;
+  --scroll-fade-direction: to right;
+  animation-timeline: scroll(self inline);
 }
 
 main {
@@ -61,6 +98,8 @@ main {
   flex-direction: column;
   gap: var(--space-1);
   overflow-y: auto;
+  --scroll-fade-direction: to bottom;
+  animation-timeline: scroll(self block);
 }
 
 #workspace {
