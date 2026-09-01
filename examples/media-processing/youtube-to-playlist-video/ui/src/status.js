@@ -107,15 +107,7 @@ export function showResult(output) {
   video.controls = true;
   video.src = output.url;
 
-  const link = document.createElement("a");
-  link.href = output.url;
-  link.download = output.path;
-  link.textContent = output.path;
-
-  const trailing = trailingGroup();
-  trailing.append(link, video);
-
-  status.replaceChildren(trailing);
+  status.replaceChildren(video);
 }
 
 export function errorMessage(error, fallback) {
