@@ -281,15 +281,27 @@ workflows:
         type: filter
         input: https://i.ytimg.com/vi/${input.video_id}/maxresdefault.jpg
 
+      - id: build-frame-url
+        type: filter
+        input: https://i.ytimg.com/vi/${input.video_id}/frame0.jpg
+
+      - id: probe-aspect
+        component: cover-aspect-prober
+        input:
+          media: ${jobs.build-frame-url.output as file;url}
+        output: ${output as json}
+        on_error: ignore
+        depends_on: [ build-frame-url ]
+
       - id: trim-cover-padding
         component: cover-trimmer
         input:
           image: ${jobs.build-cover-url.output as image;url}
-          width: ${jobs.fetch-metadata.output.width as integer | 1280}
-          height: ${jobs.fetch-metadata.output.height as integer | 720}
+          width: ${jobs.probe-aspect.output.video_streams[0].width as integer | 1280}
+          height: ${jobs.probe-aspect.output.video_streams[0].height as integer | 720}
         output: ${output}
         on_error: ignore
-        depends_on: [ build-cover-url, fetch-metadata ]
+        depends_on: [ build-cover-url, probe-aspect ]
 
       - id: ingest-cover
         component: cover-ingester
@@ -447,6 +459,13 @@ components:
       height: 1280
       scale_mode: fit
       output: ${result as image/webp}
+
+  - id: cover-aspect-prober
+    type: media-inspector
+    driver: ffmpeg
+    action:
+      media: ${input.media}
+      return_raw: false
 
   - id: cover-trimmer
     type: image-processor
