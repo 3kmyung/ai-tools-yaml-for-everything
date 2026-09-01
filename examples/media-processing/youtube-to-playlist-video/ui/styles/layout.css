@@ -22,9 +22,17 @@ header {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  flex-wrap: wrap;
   padding: var(--space-2) var(--space-3);
   background: var(--background-panel);
+}
+
+#settings {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  overflow-x: auto;
 }
 
 main {
@@ -32,18 +40,27 @@ main {
   min-height: 0;
   display: grid;
   grid-template-columns: clamp(13rem, 22vw, 20rem) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   gap: var(--space-3);
   padding: var(--space-3);
 }
 
 #tracks {
   min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
   padding: var(--space-3);
   background: var(--background-panel);
   border-radius: var(--radius-lg);
+}
+
+#track-scroller {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  overflow-y: auto;
 }
 
 #workspace {
@@ -51,6 +68,8 @@ main {
   display: grid;
   gap: var(--space-3);
   min-width: 0;
+  min-height: 0;
+  overflow: auto;
 }
 
 body:has(#ratio[data-value="16:9"]) #workspace { grid-template-columns: 1fr 1fr; }
