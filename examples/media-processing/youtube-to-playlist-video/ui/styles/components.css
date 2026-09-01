@@ -156,7 +156,7 @@ button.thumbnail, .color-picker-swatch {
 .color-picker {
   width: 15rem;
   gap: var(--space-2);
-  padding: var(--space-3) var(--space-2);
+  padding: var(--space-3);
 }
 
 .color-picker-channel {
@@ -220,7 +220,7 @@ button.thumbnail, .color-picker-swatch {
   width: 0.875rem;
   height: 0.875rem;
   margin-top: -0.25rem;
-  border: 1px solid var(--border);
+  border: 1px solid transparent;
   border-radius: var(--radius-full);
   background: var(--background);
   transition: border-color var(--duration-fast) ease;
@@ -230,7 +230,7 @@ button.thumbnail, .color-picker-swatch {
   box-sizing: border-box;
   width: 0.875rem;
   height: 0.875rem;
-  border: 1px solid var(--border);
+  border: 1px solid transparent;
   border-radius: var(--radius-full);
   background: var(--background);
   transition: border-color var(--duration-fast) ease;
