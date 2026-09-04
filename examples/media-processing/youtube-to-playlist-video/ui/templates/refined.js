@@ -1,4 +1,4 @@
-Renderer.startTemplate(async function () {
+(async function () {
   const BAND_COUNT = window.STYLE_BAND_COUNTS.refined;
 
   const WAVE_COUNT = 2;
@@ -262,4 +262,4 @@ Renderer.startTemplate(async function () {
     canvasContext.fillRect(0, 0, canvasView.width, canvasView.height);
     canvasContext.globalCompositeOperation = "source-over";
   });
-});
+})();

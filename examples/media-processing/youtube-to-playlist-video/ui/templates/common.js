@@ -1,49 +1,30 @@
 (function (global) {
   "use strict";
 
-  const STARTUP_FAILURE_DURATION_SECONDS = 1.0;
-
   const isEngineDrivenPage = !!global.__renderer;
-
-  function failStartup(reason) {
-    const message = reason && reason.message ? reason.message : String(reason);
-
-    if (isEngineDrivenPage) {
-      global.__renderer.duration = global.__renderer.duration || STARTUP_FAILURE_DURATION_SECONDS;
-      global.__renderer.seek = () => {
-        throw new Error("Template failed to start: " + message);
-      };
-    }
-
-    throw reason;
-  }
-
-  function startTemplate(body) {
-    return Promise.resolve().then(body).catch(failStartup);
-  }
 
   const DEFAULT_RENDER_SETTINGS = global.DEFAULT_RENDER_SETTINGS;
 
   if (!DEFAULT_RENDER_SETTINGS) {
-    failStartup(new Error("render-settings.js must be loaded before common.js"));
+    throw new Error("render-settings.js must be loaded before common.js");
   }
 
   const DEFAULT_TRACK_COLORS = global.DEFAULT_TRACK_COLORS;
 
   if (!DEFAULT_TRACK_COLORS) {
-    failStartup(new Error("track-colors.js must be loaded before common.js"));
+    throw new Error("track-colors.js must be loaded before common.js");
   }
 
   const SCREEN_RATIOS = global.SCREEN_RATIOS;
 
   if (!SCREEN_RATIOS) {
-    failStartup(new Error("ratios.js must be loaded before common.js"));
+    throw new Error("ratios.js must be loaded before common.js");
   }
 
   const PREVIEW_MESSAGES = global.PREVIEW_MESSAGES;
 
   if (!PREVIEW_MESSAGES) {
-    failStartup(new Error("preview-protocol.js must be loaded before common.js"));
+    throw new Error("preview-protocol.js must be loaded before common.js");
   }
 
   const FALLBACK_RATIO = DEFAULT_RENDER_SETTINGS.ratio;
@@ -483,6 +464,5 @@
     averageColor: averageColor,
     superSample: superSample,
     start: start,
-    startTemplate: startTemplate,
   };
 })(window);
