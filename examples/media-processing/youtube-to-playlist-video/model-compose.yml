@@ -8,10 +8,6 @@ controller:
     static_dir: ./ui
     port: 8081
 
-logger:
-  type: console
-  level: debug
-
 workflows:
   - id: render-playlist
     title: YouTube Playlist Video

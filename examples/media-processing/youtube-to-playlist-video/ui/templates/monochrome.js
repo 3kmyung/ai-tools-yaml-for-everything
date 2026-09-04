@@ -1,4 +1,4 @@
-Renderer.startTemplate(async function () {
+(async function () {
   const BAND_COUNT = window.STYLE_BAND_COUNTS.monochrome;
 
   function maximizeVividness(color) {
@@ -50,4 +50,4 @@ Renderer.startTemplate(async function () {
     lastPrimary = context.colors.primary;
     screenElement.style.setProperty("--primary-vivid", maximizeVividness(lastPrimary));
   });
-});
+})();
