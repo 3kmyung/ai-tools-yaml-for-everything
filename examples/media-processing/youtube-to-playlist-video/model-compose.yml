@@ -151,24 +151,15 @@ workflows:
         on_error: { to: skip-track }
         depends_on: [ normalize-audio ]
 
-      - id: save-audio
-        component: audio-store
-        input:
-          source: ${jobs.encode-audio.output}
-          task_id: ${context.task_id}
-        output: ${output}
-        on_error: { to: skip-track }
-        depends_on: [ encode-audio ]
-
       - id: extract-spectrum
         component: spectrum-extractor
         input:
-          audio: ${jobs.save-audio.output.url as audio/mp3;url}
+          audio: ${jobs.encode-audio.output}
           fps: ${input.fps as select/24,30,60 | 30}
           band_count: ${input.band_count as integer | 18}
         output: ${output as json}
         on_error: { to: skip-track }
-        depends_on: [ save-audio ]
+        depends_on: [ encode-audio ]
 
       - id: check-cover
         type: if
@@ -211,7 +202,7 @@ workflows:
         input:
           frames: ${jobs.render-frames.output}
           frame_rate: ${input.fps as select/24,30,60 | 30}
-          audio: ${jobs.save-audio.output.url as audio/mp3;url}
+          audio: ${jobs.encode-audio.output}
         output: ${output as video}
         on_error: { to: skip-track }
         depends_on: [ render-frames ]
@@ -407,15 +398,6 @@ components:
       encoding:
         codec: libmp3lame
         bitrate: 192k
-
-  - id: audio-store
-    type: file-store
-    driver: local
-    base_path: ./.output
-    action:
-      method: put
-      path: ${input.task_id}/${context.run_id}/audio.mp3
-      source: ${input.source}
 
   - id: video-mixer
     type: video-mixer
