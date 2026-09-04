@@ -467,6 +467,7 @@ components:
 
   - id: spectrum-extractor
     type: audio-feature-extractor
+    driver: ffmpeg
     action:
       feature: spectrum
       audio: ${input.audio}
