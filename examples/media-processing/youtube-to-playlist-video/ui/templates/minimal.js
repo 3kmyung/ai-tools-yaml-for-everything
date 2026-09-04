@@ -7,6 +7,10 @@
   const SMOOTHING_WINDOW_SECONDS = 0.3;
   const SUPERSAMPLE = 2;
 
+  function smoothstep(value) {
+    return value * value * (3 - 2 * value);
+  }
+
   const context = await Renderer.createHostedContext({
     bandCount: BAR_COUNT,
     colors: Object.fromEntries(
@@ -57,7 +61,7 @@
     canvasContext.fillStyle = barFill;
     for (let band = 0; band < context.bandCount; band++) {
       const value = Math.min(1, frame[band] || 0);
-      const barHeight = Math.max(barMinHeight, value * canvasView.height);
+      const barHeight = Math.max(barMinHeight, smoothstep(value) * canvasView.height);
       canvasContext.fillRect(
         (context.bandCount - 1 - band) * slot,
         canvasView.height - barHeight,
