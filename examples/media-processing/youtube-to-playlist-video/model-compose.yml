@@ -151,15 +151,23 @@ workflows:
         on_error: { to: skip-track }
         depends_on: [ normalize-audio ]
 
+      - id: fanout-audio
+        type: fan-out
+        input: ${jobs.encode-audio.output}
+        output: [ for-spectrum, for-encode ]
+        spool: true
+        on_error: { to: skip-track }
+        depends_on: [ encode-audio ]
+
       - id: extract-spectrum
         component: spectrum-extractor
         input:
-          audio: ${jobs.encode-audio.output}
+          audio: ${jobs.fanout-audio.output.for-spectrum}
           fps: ${input.fps as select/24,30,60 | 30}
           band_count: ${input.band_count as integer | 18}
         output: ${output as json}
         on_error: { to: skip-track }
-        depends_on: [ encode-audio ]
+        depends_on: [ fanout-audio ]
 
       - id: check-cover
         type: if
@@ -202,10 +210,10 @@ workflows:
         input:
           frames: ${jobs.render-frames.output}
           frame_rate: ${input.fps as select/24,30,60 | 30}
-          audio: ${jobs.encode-audio.output}
+          audio: ${jobs.fanout-audio.output.for-encode}
         output: ${output as video}
         on_error: { to: skip-track }
-        depends_on: [ render-frames ]
+        depends_on: [ fanout-audio, render-frames ]
 
       - id: skip-track
         type: filter
