@@ -11,7 +11,7 @@
 
 .shadow, .gradient {
   position: relative;
-  --primary-darken: oklch(from var(--primary, #000000) calc(l * l * 0.8 + 0.07) calc(c * 0.85) h);
+  --primary-darken: oklch(from var(--primary) calc(l * l * 0.8 + 0.07) calc(c * 0.85) h);
 }
 
 .shadow::after {
