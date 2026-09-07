@@ -197,8 +197,8 @@
       baseline + tilt
     );
 
-    mask.addColorStop(0, "rgba(255, 255, 255, 1)");
-    mask.addColorStop(1, "rgba(255, 255, 255, " + DIAGONAL_FLOOR + ")");
+    mask.addColorStop(0, "rgba(0, 0, 0, 1)");
+    mask.addColorStop(1, "rgba(0, 0, 0, " + DIAGONAL_FLOOR + ")");
 
     return mask;
   })();

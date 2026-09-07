@@ -24,6 +24,6 @@ body {
   justify-content: center;
   width: var(--screen-width, 1280px);
   height: var(--screen-height, 720px);
-  background: var(--primary, #fafafa);
+  background: var(--primary);
   overflow: hidden;
 }
