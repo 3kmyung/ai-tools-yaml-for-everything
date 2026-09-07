@@ -52,17 +52,15 @@
   padding: 0.75em;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: space-between;
 }
 
 #mark {
   align-self: flex-start;
-  margin-bottom: auto;
   font-size: 0.9em;
 }
 
 #caption {
-  align-self: stretch;
   display: flex;
   flex-direction: row;
   gap: 0.5em;
