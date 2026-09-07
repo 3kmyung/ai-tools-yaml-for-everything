@@ -27,11 +27,7 @@
 }
 
 #wordmark {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  display: grid;
-  place-content: center;
+  text-align: center;
   font-family: "Kapakana";
   font-size: 10em;
   font-weight: 400;
@@ -46,12 +42,11 @@
   padding: 0.75em;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: space-between;
 }
 
 #mark {
   align-self: flex-start;
-  margin-bottom: auto;
   font-size: 0.9em;
 }
 
