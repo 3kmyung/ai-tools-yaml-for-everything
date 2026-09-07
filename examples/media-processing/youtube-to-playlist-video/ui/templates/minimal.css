@@ -6,7 +6,7 @@
 
 #screen {
   --stroke: #000000;
-  --muted: rgba(0, 0, 0, 0.4);
+  --muted: color-mix(in srgb, #000000 40%, transparent);
   font-size: var(--font-size);
 }
 
