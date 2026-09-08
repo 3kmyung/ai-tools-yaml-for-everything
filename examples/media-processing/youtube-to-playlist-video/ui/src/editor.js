@@ -23,6 +23,7 @@ const COLOR_FIELD_SPECS = {
 
 function fieldSpecsFor(style) {
   const roles = STYLE_COLOR_ROLES[style] || [];
+
   return BASE_FIELD_SPECS.concat(roles.map((role) => COLOR_FIELD_SPECS[role]));
 }
 
@@ -37,8 +38,10 @@ export function createEditor(options) {
 
   function markOverridden(key) {
     const row = document.querySelector(".field[data-field=\"" + key + "\"]");
+
     const control = row ? row.querySelector(".field-control") : null;
     if (control) control.classList.remove("is-default");
+
     const revertButton = row ? row.querySelector(".revert-field") : null;
     if (revertButton) revertButton.disabled = false;
   }
@@ -51,6 +54,7 @@ export function createEditor(options) {
       track.id,
       setTimeout(async () => {
         urlTimers.delete(track.id);
+
         try {
           await withStatus(
             "Resolving " + (url || "the link") + "…",
@@ -61,6 +65,7 @@ export function createEditor(options) {
         } finally {
           pendingResolves.delete(track.id);
         }
+
         onResolved();
       }, URL_DEBOUNCE_MILLISECONDS)
     );
@@ -68,6 +73,7 @@ export function createEditor(options) {
 
   function coverSwatches(track) {
     const cover = effective(track.cover);
+
     return cover && cover.colors && Array.isArray(cover.colors.swatches) ? cover.colors.swatches : [];
   }
 
@@ -91,6 +97,7 @@ export function createEditor(options) {
           await withStatus("Reverting…", () => revert(track, spec.key, getApi()), "That field could not be reverted.");
         } catch (revertFailure) {
         }
+
         onResolved();
       },
 
@@ -100,12 +107,14 @@ export function createEditor(options) {
             "Reading " + file.name + "…",
             async () => {
               const ingested = await getApi().coverDefaults(file);
+
               await setCover(track, ingested, getApi());
             },
             "That image could not be read."
           );
         } catch (coverFailure) {
         }
+
         onResolved();
       },
     };

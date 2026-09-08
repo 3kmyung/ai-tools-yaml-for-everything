@@ -5,12 +5,15 @@ function statusElement() {
 function trailingGroup() {
   const trailing = document.createElement("div");
   trailing.className = "status-trailing";
+
   return trailing;
 }
 
 export async function withStatus(message, work, fallback) {
   const status = statusElement();
+
   showStatus(message);
+
   try {
     return await work();
   } catch (error) {
@@ -24,6 +27,7 @@ export async function withStatus(message, work, fallback) {
 export function showStatus(message) {
   const status = statusElement();
   status.hidden = false;
+
   status.replaceChildren(Object.assign(document.createElement("span"), { textContent: message }));
 }
 
@@ -88,6 +92,7 @@ export function showInterrupt(state, options) {
   cancel.type = "button";
   cancel.className = "cancel-render";
   cancel.textContent = "Cancel";
+
   cancel.addEventListener("click", () => {
     if (onCancel) onCancel();
   });
@@ -114,5 +119,6 @@ export function errorMessage(error, fallback) {
   if (error instanceof TypeError) {
     return "Lost connection to the render server.";
   }
+
   return fallback;
 }

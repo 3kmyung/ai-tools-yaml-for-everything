@@ -4,13 +4,16 @@ const VIDEO_ID_PATTERN = /(?:youtu\.be\/|\/(?:embed|shorts|live|v)\/|[?&]v=)([A-
 
 export function youtubeVideoId(url) {
   const match = VIDEO_ID_PATTERN.exec(String(url || ""));
+
   return match ? match[1] : null;
 }
 
 async function readError(response) {
   const text = await response.text();
+
   try {
     const detail = JSON.parse(text).detail;
+
     return detail != null ? detail : text;
   } catch (parseFailure) {
     return text || "HTTP " + response.status;
@@ -22,19 +25,24 @@ export function createApi(baseUrl) {
 
   async function runJson(workflowId, input, extra) {
     const body = Object.assign({ workflow_id: workflowId, input: input }, extra || {});
+
     const response = await fetch(url + "/workflows/runs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
+
     if (!response.ok) throw new Error(await readError(response));
+
     return response.json();
   }
 
   return {
     workflowSchema: async (workflowId) => {
       const response = await fetch(url + "/workflows/" + workflowId + "/schema");
+
       if (!response.ok) throw new Error(await readError(response));
+
       return response.json();
     },
 
@@ -54,6 +62,7 @@ export function createApi(baseUrl) {
       form.append("input.cover_image", file, file.name);
 
       const response = await fetch(url + "/workflows/runs", { method: "POST", body: form });
+
       if (!response.ok) throw new Error(await readError(response));
 
       return response.json();
@@ -69,6 +78,7 @@ export function createApi(baseUrl) {
 
       for (;;) {
         const response = await fetch(url + "/tasks/" + taskId);
+
         if (!response.ok) throw new Error(await readError(response));
 
         const state = await response.json();
@@ -86,12 +96,15 @@ export function createApi(baseUrl) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ job_id: jobId }),
       });
+
       if (!response.ok) throw new Error(await readError(response));
+
       return response.json();
     },
 
     cancelTask: async (taskId) => {
       const response = await fetch(url + "/tasks/" + taskId + "/cancel", { method: "POST" });
+
       if (!response.ok) throw new Error(await readError(response));
     },
   };

@@ -24,6 +24,7 @@ export function icon(name) {
 
   const path = document.createElementNS(SVG_NAMESPACE, "path");
   path.setAttribute("d", spec.path);
+
   svg.appendChild(path);
 
   return svg;

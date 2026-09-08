@@ -13,6 +13,7 @@ function focusStep(menu, step) {
   const options = Array.from(menu.children);
   const index = options.indexOf(document.activeElement);
   const next = options[(index + step + options.length) % options.length];
+
   if (next) next.focus();
 }
 
@@ -23,6 +24,7 @@ function retire(menu) {
   }
 
   const running = menu.getAnimations();
+
   if (!running.length) {
     menu.remove();
     return;
@@ -43,6 +45,7 @@ function build(anchor) {
       focusStep(menu, event.key === "ArrowDown" ? 1 : -1);
     } else if (event.key === "Home" || event.key === "End") {
       event.preventDefault();
+
       const edge = event.key === "Home" ? menu.firstElementChild : menu.lastElementChild;
       if (edge) edge.focus();
     }
@@ -72,6 +75,7 @@ function build(anchor) {
 
 function paint(anchor, value) {
   const configuration = configurations.get(anchor);
+
   configuration.value = value;
   anchor.value = String(value);
   anchor.dataset.value = String(value);
@@ -85,6 +89,7 @@ function choose(anchor, menu, value) {
   anchor.focus();
 
   if (!changed) return;
+
   paint(anchor, value);
   anchor.dispatchEvent(new Event("change"));
 }
@@ -103,6 +108,7 @@ function renderOptions(anchor, menu) {
 
       const label = document.createElement("span");
       label.textContent = String(value);
+
       option.appendChild(label);
       option.appendChild(icon("check"));
 
@@ -128,6 +134,7 @@ function open(anchor) {
 
   reopenGuard.clear();
   dismiss();
+
   if (toggledOff) return;
 
   const menu = build(anchor);
@@ -138,6 +145,7 @@ function open(anchor) {
   anchor.setAttribute("aria-expanded", "true");
 
   menu.style.minWidth = anchor.getBoundingClientRect().width + "px";
+
   menu.showPopover();
   placePopover(anchor, menu);
   untrackPlacement = trackPlacement(anchor, menu);

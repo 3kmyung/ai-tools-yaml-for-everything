@@ -45,10 +45,12 @@
   const artistStyle = getComputedStyle(artistElement);
   canvasContext.font =
     artistStyle.fontWeight + " " + artistStyle.fontSize + " " + artistStyle.fontFamily;
+
   const capHeight = canvasContext.measureText("H").actualBoundingBoxAscent;
 
   canvas.width = Math.round(context.bandCount * barWidth + (context.bandCount - 1) * BAR_GAP_EM * anchor);
   canvas.height = Math.round(capHeight);
+
   const canvasView = Renderer.superSample(canvas, SUPERSAMPLE * context.screen.scale);
 
   Renderer.start(context, (time) => {
@@ -59,9 +61,11 @@
     if (!frame) return;
 
     canvasContext.fillStyle = barFill;
+
     for (let band = 0; band < context.bandCount; band++) {
       const value = Math.min(1, frame[band] || 0);
       const barHeight = Math.max(barMinHeight, smoothstep(value) * canvasView.height);
+
       canvasContext.fillRect(
         (context.bandCount - 1 - band) * slot,
         canvasView.height - barHeight,

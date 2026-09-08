@@ -4,6 +4,7 @@ import { PREVIEW_MESSAGES } from "./preview-protocol.js";
 function coverIdentity(cover) {
   if (cover == null) return null;
   if (typeof cover === "string") return cover;
+
   return cover.path != null ? cover.path : null;
 }
 
@@ -16,9 +17,12 @@ export function createPreview(container) {
 
   function onMessage(event) {
     const frameWindow = frame ? frame.contentWindow : null;
+
     if (event.source !== frameWindow) return;
     if (!event.data || event.data.type !== PREVIEW_MESSAGES.ready) return;
+
     ready = true;
+
     if (pending) {
       frame.contentWindow.postMessage({ type: PREVIEW_MESSAGES.properties, properties: pending }, "*");
       pending = null;
@@ -34,6 +38,7 @@ export function createPreview(container) {
     pending = Object.assign({}, properties, { width: logical.width, height: logical.height });
 
     if (frame) frame.remove();
+
     frame = document.createElement("iframe");
     frame.className = "preview-frame";
     frame.setAttribute("scrolling", "no");
@@ -41,12 +46,15 @@ export function createPreview(container) {
 
     const screenElement = document.createElement("div");
     screenElement.className = "preview-screen";
+
     screenElement.appendChild(frame);
+
     container.replaceChildren(screenElement);
   }
 
   function needsReload(next) {
     if (!current) return true;
+
     return (
       current.style !== next.style ||
       current.ratio !== next.ratio ||
@@ -70,23 +78,29 @@ export function createPreview(container) {
       } else if (ready && frame) {
         frame.contentWindow.postMessage({ type: PREVIEW_MESSAGES.colors, colors: properties.colors }, "*");
       }
+
       current = Object.assign({}, properties);
     },
 
     clear: () => {
       if (destroyed) return;
       if (frame) frame.remove();
+
       frame = null;
       pending = null;
       ready = false;
       current = null;
+
       container.replaceChildren();
     },
 
     destroy: () => {
       destroyed = true;
+
       window.removeEventListener("message", onMessage);
+
       if (frame) frame.remove();
+
       frame = null;
       pending = null;
       ready = false;
