@@ -13,16 +13,19 @@ export function renderField(spec, trackField, handlers) {
 
   const body = document.createElement("div");
   body.className = "field-body";
+
   row.appendChild(body);
 
   const label = document.createElement("label");
   label.className = "field-label";
   label.textContent = spec.label;
   label.htmlFor = controlId;
+
   body.appendChild(label);
 
   const control = document.createElement("div");
   control.className = "field-control";
+
   body.appendChild(control);
 
   const overridden = isOverridden(trackField);
@@ -35,10 +38,12 @@ export function renderField(spec, trackField, handlers) {
     picker.accept = "image/*";
     picker.className = "field-file-input";
     picker.dataset.role = "input";
+
     picker.addEventListener("change", () => {
       const file = picker.files && picker.files[0];
       if (file) handlers.onFile(file);
     });
+
     control.appendChild(picker);
 
     const pickerLabel = document.createElement("label");
@@ -48,10 +53,12 @@ export function renderField(spec, trackField, handlers) {
 
     const preview = document.createElement(value && value.url ? "img" : "div");
     preview.className = "thumbnail";
+
     if (value && value.url) {
       preview.alt = "";
       preview.src = value.url;
     }
+
     pickerLabel.appendChild(preview);
 
     control.appendChild(pickerLabel);
@@ -68,7 +75,9 @@ export function renderField(spec, trackField, handlers) {
 
     const swatchFrame = document.createElement("span");
     swatchFrame.className = "thumbnail-frame";
+
     swatchFrame.appendChild(swatch);
+
     control.appendChild(swatchFrame);
 
     swatch.addEventListener("click", () => {
@@ -92,7 +101,9 @@ export function renderField(spec, trackField, handlers) {
     input.dataset.role = "input";
     input.value = value != null ? value : "";
     input.placeholder = spec.placeholder || "";
+
     input.addEventListener("input", () => handlers.onInput(input.value));
+
     line.appendChild(input);
 
     control.appendChild(line);
@@ -107,7 +118,9 @@ export function renderField(spec, trackField, handlers) {
     revert.title = "Revert to the derived default";
     revert.appendChild(icon("revert"));
     revert.disabled = !overridden;
+
     revert.addEventListener("click", () => handlers.onRevert());
+
     row.appendChild(revert);
   }
 
