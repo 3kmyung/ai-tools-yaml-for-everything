@@ -1,4 +1,5 @@
 import { normalizeHex, toChannels, toHex } from "./hex.js";
+import { createReopenGuard, placePopover, trackPlacement } from "./popover.js";
 
 const CHANNELS = [
   { name: "R", index: 0 },
@@ -6,8 +7,7 @@ const CHANNELS = [
   { name: "B", index: 2 },
 ];
 
-const GAP = 8;
-const REOPEN_GUARD_MILLISECONDS = 250;
+const reopenGuard = createReopenGuard();
 
 let popover = null;
 let hexInput = null;
@@ -19,8 +19,7 @@ const readouts = [];
 let currentHex = "#000000";
 let currentAnchor = null;
 let notifyChange = null;
-let lastDismissedAnchor = null;
-let lastDismissedAt = 0;
+let untrackPlacement = null;
 
 function buildChannelRow(channel) {
   const channelRow = document.createElement("label");
@@ -100,8 +99,9 @@ function build() {
 
   popover.addEventListener("toggle", (event) => {
     if (event.newState === "open") return;
-    lastDismissedAnchor = currentAnchor;
-    lastDismissedAt = Date.now();
+    if (untrackPlacement) untrackPlacement();
+    untrackPlacement = null;
+    reopenGuard.record(currentAnchor);
     currentAnchor = null;
     notifyChange = null;
   });
@@ -170,31 +170,12 @@ function renderSuggestions(suggestions) {
   );
 }
 
-function place(anchor) {
-  const anchorBox = anchor.getBoundingClientRect();
-  const pickerBox = popover.getBoundingClientRect();
-
-  let top = anchorBox.bottom + GAP;
-  if (top + pickerBox.height > window.innerHeight - GAP) {
-    const above = anchorBox.top - GAP - pickerBox.height;
-    top = above >= GAP ? above : Math.max(GAP, window.innerHeight - GAP - pickerBox.height);
-  }
-
-  const left = Math.min(
-    Math.max(GAP, anchorBox.left),
-    Math.max(GAP, window.innerWidth - GAP - pickerBox.width)
-  );
-
-  popover.style.left = left + "px";
-  popover.style.top = top + "px";
-}
-
 export function openColorPicker(options) {
   if (!popover) build();
 
   const anchor = options.anchor;
-  if (anchor === lastDismissedAnchor && Date.now() - lastDismissedAt < REOPEN_GUARD_MILLISECONDS) {
-    lastDismissedAnchor = null;
+  if (reopenGuard.blocks(anchor)) {
+    reopenGuard.clear();
     return;
   }
 
@@ -207,7 +188,8 @@ export function openColorPicker(options) {
   paint();
 
   popover.showPopover();
-  place(anchor);
+  placePopover(anchor, popover);
+  untrackPlacement = trackPlacement(anchor, popover);
   notifyChange = options.onInput;
 }
 

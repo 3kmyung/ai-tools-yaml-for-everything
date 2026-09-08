@@ -1,14 +1,13 @@
 import { icon } from "./icons.js";
+import { createReopenGuard, placePopover, trackPlacement } from "./popover.js";
 
-const GAP = 8;
-const REOPEN_GUARD_MILLISECONDS = 250;
+const reopenGuard = createReopenGuard();
 
 const configurations = new WeakMap();
 
 let element = null;
 let currentAnchor = null;
-let lastDismissedAnchor = null;
-let lastDismissedAt = 0;
+let untrackPlacement = null;
 
 function focusStep(menu, step) {
   const options = Array.from(menu.children);
@@ -52,9 +51,11 @@ function build(anchor) {
   menu.addEventListener("toggle", (event) => {
     if (event.newState === "open") return;
 
+    if (untrackPlacement) untrackPlacement();
+    untrackPlacement = null;
+
     anchor.setAttribute("aria-expanded", "false");
-    lastDismissedAnchor = anchor;
-    lastDismissedAt = Date.now();
+    reopenGuard.record(anchor);
 
     if (menu === element) {
       element = null;
@@ -112,25 +113,6 @@ function renderOptions(anchor, menu) {
   );
 }
 
-function place(anchor, menu) {
-  const anchorBox = anchor.getBoundingClientRect();
-  const menuBox = menu.getBoundingClientRect();
-
-  let top = anchorBox.bottom + GAP;
-  if (top + menuBox.height > window.innerHeight - GAP) {
-    const above = anchorBox.top - GAP - menuBox.height;
-    top = above >= GAP ? above : Math.max(GAP, window.innerHeight - GAP - menuBox.height);
-  }
-
-  const left = Math.min(
-    Math.max(GAP, anchorBox.left),
-    Math.max(GAP, window.innerWidth - GAP - menuBox.width)
-  );
-
-  menu.style.left = left + "px";
-  menu.style.top = top + "px";
-}
-
 function dismiss() {
   if (!element) return;
 
@@ -142,11 +124,9 @@ function dismiss() {
 }
 
 function open(anchor) {
-  const toggledOff =
-    anchor === currentAnchor ||
-    (anchor === lastDismissedAnchor && Date.now() - lastDismissedAt < REOPEN_GUARD_MILLISECONDS);
+  const toggledOff = anchor === currentAnchor || reopenGuard.blocks(anchor);
 
-  lastDismissedAnchor = null;
+  reopenGuard.clear();
   dismiss();
   if (toggledOff) return;
 
@@ -159,7 +139,8 @@ function open(anchor) {
 
   menu.style.minWidth = anchor.getBoundingClientRect().width + "px";
   menu.showPopover();
-  place(anchor, menu);
+  placePopover(anchor, menu);
+  untrackPlacement = trackPlacement(anchor, menu);
 
   const selected = menu.querySelector("[aria-selected='true']") || menu.firstElementChild;
   if (selected) selected.focus();
