@@ -49,6 +49,7 @@
 
   function positiveSize(value) {
     const size = Number(value);
+
     return size > 0 ? size : null;
   }
 
@@ -67,6 +68,7 @@
     Object.keys(SCREEN_RATIOS).forEach((name) => {
       const screen = SCREEN_RATIOS[name];
       const distance = Math.abs(screen.width / screen.height - aspect);
+
       if (distance < nearestDistance) {
         nearestDistance = distance;
         nearestName = name;
@@ -92,6 +94,7 @@
 
   function sizeScreenToLogicalUnits(screenElement, screen) {
     const shortSide = Math.min(screen.width, screen.height);
+
     document.documentElement.style.fontSize = shortSide / ROOT_FONT_DIVISOR + "px";
 
     screenElement.style.setProperty("--screen-width", screen.width + "px");
@@ -109,6 +112,7 @@
       element.style.margin = "0";
       element.style.overflow = "hidden";
     });
+
     screenElement.style.transform = "scale(" + screen.scale + ")";
   }
 
@@ -126,6 +130,7 @@
 
   function hash(seed) {
     const noise = Math.sin(seed * 12.9898) * 43758.5453;
+
     return noise - Math.floor(noise);
   }
 
@@ -135,6 +140,7 @@
     const smoothed = fraction * fraction * (3 - 2 * fraction);
     const currentCell = ((cell % period) + period) % period;
     const nextCell = (currentCell + 1) % period;
+
     return hash(currentCell) * (1 - smoothed) + hash(nextCell) * smoothed;
   }
 
@@ -176,6 +182,7 @@
         const flicker = (bandNoise(band, time * flickerCellsPerSecond + 500, flickerPeriod) - 0.5) * 0.12;
 
         const level = shape * swell * (0.35 + 0.65 * (kickPull + hatPull)) + wobble + flicker;
+
         row.push(clamp(level, 0, 1));
       }
 
@@ -286,6 +293,7 @@
     return new Promise((resolve) => {
       function onMessage(event) {
         if (!event.data || event.data.type !== PREVIEW_MESSAGES.properties) return;
+
         global.removeEventListener("message", onMessage);
         resolve(event.data.properties || {});
       }
@@ -297,14 +305,17 @@
 
   function withHostedTrack(template, hosted) {
     const merged = Object.assign({}, template);
+
     HOSTED_TRACK_KEYS.forEach((key) => {
       if (key in hosted) merged[key] = hosted[key];
     });
+
     return merged;
   }
 
   async function createHostedContext(mock) {
     const hosted = await requestPropertiesFromHost();
+
     if (!hosted) return createContext(mock);
 
     const context = createContext(withHostedTrack(mock || {}, hosted));
@@ -330,6 +341,7 @@
       if (crossOrigin) image.crossOrigin = crossOrigin;
       image.onload = () => resolve(image);
       image.onerror = () => reject(new Error("failed to load image: " + url));
+
       image.src = url;
     });
   }
@@ -344,6 +356,7 @@
 
     try {
       const pixel = context.getImageData(0, 0, 1, 1).data;
+
       return { red: pixel[0], green: pixel[1], blue: pixel[2] };
     } catch (canvasIsTainted) {
       return null;
@@ -390,6 +403,7 @@
 
     function scaleToFit() {
       const scale = Math.min(window.innerWidth / screen.width, window.innerHeight / screen.height);
+
       screenElement.style.transform = "scale(" + scale + ")";
     }
 
@@ -399,6 +413,7 @@
 
   function publishRendererContract(duration, seek) {
     global.__renderer = global.__renderer || {};
+
     Object.assign(global.__renderer, { duration: duration, seek: seek });
   }
 
@@ -413,8 +428,10 @@
       if (!event.data || event.data.type !== PREVIEW_MESSAGES.colors) return;
 
       const screenElement = document.getElementById("screen");
+
       Object.assign(context.colors, event.data.colors || {});
       if (screenElement) applyColors(screenElement, context.colors);
+
       redraw(0);
     });
   }
@@ -438,6 +455,7 @@
         const progress = context.duration > 0 ? Math.min(1, time / context.duration) : 0;
         elapsed.style.width = (progress * 100).toFixed(2) + "%";
       }
+
       draw(time, context);
       signalFrameReady(time);
     }

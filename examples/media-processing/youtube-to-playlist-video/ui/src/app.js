@@ -51,8 +51,10 @@ function bandCount() {
 
 function withoutCoverBlob(cover) {
   if (!cover) return cover != null ? cover : null;
+
   const rest = Object.assign({}, cover);
   delete rest.data_uri;
+
   return rest;
 }
 
@@ -67,6 +69,7 @@ function persistable(track) {
 
 function save() {
   const payload = JSON.stringify({ settings: settings, tracks: tracks.map(persistable), nextId: nextId });
+
   try {
     localStorage.setItem(STORAGE_KEY, payload);
   } catch (persistFailure) {}
@@ -74,13 +77,16 @@ function save() {
 
 function load() {
   let parsed = null;
+
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) parsed = JSON.parse(raw);
   } catch (parseFailure) {
     parsed = null;
   }
+
   if (!parsed) return null;
+
   return {
     settings: parsed.settings != null ? parsed.settings : null,
     tracks: (Array.isArray(parsed.tracks) ? parsed.tracks : []).map(withCurrentFields),
@@ -91,9 +97,11 @@ function load() {
 function applySettings(persisted) {
   hasPersistedSettings = persisted != null;
   Object.assign(settings, persisted != null ? persisted : {});
+
   if (RESOLUTIONS[settings.ratio]) return;
 
   settings.ratio = DEFAULT_SETTINGS.ratio;
+
   const defaultResolution = RESOLUTIONS[settings.ratio][0];
   settings.width = defaultResolution[0];
   settings.height = defaultResolution[1];
@@ -101,9 +109,11 @@ function applySettings(persisted) {
 
 function withCurrentFields(track) {
   const template = createTrack(track.id);
+
   Object.keys(template).forEach((key) => {
     if (!(key in track)) track[key] = template[key];
   });
+
   return track;
 }
 
@@ -115,6 +125,7 @@ function renderResolutions() {
   const options = RESOLUTIONS[settings.ratio];
   const current = resolutionKey(settings.width, settings.height);
   const match = options.find((option) => resolutionKey(option[0], option[1]) === current) || options[0];
+
   settings.width = match[0];
   settings.height = match[1];
 
@@ -126,6 +137,7 @@ function renderResolutions() {
 
   const warning = document.getElementById("warning");
   const heavy = settings.width * settings.height > HEAVY_PIXELS;
+
   warning.hidden = !heavy;
   warning.textContent = heavy ? "Expect a long render" : "";
 }
@@ -134,6 +146,7 @@ function renderSettings() {
   setDropdown(document.getElementById("style"), STYLES, settings.style);
   setDropdown(document.getElementById("ratio"), Object.keys(SCREEN_RATIOS), settings.ratio);
   setDropdown(document.getElementById("fps"), FPS, settings.fps);
+
   renderResolutions();
 }
 
@@ -143,8 +156,10 @@ function selected() {
 
 function addTrack() {
   const track = createTrack("t" + nextId++);
+
   tracks.push(track);
   selectedId = track.id;
+
   renderAll();
 }
 
@@ -153,25 +168,28 @@ function removeTrack(id) {
 
   tracks = tracks.filter((track) => track.id !== id);
   if (selectedId === id) selectedId = tracks[0] ? tracks[0].id : null;
+
   renderAll();
 }
 
 function selectTrack(id) {
   selectedId = id;
   markSelectedTrack(selectedId);
+
   renderAll({ list: false });
 }
 
 function renderPreview() {
   const track = selected();
+
   if (!track) {
     preview.clear();
     return;
   }
 
   const index = tracks.indexOf(track);
-
   const cover = effective(track.cover);
+
   preview.update({
     style: settings.style,
     ratio: settings.ratio,
@@ -202,6 +220,7 @@ function renderAll(options) {
 
   if (withList) renderTrackList(tracks, { selectedId: selectedId, onSelect: selectTrack, onRemove: removeTrack });
   if (withEditor) editor.render(selected());
+
   renderPreview();
   save();
 }
@@ -214,14 +233,17 @@ function bindSettings() {
 
   document.getElementById("ratio").addEventListener("change", (event) => {
     settings.ratio = event.target.value;
+
     renderResolutions();
     renderAll();
   });
 
   document.getElementById("resolution").addEventListener("change", (event) => {
     const parts = event.target.value.split("x").map(Number);
+
     settings.width = parts[0];
     settings.height = parts[1];
+
     renderResolutions();
     renderAll();
   });
@@ -234,6 +256,7 @@ function bindSettings() {
 
 function bindActions() {
   const addTrackButton = document.getElementById("add-track");
+
   addTrackButton.prepend(icon("add"));
   addTrackButton.addEventListener("click", addTrack);
 
@@ -249,6 +272,7 @@ export function buildRenderInput() {
     height: settings.height,
     tracks: tracks.map((track) => {
       const cover = effective(track.cover);
+
       return {
         youtube_url: effective(track.youtube_url) || "",
         cover_image: cover && cover.path != null ? cover.path : null,
@@ -262,12 +286,15 @@ export function buildRenderInput() {
 
 function declaredOptions(variable, parse) {
   const parseValue = parse || String;
+
   if (!variable || !variable.subtype) return null;
+
   return variable.subtype.split(",").map((option) => parseValue(option.trim()));
 }
 
 async function adoptWorkflowSchema() {
   let schema;
+
   try {
     schema = await api.workflowSchema(RENDER_WORKFLOW_ID);
   } catch (schemaFailure) {
@@ -285,10 +312,12 @@ async function adoptWorkflowSchema() {
     const name = SCHEMA_SETTING_NAMES[key];
     const declaredEntry = declared.get(name);
     const declaredDefault = declaredEntry ? declaredEntry.default : null;
+
     if (declaredDefault == null) return;
 
     const value =
       typeof DEFAULT_SETTINGS[key] === "number" ? Number(declaredDefault) : declaredDefault;
+
     if (Number.isNaN(value)) return;
 
     DEFAULT_SETTINGS[key] = value;
@@ -314,19 +343,23 @@ const renderRunner = createRenderRunner({
 });
 
 preview = createPreview(document.getElementById("preview"));
+
 bindSettings();
 bindActions();
 
 const persisted = load();
 applySettings(persisted ? persisted.settings : null);
+
 if (persisted) {
   tracks = persisted.tracks;
   nextId = persisted.nextId != null ? persisted.nextId : tracks.length + 1;
 }
+
 if (!tracks.length) addTrack();
 if (selectedId == null) selectedId = tracks[0] ? tracks[0].id : null;
 
 await adoptWorkflowSchema();
+
 renderSettings();
 renderAll();
 renderRunner.reattach();

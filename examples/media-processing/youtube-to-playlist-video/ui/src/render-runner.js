@@ -13,6 +13,7 @@ export function createRenderRunner(options) {
 
   function rememberTask(taskId) {
     activeTaskId = taskId;
+
     try {
       sessionStorage.setItem(STORAGE_KEY, taskId);
     } catch (persistFailure) {}
@@ -20,6 +21,7 @@ export function createRenderRunner(options) {
 
   function forgetTask() {
     activeTaskId = null;
+
     try {
       sessionStorage.removeItem(STORAGE_KEY);
     } catch (persistFailure) {}
@@ -37,6 +39,7 @@ export function createRenderRunner(options) {
     const cancel = async () => {
       cancelRequested = true;
       reportProgress(state);
+
       try {
         if (activeTaskId) await getApi().cancelTask(activeTaskId);
       } catch (error) {
@@ -52,6 +55,7 @@ export function createRenderRunner(options) {
         onResume: async () => {
           resumeRequested = true;
           showInterrupt(state, { resuming: true });
+
           try {
             const jobId = state.interrupt ? state.interrupt.job_id : null;
             if (activeTaskId) await getApi().resumeTask(activeTaskId, jobId);
@@ -61,6 +65,7 @@ export function createRenderRunner(options) {
           }
         },
       });
+
       return;
     }
 
@@ -73,11 +78,13 @@ export function createRenderRunner(options) {
     let reported = false;
 
     button.disabled = true;
+
     try {
       const final = await getApi().watchTask(activeTaskId, (state) => {
         reported = true;
         reportProgress(state);
       });
+
       const status = String(final.status).toLowerCase();
 
       if (status === "completed") {
@@ -91,6 +98,7 @@ export function createRenderRunner(options) {
       }
     } catch (error) {
       forgetTask();
+
       if (reported || !reattaching) {
         showStatus(errorMessage(error, "The render could not be completed."));
       }
@@ -106,6 +114,7 @@ export function createRenderRunner(options) {
     const input = buildInput();
 
     const incomplete = input.tracks.filter((track) => !track.youtube_url);
+
     if (!input.tracks.length || incomplete.length) {
       showStatus("Every track needs a YouTube link before rendering.");
       return;
@@ -120,6 +129,7 @@ export function createRenderRunner(options) {
     cancelRequested = false;
 
     let started = null;
+
     try {
       started = await getApi().startRender(input);
     } catch (error) {
@@ -130,14 +140,17 @@ export function createRenderRunner(options) {
 
     rememberTask(started.task_id);
     reportProgress(started);
+
     await follow(false);
   }
 
   async function reattach() {
     const taskId = rememberedTask();
+
     if (!taskId) return;
 
     rememberTask(taskId);
+
     await follow(true);
   }
 

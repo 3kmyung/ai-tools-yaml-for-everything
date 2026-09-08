@@ -34,11 +34,14 @@ const DEPENDENTS = {
 const SOURCES = {
   youtube_url: async (track, api) => {
     const url = (effective(track.youtube_url) || "").trim();
+
     return url ? api.youtubeDefaults(url) : null;
   },
   cover: async (track) => {
     const cover = effective(track.cover);
+
     if (cover && !cover.colors) cover.colors = await extractPalette(cover.data_uri || cover.url);
+
     return cover;
   },
 };
@@ -62,11 +65,13 @@ const IDENTITY = {
 
 function identify(key, value) {
   const toIdentity = IDENTITY[key];
+
   return toIdentity ? toIdentity(value) : value != null ? value : null;
 }
 
 export async function invalidate(track, sourceKey, api) {
   const targets = DEPENDENTS[sourceKey];
+
   if (!targets) return;
 
   const source = await SOURCES[sourceKey](track, api);
@@ -74,7 +79,9 @@ export async function invalidate(track, sourceKey, api) {
   for (let index = 0; index < targets.length; index++) {
     const key = targets[index];
     const before = identify(key, effective(track[key]));
+
     track[key].default = DERIVE[key](source);
+
     if (identify(key, effective(track[key])) !== before) {
       await invalidate(track, key, api);
     }

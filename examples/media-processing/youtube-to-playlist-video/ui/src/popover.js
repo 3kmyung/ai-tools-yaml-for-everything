@@ -6,6 +6,7 @@ export function placePopover(anchor, element) {
   const elementBox = element.getBoundingClientRect();
 
   let top = anchorBox.bottom + GAP;
+
   if (top + elementBox.height > window.innerHeight - GAP) {
     const above = anchorBox.top - GAP - elementBox.height;
     top = above >= GAP ? above : Math.max(GAP, window.innerHeight - GAP - elementBox.height);

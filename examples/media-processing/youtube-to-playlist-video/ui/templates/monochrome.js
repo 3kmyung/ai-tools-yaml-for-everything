@@ -13,6 +13,7 @@
 
   function maximizeVividness(color) {
     const digits = /^#([0-9a-f]{6})$/i.exec(String(color).trim());
+
     if (!digits) return color;
 
     const packed = parseInt(digits[1], 16);
@@ -22,12 +23,14 @@
 
     const highest = Math.max(red, green, blue);
     const lowest = Math.min(red, green, blue);
+
     if (highest === lowest) return color;
 
     const channel = (component) =>
       Math.round((255 * (component - lowest)) / (highest - lowest));
 
     const vivid = (channel(red) << 16) | (channel(green) << 8) | channel(blue);
+
     return "#" + vivid.toString(16).padStart(6, "0");
   }
 
@@ -66,6 +69,7 @@
 
   canvas.width = Math.round(context.bandCount * barWidth + (context.bandCount - 1) * BAR_GAP_EM * anchor);
   canvas.height = Math.round(captionLineHeight);
+
   const canvasView = Renderer.superSample(canvas, SUPERSAMPLE * context.screen.scale);
 
   const barFill = getComputedStyle(screenElement).color;
@@ -85,9 +89,11 @@
     if (!frame) return;
 
     canvasContext.fillStyle = barFill;
+
     for (let band = 0; band < context.bandCount; band++) {
       const value = Math.min(1, frame[band] || 0);
       const barHeight = Math.max(barMinHeight, smoothstep(value) * canvasView.height);
+
       canvasContext.fillRect((context.bandCount - 1 - band) * slot, 0, barWidth, barHeight);
     }
   });

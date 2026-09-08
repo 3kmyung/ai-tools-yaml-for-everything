@@ -13,6 +13,7 @@ let popover = null;
 let hexInput = null;
 let suggestionSection = null;
 let suggestionSwatches = null;
+
 const sliders = [];
 const readouts = [];
 
@@ -28,6 +29,7 @@ function buildChannelRow(channel) {
   const channelName = document.createElement("span");
   channelName.className = "color-picker-channel-name";
   channelName.textContent = channel.name;
+
   channelRow.appendChild(channelName);
 
   const slider = document.createElement("input");
@@ -36,15 +38,19 @@ function buildChannelRow(channel) {
   slider.max = "255";
   slider.step = "1";
   slider.className = "color-picker-slider";
+
   slider.addEventListener("input", () => {
     const channels = toChannels(currentHex);
     channels[channel.index] = Number(slider.value);
+
     apply(toHex(channels), { drivenBy: channel.index });
   });
+
   channelRow.appendChild(slider);
 
   const readout = document.createElement("span");
   readout.className = "color-picker-readout";
+
   channelRow.appendChild(readout);
 
   sliders[channel.index] = slider;
@@ -61,6 +67,7 @@ function buildSuggestions() {
   suggestionSwatches.className = "color-picker-swatches";
   suggestionSwatches.setAttribute("role", "group");
   suggestionSwatches.setAttribute("aria-label", "From cover");
+
   suggestionSection.appendChild(suggestionSwatches);
 
   return suggestionSection;
@@ -80,27 +87,33 @@ function build() {
   hexInput.spellcheck = false;
   hexInput.autocomplete = "off";
   hexInput.setAttribute("aria-label", "Hex value");
+
   hexInput.addEventListener("input", () => {
     const normalized = normalizeHex(hexInput.value);
     if (normalized) apply(normalized, { drivenBy: "hex" });
   });
+
   hexInput.addEventListener("blur", () => {
     hexInput.value = currentHex;
   });
+
   hexLine.appendChild(hexInput);
 
   const channelRows = document.createElement("div");
   channelRows.className = "color-picker-channels";
+
   CHANNELS.forEach((channel) => channelRows.appendChild(buildChannelRow(channel)));
+
   popover.appendChild(channelRows);
   popover.appendChild(hexLine);
-
   popover.appendChild(buildSuggestions());
 
   popover.addEventListener("toggle", (event) => {
     if (event.newState === "open") return;
+
     if (untrackPlacement) untrackPlacement();
     untrackPlacement = null;
+
     reopenGuard.record(currentAnchor);
     currentAnchor = null;
     notifyChange = null;
@@ -129,8 +142,10 @@ function paint(options) {
 
     const slider = sliders[channel.index];
     if (channel.index !== drivenBy) slider.value = String(channels[channel.index]);
+
     slider.style.setProperty("--from", toHex(gradientStart));
     slider.style.setProperty("--to", toHex(gradientEnd));
+
     readouts[channel.index].textContent = String(channels[channel.index]);
   });
 
@@ -140,17 +155,20 @@ function paint(options) {
 function apply(hex, options) {
   currentHex = hex;
   paint(options);
+
   if (notifyChange) notifyChange(currentHex);
 }
 
 function renderSuggestions(suggestions) {
   const uniqueHexes = [];
+
   (suggestions || []).forEach((hex) => {
     const normalized = normalizeHex(hex);
     if (normalized && uniqueHexes.indexOf(normalized) === -1) uniqueHexes.push(normalized);
   });
 
   suggestionSection.hidden = uniqueHexes.length === 0;
+
   suggestionSwatches.replaceChildren(
     ...uniqueHexes.map((hex) => {
       const swatch = document.createElement("button");
@@ -160,11 +178,14 @@ function renderSuggestions(suggestions) {
       swatch.dataset.hex = hex;
       swatch.title = hex;
       swatch.style.setProperty("--swatch", hex);
+
       swatch.addEventListener("click", () => apply(hex));
 
       const frame = document.createElement("span");
       frame.className = "thumbnail-frame";
+
       frame.appendChild(swatch);
+
       return frame;
     })
   );
@@ -174,6 +195,7 @@ export function openColorPicker(options) {
   if (!popover) build();
 
   const anchor = options.anchor;
+
   if (reopenGuard.blocks(anchor)) {
     reopenGuard.clear();
     return;
@@ -184,12 +206,14 @@ export function openColorPicker(options) {
   currentAnchor = anchor;
   notifyChange = null;
   currentHex = normalizeHex(options.value) || "#000000";
+
   renderSuggestions(options.suggestions);
   paint();
 
   popover.showPopover();
   placePopover(anchor, popover);
   untrackPlacement = trackPlacement(anchor, popover);
+
   notifyChange = options.onInput;
 }
 

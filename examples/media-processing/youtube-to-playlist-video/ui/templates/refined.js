@@ -46,6 +46,7 @@
 
   canvas.width = Math.round(context.bandCount * barWidth + (context.bandCount - 1) * BAR_GAP_EM * anchor);
   canvas.height = Math.round(captionLineHeight);
+
   const canvasView = Renderer.superSample(canvas, SUPERSAMPLE * context.screen.scale);
 
   Renderer.start(context, (time) => {
@@ -56,9 +57,11 @@
     if (!frame) return;
 
     canvasContext.fillStyle = context.colors.accent;
+
     for (let band = 0; band < context.bandCount; band++) {
       const value = Math.min(1, frame[band] || 0);
       const barHeight = Math.max(barMinHeight, smoothstep(value) * canvasView.height);
+
       canvasContext.fillRect((context.bandCount - 1 - band) * slot, 0, barWidth, barHeight);
     }
   });

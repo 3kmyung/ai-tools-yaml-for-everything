@@ -9,6 +9,7 @@ function loadImage(imageSource) {
     image.crossOrigin = "anonymous";
     image.onload = () => resolve(image);
     image.onerror = () => resolve(null);
+
     image.src = imageSource;
   });
 }
@@ -17,11 +18,13 @@ function samplePixels(image) {
   const canvas = document.createElement("canvas");
   canvas.width = SAMPLE_EDGE;
   canvas.height = SAMPLE_EDGE;
+
   const context = canvas.getContext("2d");
   context.drawImage(image, 0, 0, SAMPLE_EDGE, SAMPLE_EDGE);
 
   const rgbaBytes = context.getImageData(0, 0, SAMPLE_EDGE, SAMPLE_EDGE).data;
   const pixels = [];
+
   for (let offset = 0; offset < rgbaBytes.length; offset += 4) {
     pixels.push([rgbaBytes[offset], rgbaBytes[offset + 1], rgbaBytes[offset + 2]]);
   }
@@ -32,11 +35,14 @@ function samplePixels(image) {
 function channelRange(bucket, channelIndex) {
   let minimum = 255;
   let maximum = 0;
+
   bucket.forEach((pixel) => {
     const value = pixel[channelIndex];
+
     if (value < minimum) minimum = value;
     if (value > maximum) maximum = value;
   });
+
   return maximum - minimum;
 }
 
@@ -50,8 +56,10 @@ function medianCutBuckets(pixels, targetCount) {
 
     buckets.forEach((bucket, index) => {
       if (bucket.length < 2) return;
+
       for (let channelIndex = 0; channelIndex < 3; channelIndex++) {
         const range = channelRange(bucket, channelIndex);
+
         if (range > bestRange) {
           bestRange = range;
           splitIndex = index;
@@ -64,6 +72,7 @@ function medianCutBuckets(pixels, targetCount) {
 
     const bucket = buckets[splitIndex];
     bucket.sort((pixel, other) => pixel[bestChannelIndex] - other[bestChannelIndex]);
+
     const middle = Math.floor(bucket.length / 2);
     buckets.splice(splitIndex, 1, bucket.slice(0, middle), bucket.slice(middle));
   }
@@ -75,11 +84,13 @@ function averageChannels(bucket) {
   let redTotal = 0;
   let greenTotal = 0;
   let blueTotal = 0;
+
   bucket.forEach((pixel) => {
     redTotal += pixel[0];
     greenTotal += pixel[1];
     blueTotal += pixel[2];
   });
+
   return [
     Math.round(redTotal / bucket.length),
     Math.round(greenTotal / bucket.length),
@@ -90,22 +101,26 @@ function averageChannels(bucket) {
 function nearestCentroidIndex(pixel, centroids) {
   let nearestIndex = 0;
   let nearestSquaredDistance = Infinity;
+
   for (let index = 0; index < centroids.length; index++) {
     const centroid = centroids[index];
     const redDelta = pixel[0] - centroid[0];
     const greenDelta = pixel[1] - centroid[1];
     const blueDelta = pixel[2] - centroid[2];
     const squaredDistance = redDelta * redDelta + greenDelta * greenDelta + blueDelta * blueDelta;
+
     if (squaredDistance < nearestSquaredDistance) {
       nearestSquaredDistance = squaredDistance;
       nearestIndex = index;
     }
   }
+
   return nearestIndex;
 }
 
 function brightness(hex) {
   const channels = toChannels(hex);
+
   return (channels[0] * 299 + channels[1] * 587 + channels[2] * 114) / 1000;
 }
 
@@ -140,6 +155,7 @@ function assignRoles(hexes) {
 
 export async function extractPalette(imageSource) {
   const image = await loadImage(imageSource);
+
   if (!image) return null;
 
   const pixels = samplePixels(image);
