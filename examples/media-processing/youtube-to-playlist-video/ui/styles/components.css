@@ -143,8 +143,6 @@ button.thumbnail, .color-picker-swatch {
   box-sizing: border-box;
   flex-direction: column;
   max-width: calc(100vw - 2 * var(--popover-inset));
-  max-height: calc(100vh - 2 * var(--popover-inset));
-  overflow-y: auto;
   padding: var(--space-2);
   border: 0;
   border-radius: var(--radius-lg);
@@ -372,7 +370,6 @@ header .setting {
 }
 
 .dropdown-menu {
-  max-height: min(16rem, calc(100vh - 2 * var(--popover-inset)));
   opacity: 0;
   translate: 0 -.375rem;
   pointer-events: none;
