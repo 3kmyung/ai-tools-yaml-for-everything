@@ -136,11 +136,15 @@ button.thumbnail, .color-picker-swatch {
 }
 
 .color-picker, .dropdown-menu {
+  --popover-inset: var(--space-3);
   position: fixed;
   inset: auto;
   margin: 0;
   box-sizing: border-box;
   flex-direction: column;
+  max-width: calc(100vw - 2 * var(--popover-inset));
+  max-height: calc(100vh - 2 * var(--popover-inset));
+  overflow-y: auto;
   padding: var(--space-2);
   border: 0;
   border-radius: var(--radius-lg);
@@ -163,6 +167,10 @@ button.thumbnail, .color-picker-swatch {
   display: flex;
   align-items: center;
   gap: var(--space-1);
+}
+
+.color-picker-hex input {
+  min-width: 8ch;
 }
 
 .color-picker-channels, .color-picker-suggestions, .color-picker-swatches {
@@ -194,7 +202,7 @@ button.thumbnail, .color-picker-swatch {
 
 .color-picker-slider {
   flex: 1 1 auto;
-  min-width: 0;
+  min-width: 5rem;
   height: 0.875rem;
   margin: 0;
   background: none;
@@ -364,9 +372,7 @@ header .setting {
 }
 
 .dropdown-menu {
-  max-width: calc(100vw - 2 * var(--space-3));
-  max-height: 16rem;
-  overflow-y: auto;
+  max-height: min(16rem, calc(100vh - 2 * var(--popover-inset)));
   opacity: 0;
   translate: 0 -.375rem;
   pointer-events: none;
