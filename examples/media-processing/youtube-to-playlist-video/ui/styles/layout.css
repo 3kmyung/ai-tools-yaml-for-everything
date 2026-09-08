@@ -48,7 +48,7 @@ header {
   to { --scroll-fade-end: 0px; }
 }
 
-#settings, #track-scroller {
+#settings, #track-scroller, #log, main, #workspace {
   scrollbar-width: none;
   mask-image: linear-gradient(
     var(--scroll-fade-direction),
@@ -76,10 +76,13 @@ main {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: clamp(13rem, 22vw, 20rem) minmax(0, 1fr);
+  grid-template-columns: clamp(13rem, 22vw, 20rem) minmax(16rem, 1fr);
   grid-template-rows: minmax(0, 1fr);
   gap: var(--space-3);
   padding: var(--space-3);
+  overflow-x: auto;
+  --scroll-fade-direction: to right;
+  animation-timeline: scroll(self inline);
 }
 
 #tracks {
@@ -109,6 +112,8 @@ main {
   min-width: 0;
   min-height: 0;
   overflow: auto;
+  --scroll-fade-direction: to bottom;
+  animation-timeline: scroll(self block);
 }
 
 body:has(#ratio[data-value="16:9"]) #workspace { grid-template-columns: 1fr 1fr; }
@@ -176,10 +181,14 @@ footer:not(:has(#log:not([hidden]):not(:empty))) {
 #log {
   flex: 1;
   min-width: 0;
+  max-height: 40vh;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: var(--space-3);
+  overflow-y: auto;
+  --scroll-fade-direction: to bottom;
+  animation-timeline: scroll(self block);
 }
 
 #preview {
