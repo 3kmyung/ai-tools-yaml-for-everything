@@ -493,6 +493,8 @@ components:
     headless: true
     action:
       html: ./ui/templates/${input.style | minimal}.html
+      format: jpeg
+      quality: 95
       fps: ${input.fps}
       width: ${input.width as integer | 1280}
       height: ${input.height as integer | 720}
