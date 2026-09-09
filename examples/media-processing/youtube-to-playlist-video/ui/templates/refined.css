@@ -7,6 +7,7 @@
 #screen {
   --bar-height: 0.1em;
   --stroke: var(--accent);
+  --accent-contrast: oklch(from var(--accent) round(1 - l) 0 0);
   color: var(--accent);
   font-size: var(--font-size);
 }
@@ -81,7 +82,7 @@
   right: 0;
   bottom: 0;
   height: var(--bar-height);
-  background: color-mix(in srgb, #fafafa 75%, transparent);
+  background: color-mix(in srgb, var(--accent-contrast) 75%, transparent);
 }
 
 #elapsed {
