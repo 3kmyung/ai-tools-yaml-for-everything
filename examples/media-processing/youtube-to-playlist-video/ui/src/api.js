@@ -1,3 +1,5 @@
+import { createWebSocketClient, socketUrlFor } from "./websocket-client.js";
+
 const DEFAULT_BASE_URL = "http://127.0.0.1:8080/api";
 
 const VIDEO_ID_PATTERN = /(?:youtu\.be\/|\/(?:embed|shorts|live|v)\/|[?&]v=)([A-Za-z0-9_-]{11})/;
@@ -22,19 +24,17 @@ async function readError(response) {
 
 export function createApi(baseUrl) {
   const url = baseUrl || DEFAULT_BASE_URL;
+  const socket = createWebSocketClient(socketUrlFor(url));
 
-  async function runJson(workflowId, input, extra) {
-    const body = Object.assign({ workflow_id: workflowId, input: input }, extra || {});
+  async function runToCompletion(workflowId, input) {
+    const started = await socket.runWorkflow(workflowId, input);
+    const final = await socket.watchTask(started.task_id);
 
-    const response = await fetch(url + "/workflows/runs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
+    if (String(final.status).toLowerCase() !== "completed") {
+      throw new Error(final.error || "The workflow did not complete.");
+    }
 
-    if (!response.ok) throw new Error(await readError(response));
-
-    return response.json();
+    return final.output;
   }
 
   return {
@@ -47,59 +47,26 @@ export function createApi(baseUrl) {
     },
 
     youtubeDefaults: async (videoUrl) => {
-      return runJson(
-        "resolve-youtube-defaults",
-        { youtube_url: videoUrl, video_id: youtubeVideoId(videoUrl) },
-        { wait_for_completion: true, output_only: true }
-      );
+      return runToCompletion("resolve-youtube-defaults", {
+        youtube_url: videoUrl,
+        video_id: youtubeVideoId(videoUrl),
+      });
     },
 
     coverDefaults: async (file) => {
-      const form = new FormData();
-      form.append("workflow_id", "resolve-cover-defaults");
-      form.append("wait_for_completion", "true");
-      form.append("output_only", "true");
-      form.append("input.cover_image", file, file.name);
-
-      const response = await fetch(url + "/workflows/runs", { method: "POST", body: form });
-
-      if (!response.ok) throw new Error(await readError(response));
-
-      return response.json();
+      return runToCompletion("resolve-cover-defaults", { cover_image: socket.streamFile(file) });
     },
 
     startRender: async (input) => {
-      return runJson("render-playlist", input, { wait_for_completion: false });
+      return socket.runWorkflow("render-playlist", input);
     },
 
-    watchTask: async (taskId, onState, intervalMilliseconds) => {
-      const interval = intervalMilliseconds || 1500;
-      const terminal = ["completed", "failed", "cancelled"];
-
-      for (;;) {
-        const response = await fetch(url + "/tasks/" + taskId);
-
-        if (!response.ok) throw new Error(await readError(response));
-
-        const state = await response.json();
-        if (onState) onState(state);
-
-        if (terminal.includes(String(state.status).toLowerCase())) return state;
-
-        await new Promise((resolve) => setTimeout(resolve, interval));
-      }
+    watchTask: async (taskId, onState) => {
+      return socket.watchTask(taskId, onState);
     },
 
     resumeTask: async (taskId, jobId) => {
-      const response = await fetch(url + "/tasks/" + taskId + "/resume", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ job_id: jobId }),
-      });
-
-      if (!response.ok) throw new Error(await readError(response));
-
-      return response.json();
+      return socket.resumeTask(taskId, jobId);
     },
 
     cancelTask: async (taskId) => {
