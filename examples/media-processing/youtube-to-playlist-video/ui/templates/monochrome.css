@@ -7,7 +7,7 @@
 #screen {
   --bar-height: 0.1em;
   --primary-darken: #000000;
-  color: #fafafa;
+  color: #ffffff;
   font-size: var(--font-size);
 }
 
@@ -79,7 +79,7 @@
   right: 0;
   bottom: 0;
   height: var(--bar-height);
-  background: color-mix(in srgb, #fafafa 75%, transparent);
+  background: color-mix(in srgb, #ffffff 75%, transparent);
 }
 
 #elapsed {
