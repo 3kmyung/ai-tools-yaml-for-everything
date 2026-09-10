@@ -53,8 +53,8 @@
   titleElement.textContent = context.properties.title || "Untitled";
   document.getElementById("artist").textContent = context.properties.artist || "Unknown Artist";
 
-  if (context.properties.cover) coverElement.src = context.properties.cover;
-  else coverElement.classList.add("empty");
+  coverElement.src = context.properties.cover || Renderer.BLANK_IMAGE;
+  if (!context.properties.cover) coverElement.classList.add("empty");
 
   if (document.fonts) await document.fonts.ready;
 

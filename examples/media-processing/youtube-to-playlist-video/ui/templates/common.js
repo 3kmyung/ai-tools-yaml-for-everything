@@ -33,6 +33,9 @@
 
   const ROOT_FONT_DIVISOR = 45;
 
+  const BLANK_IMAGE =
+    "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+
   const HOSTED_TRACK_KEYS = [
     "title",
     "artist",
@@ -472,6 +475,7 @@
   }
 
   global.Renderer = {
+    BLANK_IMAGE: BLANK_IMAGE,
     SCREEN_RATIOS: SCREEN_RATIOS,
     pickScreen: pickScreen,
     createScreen: createScreen,
