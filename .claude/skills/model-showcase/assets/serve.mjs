@@ -31,7 +31,14 @@ export function serve(root, port) {
   });
 
   return new Promise((resolve, reject) => {
-    server.on("error", (error) => reject(new Error("could not listen on port " + port + ": " + error.message)));
-    server.listen(port, "127.0.0.1", () => resolve(server));
+    function onListenError(error) {
+      reject(new Error("could not listen on port " + port + ": " + error.message));
+    }
+
+    server.on("error", onListenError);
+    server.listen(port, "127.0.0.1", () => {
+      server.removeListener("error", onListenError);
+      resolve(server);
+    });
   });
 }
