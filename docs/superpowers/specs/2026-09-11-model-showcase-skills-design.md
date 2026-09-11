@@ -333,11 +333,22 @@ bar, written against the renamed class-based selectors.
 Icons:
 
 > Do not draw icon path data. Take the SVG from [Lucide](https://lucide.dev) (ISC) and
-> copy only the path data into the `ICONS` map. Stroke-based 16×16, `stroke-width: 1`,
+> copy only the path data into the `ICONS` map, keeping Lucide's own 24-unit viewBox and
+> every path of a multi-path icon. Render at 16×16 with `.icon { stroke-width: 1.5 }`,
 > `fill: none`, `aria-hidden="true"`. Do not mix in a filled set.
 
-The current `icons.js` hand-draws five icons (`"M4.5 4.5L11.5 11.5M11.5 4.5L4.5 11.5"`
-and friends), which is exactly what this rule replaces.
+The stroke width is arithmetic, not taste. Lucide draws at `stroke-width: 2` on a 24-unit
+grid, which at a 16px render is `2 × 16/24 = 1.33px` — heavier than the 1px the
+hand-drawn 16-unit icons had. `1.5 × 16/24 = 1.0px` puts it back.
+
+Take the path data from the upstream `.svg` files rather than from lucide.dev. The site is
+a JavaScript application with no static markup, and a fetching tool that summarises
+through a model can paraphrase a `d` attribute without saying so — which is the one defect
+here that no check can catch, since invented geometry and correct geometry are
+indistinguishable in a diff.
+
+The `icons.js` this rule replaced hand-drew five icons
+(`"M4.5 4.5L11.5 11.5M11.5 4.5L4.5 11.5"` and friends).
 
 ### `layout.md`
 
