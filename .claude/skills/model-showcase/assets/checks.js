@@ -76,6 +76,10 @@ function millisecondsFromDuration(value) {
   return unit === "s" ? Number(number) * 1000 : Number(number);
 }
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export const CHECKS = [
   {
     name: "--accent-text on --background meets 4.5:1",
@@ -207,7 +211,7 @@ export const CHECKS = [
     name: "components.css carries no ID selectors",
     run: async () => {
       const source = await fetch("./styles/components.css").then((response) => response.text());
-      const selectors = source.split("}").map((block) => block.split("{")[0]).join(" ");
+      const selectors = [ ...source.matchAll(/[^{}]*\{/g) ].map((match) => match[0]).join(" ");
       const offenders = [ ...selectors.matchAll(/#[a-zA-Z][\w-]*/g) ].map((match) => match[0]);
 
       return offenders.length === 0 ? true : offenders.join(", ");
@@ -230,7 +234,7 @@ export const CHECKS = [
         ".action-primary", ".action-add", ".action-cancel", ".action-resume",
         ".caption-warning", ".status-message", ".item", ".item-label", ".item-remove",
       ];
-      const missing = required.filter((name) => !source.includes(name));
+      const missing = required.filter((name) => !new RegExp(`${escapeRegExp(name)}(?![\\w-])`).test(source));
 
       return missing.length === 0 ? true : missing.join(", ");
     },
