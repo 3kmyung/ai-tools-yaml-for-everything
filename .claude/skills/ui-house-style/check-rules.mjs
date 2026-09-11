@@ -27,6 +27,28 @@ function widthBreakpoints(styleSheet) {
   return Array.from(breakpoints);
 }
 
+function namedClasses(source) {
+  const backtickSpans = [ ...source.matchAll(/`([^`\n]*)`/g) ].map((match) => match[1]);
+  const names = new Set();
+
+  for (const span of backtickSpans) {
+    for (const match of span.matchAll(/(?:^|[^\w.])(\.[a-z][\w-]*)/g)) names.add(match[1]);
+  }
+
+  return Array.from(names);
+}
+
+function classExists(styleSheet, name) {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const boundedSelector = new RegExp(escaped + "(?![\\w-])");
+
+  return boundedSelector.test(styleSheet);
+}
+
+function markerLines(source) {
+  return source.split("\n").filter((line) => /^(✗|→|Why:) /.test(line));
+}
+
 const RULES = [
   {
     name: "tokens.md embeds base.css verbatim",
@@ -57,8 +79,8 @@ const RULES = [
     run: async () => {
       const source = await readFile(join(here, "references/components.md"), "utf8");
       const actual = await readFile(join(reference, "styles/components.css"), "utf8");
-      const named = [ ...new Set([ ...source.matchAll(/`(\.[a-z][\w-]*)`/g) ].map((match) => match[1])) ];
-      const missing = named.filter((name) => !actual.includes(name));
+      const named = namedClasses(source);
+      const missing = named.filter((name) => !classExists(actual, name));
 
       return missing.length === 0 ? true : missing.join(", ");
     },
@@ -67,15 +89,15 @@ const RULES = [
     name: "css-patterns.md writes every ban as ban, replacement, reason",
     run: async () => {
       const source = await readFile(join(here, "references/css-patterns.md"), "utf8");
-      const bans = [ ...source.matchAll(/^✗ .*$/gm) ].length;
-      const replacements = [ ...source.matchAll(/^→ .*$/gm) ].length;
-      const reasons = [ ...source.matchAll(/^Why: .*$/gm) ].length;
+      const markers = markerLines(source).map((line) => line.match(/^(✗|→|Why:)/)[1]);
+      const bans = markers.filter((marker) => marker === "✗").length;
 
       if (bans === 0) return "no bans found";
 
-      return bans === replacements && bans === reasons
-        ? true
-        : `${bans} bans, ${replacements} replacements, ${reasons} reasons`;
+      const expected = Array.from({ length: bans }, () => [ "✗", "→", "Why:" ]).flat();
+      const matches = markers.length === expected.length && markers.every((marker, index) => marker === expected[index]);
+
+      return matches ? true : `markers out of order or mispaired: ${markers.join(" ")}`;
     },
   },
   {
@@ -83,7 +105,8 @@ const RULES = [
     run: async () => {
       const source = await readFile(join(here, "references/js-patterns.md"), "utf8");
       const required = [ "innerHTML", "export default", "replaceChildren", "hidden", "class" ];
-      const missing = required.filter((term) => !source.includes(term));
+      const lines = markerLines(source);
+      const missing = required.filter((term) => !lines.some((line) => line.includes(term)));
 
       return missing.length === 0 ? true : missing.join(", ");
     },

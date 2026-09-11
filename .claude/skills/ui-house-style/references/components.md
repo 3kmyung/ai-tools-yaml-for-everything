@@ -105,6 +105,20 @@ element or hidden in favour of a spinner. The header's `.action-primary` and the
 footer's mirror it are two elements with the same job at two breakpoints, not a primary
 button and a secondary one.
 
+## Caption warning — `.caption-warning`
+
+```html
+<span id="warning" class="caption-warning" hidden></span>
+```
+
+`.caption-warning` is a plain `<span>` toggled with its own `hidden` attribute; there is
+no separate warning widget to build. It shares the compact caption-text treatment
+(`font-size: var(--text-sm)`) that `.field-label` and the colour picker's channel-name
+and readout spans also use, but where that shared rule otherwise paints
+`--text-caption`, `.caption-warning` overrides its own colour to `--accent-text` — the
+one caption-sized label meant to be read as a warning rather than as quiet instructional
+text, so it borrows the accent hue instead of the caption grey.
+
 ## Status bar — `.status-message`, `.status-trailing`, `.status-video`
 
 The log region carries exactly one of: a `.status-message` span (plain text), a
@@ -127,7 +141,7 @@ button instead of an image, painted through the `--swatch` custom property rathe
 `background-color` directly, so both the field's swatch and the picker's suggestion
 swatches share one painting mechanism.
 
-## Colour picker — the `.color-picker-*` family
+## Colour picker — the `color-picker` family of classes
 
 One `.color-picker` popover is built lazily on first use and reused for every colour
 field afterward; it is not rebuilt per field. It holds three `.color-picker-channel`
