@@ -15,26 +15,24 @@ the slow loop.
 
 ## The fast loop
 
-1. Copy `assets/test.html` and `assets/checks.js` from this skill's `assets/` into the
-   generated example's `ui/`.
-2. Write `ui/fixture.json` matching the workflow's output shape — see the fixture
+1. Write `ui/fixture.json` matching the workflow's output shape — see the fixture
    lifecycle below.
-3. Run, from the example's `ui/` directory:
+2. Run, from the repository root:
 
    ```
-   node assets/ui-check.mjs <example>/ui --width=1440 --height=900
-   node assets/ui-check.mjs <example>/ui --width=800 --height=900
-   node assets/ui-check.mjs <example>/ui --width=390 --height=844
+   node .claude/skills/model-showcase/assets/ui-check.mjs <example>/ui --width=1440 --height=900
+   node .claude/skills/model-showcase/assets/ui-check.mjs <example>/ui --width=800 --height=900
+   node .claude/skills/model-showcase/assets/ui-check.mjs <example>/ui --width=390 --height=844
    ```
 
    The harness's own flags take the `=` form (`--width=1440`, not `--width 1440`).
    `assets/ui-check.mjs` copies `test.html` and `checks.js` into the target `ui/` itself,
    starts `assets/serve.mjs`, and runs headless Chrome with `--dump-dom` against
    `test.html`, printing one `PASS`/`FAIL` line per check.
-4. Capture a screenshot at each of the three widths by adding `--screenshot=<path>`,
+3. Capture a screenshot at each of the three widths by adding `--screenshot=<path>`,
    which switches Chrome to load `index.html` directly instead of `test.html`. Look at
    all three — the narrowest one is the one most likely to have never been looked at.
-5. Self-critique the screenshots against `ui-house-style`'s checklist before treating the
+4. Self-critique the screenshots against `ui-house-style`'s checklist before treating the
    iteration as done.
 
 `assets/serve.mjs` exists in place of Python's `http.server` because Python serves `.js`

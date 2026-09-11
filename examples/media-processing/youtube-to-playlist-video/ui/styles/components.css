@@ -82,7 +82,7 @@
 }
 
 .field-control.is-default input {
-  color: var(--disabled);
+  color: var(--text-caption);
   font-style: italic;
 }
 
