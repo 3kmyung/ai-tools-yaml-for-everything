@@ -20,16 +20,14 @@ prose is what makes it repeatable.
 | 5. Fast verify | automatic | `ui-check.mjs`, screenshots, self-critique — `references/verify.md` |
 | 6. **Real run** | **human** | `model-compose up` once — `references/verify.md` |
 
-**Step 3 stops here and asks.** Present the killer property and three candidate screens;
-do not pick one without the human's answer.
+> **STOP — human gate, step 3.** Present the killer property and three candidate screens.
+> Do not pick one without the human's answer.
 
-**Step 6 stops here and asks.** Report the fast-verify screenshots, then wait for the
-person running `model-compose up` to say the real run worked before treating the example
-as done. Do not run `model-compose up` and certify the result yourself, even when shell
-access makes that possible. "Did the real run work" is a judgement about output quality —
-whether the transcription is any good, whether the speakers are right — not an exit code,
-and an agent inspecting its own output has no independent ground to stand on. The human's
-answer is the gate, not the command's return status.
+> **STOP — human gate, step 6.** Report the fast-verify screenshots, then wait for the
+> human running `model-compose up` to confirm the real run worked. Never run
+> `model-compose up` and self-certify the result, even though shell access makes that
+> possible: output quality is a judgement call, not an exit code, and an agent inspecting
+> its own output has no independent ground to stand on.
 
 ## Reference files
 
@@ -45,8 +43,7 @@ Step 4's UI work is `ui-house-style`'s job, not this skill's: read that skill's 
 
 ## The generated example is never hand-patched
 
-If a screenshot looks wrong, if a check fails, or if the real run in step 6 surfaces a
-schema this skill assumed wrong — fix the mistake in this skill's prose, in
-`ui-house-style`, or in the fixture, then regenerate the example whole. Hand-patching the
-generated files measures the patch, not the skill, and the next model repeats the same
-mistake. Nothing under `examples/showcase/<name>/` is a hand-edit target.
+When a screenshot looks wrong, a check fails, or step 6 surfaces a schema this skill
+assumed wrong: fix the skill's prose, `ui-house-style`, or the fixture, then regenerate
+the example whole. Hand-patching measures the patch, not the skill, and the next model
+repeats the same mistake. Nothing under `examples/showcase/<name>/` is a hand-edit target.
