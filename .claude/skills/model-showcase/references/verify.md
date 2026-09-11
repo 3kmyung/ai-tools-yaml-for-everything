@@ -56,8 +56,8 @@ code block, including this one. As of this writing it groups into:
 
 ## Portable checks versus this example's furniture
 
-Every `CHECKS` entry was written against one interface — the playlist editor. Twelve of
-the seventeen measure house style and travel unchanged to any generated interface. Five
+Every `CHECKS` entry was written against one interface — the playlist editor. Eleven of
+the seventeen measure house style and travel unchanged to any generated interface. Six
 name this example's own elements, vocabulary or structure and must be re-decided, in the
 open, before the first run against a new one.
 
@@ -78,7 +78,7 @@ open, before the first run against a new one.
 | 13 | `main` is single-column below 900px | Portable | — |
 | 14 | field bodies are container-queried | Per-example | if the interface has no `.field`/`.field-body` construct at all, delete the check |
 | 15 | icons keep Lucide's 24-unit `viewBox` | Portable | — |
-| 16 | a rendered icon is 16px with `aria-hidden` | Portable | — (depends only on an icon named `check`, which the shared dropdown vocabulary already requires of every interface that has a dropdown) |
+| 16 | a rendered icon is 16px with `aria-hidden` | Per-example | delete if the interface has no dropdown at all — the check hardcodes `icon("check")`, and a `check` icon exists only to mark a dropdown's selected option; an interface with no dropdown has no reason to carry that entry in `ICONS` |
 | 17 | the viewport is the width that was asked for | Portable | — |
 
 A per-example check whose named element, vocabulary or structure genuinely has no
@@ -104,6 +104,20 @@ speaker timeline and a segment list are not editable metadata fields, so an inte
 built from them has no `.field`/`.field-body` construct at all. Its subject is absent,
 not merely relocated: the check is deleted for this interface, not left failing and not
 softened to pass when `.field-body` is missing.
+
+**Check 16 has no surviving subject either, for the same reason, whenever the interface
+has no dropdown.** The check calls `icon("check")` because a dropdown's selected option
+is marked with a check icon — that is the only reason `ICONS` ever needs an entry by that
+name. An interface with no settings dropdown at all (a file-drop transcription screen has
+no scalar setting worth a closed set of options) has nothing for a check icon to mark, so
+`ICONS.check` does not exist and the check is deleted, not left failing.
+
+**A scalar setting that is free text, not a closed set of options, is neither a dropdown
+nor a `.field`.** A hotword list typed into the header belongs in `#settings` beside any
+dropdowns the interface does have, styled by extending the existing `header .setting`
+rule to cover an `input` child rather than by introducing a new component class or
+reaching for `.field`, which check 14's own reasoning has already ruled out for an
+interface with no editable metadata records.
 
 ## The ritual
 
@@ -153,6 +167,20 @@ After step 6's real run produces real output, replace the hand-written fixture w
 saved from that real run. From that point on, the fast loop renders real data, and any
 schema ambiguity step 1 could not resolve (see `compose.md`'s fixture adapter) is settled
 by what the real run actually produced.
+
+**`checks.js` never reads `fixture.json`.** Every check operates on static stylesheet
+text or on DOM structure that exists whether or not the page has ever received real
+output — the fixture makes screenshots worth looking at, not the pass/fail lines. Wire it
+in through the same code path the page already needs for a real backend, not a
+harness-only branch: on load, the page tries the real API (the schema fetch every
+generated example already makes) and, only if that call fails — refused locally with no
+`model-compose up` running, exactly the fast loop's own condition — fetches
+`./fixture.json` and renders it through the same function a completed `run_workflow`
+would call. Say so in the rendered page itself (a status line, not a silent
+substitution), so nobody mistakes sample output for a real transcription. A query-string
+flag the harness would have to know to pass is the wrong shape for this: the harness
+never adds one, so a flag-gated fixture renders only in a screenshot nobody remembers to
+open with the flag by hand.
 
 ## The Chrome rule
 
