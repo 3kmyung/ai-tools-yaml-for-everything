@@ -686,9 +686,18 @@ scoring SDM (single distant microphone) against it compares two different proble
 
 ### The precision trap
 
-`precision: auto` resolves to bfloat16 on CUDA, float16 on MPS and float32 on CPU. The Mac
-and the 4090 are therefore not running the same numerics, and reporting "Mac 15s, 4090 4s"
-without saying so is a false comparison.
+**`precision: auto` is resolved per driver, not by model-compose.** For VibeVoice it lands
+on bfloat16 for CUDA, float16 for MPS and float32 for CPU, decided in
+`_resolve_torch_dtype` in
+`src/mindor/core/component/services/model/tasks/speech_to_text/custom/vibevoice.py` with
+the reasoning recorded beside it — bfloat16 is what the model ships validated at, MPS
+bfloat16 support is uneven while float16 halves memory against float32, and CPU stays at
+float32. No generic driver base implements a split, so a different model may resolve `auto`
+differently or not at all. **Read the driver before assuming these three values**; they are
+this model's, not the framework's.
+
+Where the split does apply, the Mac and the 4090 are not running the same numerics, and
+reporting "Mac 15s, 4090 4s" without saying so is a false comparison.
 
 Two tables:
 
