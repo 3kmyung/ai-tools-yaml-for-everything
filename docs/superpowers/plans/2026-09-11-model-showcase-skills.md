@@ -1303,7 +1303,7 @@ The rules documents make factual claims about a real directory. `check-rules.mjs
 
 **Source text:** spec sections "Skill C: `ui-house-style`" → "Process in SKILL.md", "Rule form: ban, replacement, reason", "`tokens.md`". Every measured ratio and every token value the prose asserts is already written there; copy them rather than re-deriving.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `.claude/skills/ui-house-style/check-rules.mjs`:
 
@@ -1355,7 +1355,7 @@ for (const rule of RULES) {
 process.exit(failed ? 1 : 0);
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run:
 ```bash
@@ -1364,21 +1364,21 @@ node .claude/skills/ui-house-style/check-rules.mjs \
 ```
 Expected: both rules fail; `references/tokens.md` does not exist.
 
-- [ ] **Step 3: Write `SKILL.md`**
+- [x] **Step 3: Write `SKILL.md`**
 
 Front matter `name: ui-house-style`, `description: Use when writing any web UI for a model-compose example — supplies the house design tokens, layout skeleton, component vocabulary, and the bans that keep generated frontends from defaulting to generic AI styling.`
 
 Body: one page only. The four-step process (tokens, layout, components, self-critique), a pointer to each reference file with one line on when to read it, and the self-critique checklist from the spec.
 
-- [ ] **Step 4: Write `references/tokens.md`**
+- [x] **Step 4: Write `references/tokens.md`**
 
 Embed the current `styles/base.css` in a ```css fence, byte for byte. It must be the **first** ```css fence in the file — `check-rules.mjs` reads the first one — so any other CSS example in this file comes after it. Then the scale rule, the component-intrinsic exception (`2.5rem` thumbnail, `1.75rem` icon button, `0.875rem` slider thumb), the accent split with the measured ratios (`--accent` 3.61:1 as text, `--accent-text` 4.62:1), and the rule that `--disabled` is for disabled controls and never for instructional text.
 
-- [ ] **Step 5: Write `references/layout.md`**
+- [x] **Step 5: Write `references/layout.md`**
 
 The three-region skeleton, the `clamp(13rem, 22vw, 20rem)` list column, the footer's `:not(:has(...))` self-hiding with `@starting-style`, the scroll-fade mechanism (`@property` plus `animation-timeline: scroll(self block|inline)`), the two breakpoints with the layout each produces, and the note that breakpoints are not tokenised because custom properties do not work in `@media` conditions.
 
-- [ ] **Step 6: Run it to verify it passes**
+- [x] **Step 6: Run it to verify it passes**
 
 Run:
 ```bash
@@ -1387,7 +1387,7 @@ node .claude/skills/ui-house-style/check-rules.mjs \
 ```
 Expected: both rules `PASS`.
 
-- [ ] **Step 7: Commit the plan progress**
+- [x] **Step 7: Commit the plan progress**
 
 The skill itself is outside the repository and is not committed. Record progress by checking the boxes in this plan file:
 
