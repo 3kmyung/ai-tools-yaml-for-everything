@@ -103,7 +103,7 @@ token:
 - Slider thumb: `0.875rem` (`.color-picker-slider` track and thumb).
 
 ```
-✗ Tokenising a component-intrinsic size (e.g. --thumbnail-size: 2.5rem).
+✗ Tokenising a component-intrinsic size, such as --thumbnail-size: 2.5rem.
 → Leave it as a literal rem value on the rule that owns it.
 Why: these numbers describe one widget's own geometry, not a step reused across the
 system. A token implies "reuse me elsewhere"; nothing else should reuse a thumbnail's
