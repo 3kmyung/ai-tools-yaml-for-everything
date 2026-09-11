@@ -1,4 +1,4 @@
-export const SPEAKER_HUES = [ 0, 55, 145, 200, 235, 350 ];
+export const SPEAKER_HUES = [ 0, 70, 125, 170, 205, 249 ];
 
 export function segmentsFromResponse(response) {
   return response.map((segment) => ({

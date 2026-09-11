@@ -130,12 +130,35 @@ marker the same colour as the surface behind it, and nothing in the portable sui
 a filtered colour to catch that before it ships.
 ```
 
+```
+✗ A hue-rotate angle set whose check only measures each angle's contrast against the
+  surfaces it sits on, with nothing checking whether two of those angles paint colours
+  close enough to read as the same category.
+→ Add a second check to that interface's own `ui/checks.local.js` computing a perceptual
+  colour-difference metric — CIEDE2000 between each pair's Lab coordinates, converted
+  from the same painted, filter-applied colour the contrast check already reads through
+  a canvas `getImageData` — and failing any pair that falls under a floor set for what a
+  swatch-sized glance needs, not the angle values themselves.
+Why: contrast against the surface and distance between two colours are separate
+measurements, and passing one says nothing about the other — this example's own
+six-angle set cleared 3:1 against both surfaces at every angle while its `0deg` and
+`350deg` markers, only 10 degrees of rotation apart, painted colours a CIEDE2000 of 4.9
+apart, indistinguishable at swatch size, so a timeline with those two speakers showed one
+colour twice. Angular spacing does not predict this either: the same set's `205deg` and
+`249deg` markers, 44 degrees apart, painted colours roughly 30 apart on CIEDE2000, a
+wider gap than several pairs spaced further apart in degrees — hue-rotate's matrix bends
+perceptual distance the same way it bends contrast, so only measuring what it painted,
+never the angle arithmetic, can catch a collision.
+```
+
 A colour set is not usable on the strength of the derivation rule alone; it is usable
-once its own example's check has measured it and passed. Restating the shape those two
+once its own example's checks have measured both properties a derived set can silently
+fail — each colour's contrast against the surfaces it sits on, and every pair's distance
+from every other colour in the set — and passed both. Restating the shape these three
 rules share on purpose: derive from the one token and never invent a second one, then
-verify what that derivation actually painted before trusting it — the same relationship
-`tokens.md` already has between defining `--accent`/`--accent-text` and writing down the
-exact ratios each one measures at.
+verify what that derivation actually painted, on both axes, before trusting it — the same
+relationship `tokens.md` already has between defining `--accent`/`--accent-text` and
+writing down the exact ratios each one measures at.
 
 ```
 ✗ outline: 0 or outline: none with no replacement indicator in the same declaration
