@@ -21,9 +21,15 @@ prose is what makes it repeatable.
 | 6. **Real run** | **human** | `model-compose up` once — `references/verify.md` |
 
 **Step 3 stops here and asks.** Present the killer property and three candidate screens;
-do not pick one without the human's answer. **Step 6 stops here and asks.** Report the
-fast-verify screenshots, then wait for the person running `model-compose up` to say the
-real run worked before treating the example as done.
+do not pick one without the human's answer.
+
+**Step 6 stops here and asks.** Report the fast-verify screenshots, then wait for the
+person running `model-compose up` to say the real run worked before treating the example
+as done. Do not run `model-compose up` and certify the result yourself, even when shell
+access makes that possible. "Did the real run work" is a judgement about output quality —
+whether the transcription is any good, whether the speakers are right — not an exit code,
+and an agent inspecting its own output has no independent ground to stand on. The human's
+answer is the gate, not the command's return status.
 
 ## Reference files
 

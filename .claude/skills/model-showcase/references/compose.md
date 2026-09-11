@@ -38,13 +38,30 @@ mechanism, and Gradio's generic component set is the opposite of that.
 The static UI reaches a workflow through `run_workflow` over the WebSocket endpoint, which
 addresses workflows by `id`. An example copied from `examples/model-tasks/` typically has
 no `id` on its workflow, because Gradio does not need one — adding it is part of adapting
-the base example, not an optional cleanup:
+the base example, not an optional cleanup.
+
+Adding the `id` also means switching the top-level key from singular to plural. A base
+example under `examples/model-tasks/` writes one workflow under the singular `workflow:`
+key, as a mapping — not a list — and the loader wraps that single mapping in a list for
+you. Writing a list under the singular key double-wraps it instead: `workflows:
+[[{...}]]`, which fails validation. The plural `workflows:` key takes the list directly,
+and every workflow inside it needs its own `id`:
 
 ```yaml
-workflow:
+workflows:
   - id: transcribe-meeting
-    title: ...
+    title: Transcribe a Long Meeting
+    description: ...
+    job:
+      input: ${input}
+      output:
+        transcription: ${output as json}
 ```
+
+Every example that already addresses a workflow by `id` uses this plural form —
+`examples/showcase/find-person-scenes/model-compose.yml:10` and
+`examples/media-processing/youtube-to-playlist-video/model-compose.yml:11` are both
+`workflows:` with a list under it, never `workflow:` with a list under it.
 
 ## Do not rewrite `ui/src/websocket-client.js`
 
