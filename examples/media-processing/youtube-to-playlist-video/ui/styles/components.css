@@ -443,6 +443,21 @@ header .setting {
   border-color: var(--accent);
 }
 
+:is(.dropdown, .track, .color-picker-swatch):focus-visible {
+  outline: none;
+  border-color: var(--accent);
+}
+
+:is(#render-playlist, .resume-render):focus-visible {
+  outline-color: var(--background);
+  outline-offset: -3px;
+}
+
+footer a:focus-visible {
+  outline: none;
+  text-decoration-thickness: 2px;
+}
+
 :is(#add-track, .cancel-render):is(:hover, :focus-visible):not(:disabled) {
   background: color-mix(in srgb, currentColor var(--alpha-2), transparent);
 }
