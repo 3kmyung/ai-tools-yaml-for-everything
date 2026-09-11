@@ -3,6 +3,12 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
+
+if (!process.argv[2]) {
+  console.error("Usage: node check-rules.mjs <path-to-reference-ui-directory>");
+  process.exit(1);
+}
+
 const reference = resolve(process.argv[2]);
 
 async function fencedBlock(referenceFile, language) {
@@ -28,12 +34,23 @@ function widthBreakpoints(styleSheet) {
 }
 
 function namedClasses(source) {
-  const backtickSpans = [ ...source.matchAll(/`([^`\n]*)`/g) ].map((match) => match[1]);
   const names = new Set();
+
+  const backtickSpans = [ ...source.matchAll(/`([^`\n]*)`/g) ].map((match) => match[1]);
 
   for (const span of backtickSpans) {
     for (const match of span.matchAll(/(?:^|[^\w.])(\.[a-z][\w-]*)(\*)?/g)) {
       names.add(match[1] + (match[2] || ""));
+    }
+  }
+
+  const fencedHtmlBlocks = [ ...source.matchAll(/```html\n([\s\S]*?)```/g) ].map((match) => match[1]);
+
+  for (const block of fencedHtmlBlocks) {
+    for (const attribute of block.matchAll(/class="([^"]*)"/g)) {
+      for (const className of attribute[1].split(/\s+/).filter(Boolean)) {
+        names.add("." + className);
+      }
     }
   }
 
@@ -97,6 +114,9 @@ const RULES = [
       const source = await readFile(join(here, "references/components.md"), "utf8");
       const actual = await readFile(join(reference, "styles/components.css"), "utf8");
       const named = namedClasses(source);
+
+      if (named.length === 0) return "found no class names in components.md to check";
+
       const missing = named.filter((name) => !classExists(actual, name));
 
       return missing.length === 0 ? true : missing.join(", ");
@@ -128,13 +148,17 @@ const RULES = [
     name: "js-patterns.md bans the habits the reference avoids",
     run: async () => {
       const source = await readFile(join(here, "references/js-patterns.md"), "utf8");
-      const bannedTerms = [ "innerHTML", "export default", "class" ];
+      const bannedTerms = [
+        { term: "innerHTML", matches: (line) => line.includes("innerHTML") },
+        { term: "export default", matches: (line) => line.includes("export default") },
+        { term: "class", matches: (line) => /\bclass\s+[A-Za-z_$]/.test(line) },
+      ];
       const mandatedTerms = [ "replaceChildren", "hidden" ];
 
       const banLines = linesStartingWith(source, "✗ ");
       const replacementLines = linesStartingWith(source, "→ ");
 
-      const missingBans = bannedTerms.filter((term) => !banLines.some((line) => line.includes(term)));
+      const missingBans = bannedTerms.filter((entry) => !banLines.some(entry.matches)).map((entry) => entry.term);
       const missingMandates = mandatedTerms.filter((term) => !replacementLines.some((line) => line.includes(term)));
       const missing = [ ...missingBans, ...missingMandates ];
 

@@ -183,8 +183,8 @@ existing example of this.
 
 ```
 ✗ @media (width < var(--breakpoint-main));
-→ @media (width < 900px); with the literal number, repeated in this document and in
-  css-patterns.md.
+→ @media (width < 900px); with the literal number, written down in this document, the
+  one place it lives.
 Why: custom properties cannot be used inside an @media condition — the CSS Custom
 Properties specification resolves var() at computed-value time, which is after media
 queries have already been evaluated. There is no token to invent here; the fix is keeping
