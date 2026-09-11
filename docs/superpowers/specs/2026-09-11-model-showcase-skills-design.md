@@ -547,12 +547,13 @@ New modules beyond the house set: `dropzone.js`, `timeline.js`, `segments.js`,
 │   └── social.md
 └── assets/
     ├── capture.mjs
-    └── bench-hw.py
+    └── bench-hw.py          # hardware axis only; accuracy is delegated
 
 benchmarks/<example-name>/
 ├── scenario.md
 ├── data/
-└── results/{macbook,rtx4090,dgx-spark}.json
+├── results/{macbook,rtx4090,dgx-spark}.json     # speed and memory, three machines
+└── accuracy/{bfloat16,float16,float32}.json     # one machine, external harnesses
 ```
 
 ### Reusing the existing harness
@@ -562,6 +563,13 @@ against a three-event contract (`runtime.ready`, `pipeline.first_output`,
 `pipeline.done`). That contract and the metric computation carry over. The axis changes:
 the existing benchmarks compare frameworks (model-compose against LangGraph and
 LangChain), while this compares hardware.
+
+**This harness is only for what no open harness provides.** Accuracy goes to the Open ASR
+Leaderboard and chime-utils, above; what nobody else measures is how one model behaves
+across a MacBook, an RTX 4090 and a DGX Spark. The leaderboard does report RTFx, but on
+its own hardware, which is exactly the variable under study here — so RTFx is re-measured
+locally while WER, cpWER and tcpWER are not re-implemented at all. Building a scorer here
+would produce numbers comparable to nothing.
 
 **Gap to close: no GPU memory tracking.** `SystemSample` records `rss_bytes`,
 `cpu_percent` and `num_threads` only. For a three-machine comparison this is disqualifying
@@ -582,7 +590,51 @@ far more memory, which is a measurement artefact.
 | RTF | `E2E ÷ audio duration` | the ASR standard; below 1 is faster than real time. This is the number that goes in the post |
 | Peak VRAM | new | does this run on this machine at all |
 | Peak RSS | existing | overlaps VRAM on unified-memory machines; must be annotated |
-| Output identity | diff of the three transcripts | does precision change the result |
+
+Accuracy is deliberately absent from that table, and the reason is worth stating: it does
+not vary with hardware. The same weights on the same input produce the same output, with
+precision as the only exception. Measuring transcription quality three times would cost
+three long runs to learn one number.
+
+### Accuracy: measured once, by existing harnesses
+
+Two axes, measured separately:
+
+| Axis | Where | What varies | Reference data |
+|---|---|---|---|
+| Speed and memory | all three machines | hardware | none needed |
+| Accuracy | one machine | precision (bfloat16 / float16 / float32) | required |
+
+Neither the reference data nor the scorer is built here. Two open harnesses cover the
+whole job, and using them is what makes the numbers comparable to anyone else's:
+
+- **[Open ASR Leaderboard](https://github.com/huggingface/open_asr_leaderboard)**
+  ([arXiv:2510.06961](https://arxiv.org/abs/2510.06961)) downloads its datasets, applies
+  the standard normaliser from its own `normalizer/` directory, and reports WER and RTFx.
+  It supports ESPnet, NeMo, SpeechBrain and Transformers backends and already carries 86
+  systems across 12 datasets. Its limit is that it scores transcription only.
+- **[chime-utils](https://github.com/chimechallenge/chime-utils)** prepares CHiME-6,
+  DiPCo, MX6 and NOTSOFAR-1 in one command and scores through
+  [MeetEval](https://github.com/fgnt/meeteval), which is where tcpWER and cpWER come from.
+
+Which metric belongs to which task is not a matter of taste. Single-speaker short-form
+ASR is scored by WER; Chinese and Japanese by CER; diarisation alone by DER; and
+multi-speaker long-form — transcription, speaker and timing together — by **tcpWER**,
+which is the ranking metric for CHiME-8 DASR and NOTSOFAR-1. cpWER concatenates each
+speaker's words and permutes speaker labels to find the best match, so it is blind to
+timing; tcpWER adds a time constraint that refuses to match words far from where the
+reference puts them. The gap between the two is the size of the timestamp error.
+
+For a model that emits transcription, diarisation and timestamps in one decode, WER alone
+scores half the output. Report tcpWER as the headline, cpWER beside it, and WER for
+comparability.
+
+**The published numbers are the harness's own test.** VibeVoice-ASR's 7.77% average,
+17.20% on AMI and RTFx 51.80 come from the Open ASR Leaderboard. A local run that lands
+far from them means the local setup is wrong, not that the model is. Two things to get
+right before believing a number: the normaliser must be the leaderboard's, and the AMI
+microphone condition must match — 17.20% is IHM (individual headset microphones), and
+scoring SDM (single distant microphone) against it compares two different problems.
 
 ### The precision trap
 
@@ -598,6 +650,13 @@ Two tables:
 | Placement | body | appendix |
 
 Every figure in the report carries its precision, batch setting and sample length.
+
+The accuracy run settles what the precision difference actually costs. Scoring all three
+precisions on one machine turns "the Mac runs float16 and the 4090 runs bfloat16" from a
+caveat into a number, and that number is what licenses the real-world table to exist at
+all: if precision moves tcpWER by a rounding error, the appendix is the honest place to
+compare machines; if it moves it materially, the matched table is the only fair one and
+the report says so.
 
 No expectation about relative DGX Spark performance is written down before it is measured.
 The same no-guessing rule that governs B's research step governs D's numbers.
@@ -617,6 +676,13 @@ The same no-guessing rule that governs B's research step governs D's numbers.
 Section 4's interpretation is mandatory. A bare table goes unread; one sentence such as
 "the 4090 leads at RTF 0.08, but the Mac's 0.4 is still 2.5× real time, so a laptop is
 practical" is what carries the result.
+
+Section 4 also states the accuracy numbers with the harness that produced them and the
+published figures they were checked against, and it does not quote only the flattering
+row. Where a model's worst published dataset is the domain the demo sells — as AMI's
+17.20% is for a meeting transcriber — that row appears in the body with its caveat: a
+model decoding diarisation and timestamps alongside words is not comparable on WER alone
+to one that only transcribes.
 
 Section 5 carries any usage-scope statement the research step recorded, quoted rather
 than summarised. A permissive licence and an author telling you not to ship it are both
