@@ -27,7 +27,7 @@ where they live.
 |---|---|
 | `.field` | the outer row: the editable value plus its own `.revert-field` button |
 | `.field-body` | holds the label above the control |
-| `.field-control` | gets `.is-default` whenever the value is a derived default the reader has not overridden — text dims to `--disabled` and turns italic |
+| `.field-control` | gets `.is-default` whenever the value is a derived default the reader has not overridden — text dims to `--text-caption` and turns italic |
 | `.revert-field` | disabled exactly while `.is-default` holds — one boolean, read in two places, not two that can disagree |
 
 A field whose control is an image or a colour swatch — `.field-control` containing a
@@ -100,6 +100,10 @@ the only one that gets the hover tint); nothing else keys off it.
 
 A screen showing both a filled and an outlined action is choosing which one it wants the
 eye to land on first — do not fill two buttons in the same view.
+
+Below the narrow breakpoint, the header's own Back button is `.action-cancel` for its
+look plus a second, layout.css-owned visibility class that hides it above that width;
+`layout.md`'s breakpoint section owns when it shows, not this file.
 
 A button's label is not fixed text; it is state. `.action-cancel` and `.action-resume`
 swap their own `textContent` and `disabled` attribute in place while an operation is in
