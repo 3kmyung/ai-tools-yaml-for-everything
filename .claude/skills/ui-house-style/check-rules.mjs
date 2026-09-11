@@ -32,21 +32,32 @@ function namedClasses(source) {
   const names = new Set();
 
   for (const span of backtickSpans) {
-    for (const match of span.matchAll(/(?:^|[^\w.])(\.[a-z][\w-]*)/g)) names.add(match[1]);
+    for (const match of span.matchAll(/(?:^|[^\w.])(\.[a-z][\w-]*)(\*)?/g)) {
+      names.add(match[1] + (match[2] || ""));
+    }
   }
 
   return Array.from(names);
 }
 
 function classExists(styleSheet, name) {
-  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const boundedSelector = new RegExp(escaped + "(?![\\w-])");
+  const isFamilyReference = name.endsWith("*");
+  const stem = isFamilyReference ? name.slice(0, -1) : name;
+  const escaped = stem.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-  return boundedSelector.test(styleSheet);
+  const pattern = isFamilyReference
+    ? new RegExp(escaped + "[\\w-]")
+    : new RegExp(escaped + "(?![\\w-])");
+
+  return pattern.test(styleSheet);
 }
 
 function markerLines(source) {
   return source.split("\n").filter((line) => /^(✗|→|Why:) /.test(line));
+}
+
+function linesStartingWith(source, marker) {
+  return source.split("\n").filter((line) => line.startsWith(marker));
 }
 
 const RULES = [
@@ -104,9 +115,15 @@ const RULES = [
     name: "js-patterns.md bans the habits the reference avoids",
     run: async () => {
       const source = await readFile(join(here, "references/js-patterns.md"), "utf8");
-      const required = [ "innerHTML", "export default", "replaceChildren", "hidden", "class" ];
-      const lines = markerLines(source);
-      const missing = required.filter((term) => !lines.some((line) => line.includes(term)));
+      const bannedTerms = [ "innerHTML", "export default", "class" ];
+      const mandatedTerms = [ "replaceChildren", "hidden" ];
+
+      const banLines = linesStartingWith(source, "✗ ");
+      const replacementLines = linesStartingWith(source, "→ ");
+
+      const missingBans = bannedTerms.filter((term) => !banLines.some((line) => line.includes(term)));
+      const missingMandates = mandatedTerms.filter((term) => !replacementLines.some((line) => line.includes(term)));
+      const missing = [ ...missingBans, ...missingMandates ];
 
       return missing.length === 0 ? true : missing.join(", ");
     },
