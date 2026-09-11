@@ -178,6 +178,14 @@ footer:not(:has(#log:not([hidden]):not(:empty))) {
   margin-left: auto;
 }
 
+footer .action-primary {
+  display: none;
+}
+
+#back-to-tracks {
+  display: none;
+}
+
 #log {
   flex: 1;
   min-width: 0;
@@ -207,4 +215,65 @@ footer:not(:has(#log:not([hidden]):not(:empty))) {
   min-width: 0;
   gap: var(--space-1);
   margin-left: auto;
+}
+
+@media (width < 900px) {
+  main {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+    overflow-x: hidden;
+  }
+
+  #tracks {
+    min-height: 0;
+  }
+
+  #track-scroller {
+    flex-direction: row;
+    align-items: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+    --scroll-fade-direction: to right;
+    animation-timeline: scroll(self inline);
+  }
+
+  #tracks ol {
+    flex-direction: row;
+  }
+
+  body:has(#ratio[data-value]) #workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (width < 600px) {
+  body:has(.item.is-selected) #tracks {
+    display: none;
+  }
+
+  body:not(:has(.item.is-selected)) #workspace {
+    display: none;
+  }
+
+  body:has(.item.is-selected) #back-to-tracks {
+    display: inline-flex;
+  }
+
+  header .action-primary {
+    display: none;
+  }
+
+  footer .action-primary {
+    display: inline-flex;
+  }
+
+  footer:not(:has(#log:not([hidden]):not(:empty))) {
+    display: flex;
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  body:has(#log:not([hidden]):not(:empty)) footer .action-primary {
+    display: none;
+  }
 }

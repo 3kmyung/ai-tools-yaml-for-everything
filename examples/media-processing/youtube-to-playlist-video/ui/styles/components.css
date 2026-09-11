@@ -12,6 +12,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+  container-type: inline-size;
   gap: var(--space-3);
   padding: var(--space-1);
   border-radius: var(--radius-lg);
@@ -30,6 +31,13 @@
 
 .field-body:has(.thumbnail) > .field-control {
   flex: none;
+}
+
+@container (width < 20rem) {
+  .field-body:has(.thumbnail) {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 .field-control {
