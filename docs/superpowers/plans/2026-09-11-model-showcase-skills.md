@@ -1525,7 +1525,7 @@ Neither reference example streams, so this file has no code to extract from and 
 
 **Source text:** spec section "`streaming.md`" — fourteen numbered rules, eight for output, five for input, one common.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `RULES`:
 
@@ -1546,7 +1546,7 @@ Append to `RULES`:
   },
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run:
 ```bash
@@ -1555,15 +1555,15 @@ node .claude/skills/ui-house-style/check-rules.mjs \
 ```
 Expected: `FAIL streaming.md covers all fourteen rules` with an ENOENT for the missing file.
 
-- [ ] **Step 3: Write `references/streaming.md`**
+- [x] **Step 3: Write `references/streaming.md`**
 
 The fourteen rules from the spec, each in the ban / replacement / reason form where it is a ban and as a plain instruction where it is not. Open with why streaming needs its own file: it is a layout that changes along a time axis, and batch entry animations applied to ten-per-second arrivals induce motion sickness.
 
-- [ ] **Step 4: Point `SKILL.md` at it**
+- [x] **Step 4: Point `SKILL.md` at it**
 
 Add to the reference list in `SKILL.md`: read `streaming.md` whenever the model produces incremental output or consumes live input. Add to the four-step process, at step 2: decide batch or streaming before choosing a layout, because the two produce different skeletons.
 
-- [ ] **Step 5: Run it to verify it passes**
+- [x] **Step 5: Run it to verify it passes**
 
 Run:
 ```bash
@@ -1572,7 +1572,7 @@ node .claude/skills/ui-house-style/check-rules.mjs \
 ```
 Expected: all rules `PASS`.
 
-- [ ] **Step 6: Commit the plan progress**
+- [x] **Step 6: Commit the plan progress**
 
 ```bash
 git add docs/superpowers/plans/2026-09-11-model-showcase-skills.md
