@@ -277,7 +277,7 @@ export const CHECKS = [
     run: async () => {
       const { ICONS } = await import("./src/icons.js");
       const wrong = Object.entries(ICONS)
-        .filter(([ , spec ]) => spec.viewBox !== "0 0 24 24")
+        .filter(([ , definition ]) => definition.viewBox !== "0 0 24 24")
         .map(([ name ]) => name);
 
       return wrong.length === 0 ? true : wrong.join(", ");
