@@ -3,6 +3,37 @@
 The page skeleton is fixed across every generated example. Only the inside of `main`
 changes per example — what the list is, what the workspace shows.
 
+## The directory both check suites hardcode
+
+```
+ui/
+  index.html
+  styles/
+    base.css
+    components.css
+    layout.css
+  src/
+    icons.js
+    ... (per-example modules)
+```
+
+`model-showcase`'s `assets/checks.js` fetches `./styles/components.css` and
+`./styles/layout.css` and imports `./src/icons.js`; `ui-house-style`'s own
+`check-rules.mjs` reads `styles/base.css`, `styles/layout.css`, and `styles/components.css`
+from the reference UI it is pointed at. Neither tolerates a different shape.
+
+`index.html`'s head links the three stylesheets in this order, `base.css` first:
+
+```html
+<link rel="stylesheet" href="./styles/base.css" />
+<link rel="stylesheet" href="./styles/components.css" />
+<link rel="stylesheet" href="./styles/layout.css" />
+```
+
+`base.css` first is load-bearing, not stylistic: one `assets/checks.js` check finds the
+first `prefers-reduced-motion` media block across every linked stylesheet and assumes it
+is `base.css`'s own.
+
 ## The three-region skeleton
 
 ```
@@ -134,7 +165,9 @@ this document must not lose either number:
 < 600px     list and workspace become alternating views; selecting an item switches
             to the workspace. The header settings row already scrolls horizontally
             with a mask fade and stays as is. The primary action moves from header
-            to footer for thumb reach.
+            to footer for thumb reach, and a `.action-back` button — `.action-cancel`'s
+            look, hidden above this width — appears in the header to return from the
+            workspace to the list.
 ```
 
 `@media (width < 900px)` and `@media (width < 600px)` govern the page skeleton, because

@@ -13,7 +13,10 @@ Step 2 (mapping) and step 4 (generating `model-compose.yml`).
   `model:`, `precision:`, and `action:`. Speech-to-text already has an example for every
   VibeVoice checkpoint family (`speech-to-text-vibevoice`,
   `speech-to-text-vibevoice-streaming`); a new speech-to-text model starts from whichever
-  is nearer in checkpoint shape, not from the task documentation.
+  is nearer in checkpoint shape, not from the task documentation. A hand-written block
+  encodes driver wiring — model loading, hardware dispatch, the shape of `action:` — that
+  only step 6's real run exercises; a mismatch there surfaces tens of minutes into the one
+  step this skill cannot self-certify, not as a fast-loop failure that costs seconds.
 
 ## The static webui, always
 

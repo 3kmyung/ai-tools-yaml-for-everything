@@ -12,14 +12,17 @@ file. Rules live in `references/`, read on demand — do not load all of them up
 
 ## Process
 
-1. **Tokens** — read `references/tokens.md`, lay down `base.css` unchanged. Do not
+1. **Skeleton** — create `index.html`, `styles/`, and `src/` per the directory tree in
+   `references/layout.md`'s "The directory both check suites hardcode" section, with
+   `base.css` linked before `components.css` and `layout.css`.
+2. **Tokens** — read `references/tokens.md`, lay down `base.css` unchanged. Do not
    invent a colour or a spacing/type/radius/duration value outside its scale.
-2. **Layout** — decide batch or streaming before choosing a layout; the two produce
+3. **Layout** — decide batch or streaming before choosing a layout; the two produce
    different skeletons. Then decide what the list is and what the workspace is for this
    example, and map that decision onto the three-region skeleton in `references/layout.md`.
-3. **Components** — assemble the screen from `references/components.md` first. Write a
+4. **Components** — assemble the screen from `references/components.md` first. Write a
    new widget only when no existing one fits.
-4. **Self-critique** — re-read the written code against the checklist below. Fix anything
+5. **Self-critique** — re-read the written code against the checklist below. Fix anything
    it catches before calling the screen done.
 
 ## Reference files
@@ -45,3 +48,15 @@ file. Rules live in `references/`, read on demand — do not load all of them up
   the same declaration?
 - Ignored `prefers-reduced-motion` on a transition or animation that is not scroll-driven?
 - Hand-drawn icon path data instead of copying it from Lucide?
+
+## `check-rules.mjs`
+
+A maintenance tool for this skill, not a generation-time check. It validates these
+reference files against the reference UI the rules were extracted from — never against a
+generated example, whose own vocabulary and prose it has no way to judge:
+
+```
+node .claude/skills/ui-house-style/check-rules.mjs examples/media-processing/youtube-to-playlist-video/ui
+```
+
+Run it after editing any file in `references/`, before committing that edit.

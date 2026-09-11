@@ -67,9 +67,9 @@ is exactly how one component's hover state quietly stops matching the rest.
 Why: a component is reusable by definition, and an ID is unique by definition. An ID
 selector on a component is a contradiction that resolves itself the first time the
 example needs two of that component on the same page. This example's own components.css
-once carried that mistake as #render-playlist, converted since to .action-primary:
-renaming an example under an ID selector meant editing both the DOM id and the CSS
-selecting it, twice for one rename.
+once carried that mistake as #render-playlist; commit 6464ebae converted it to
+.action-primary, because an ID selector cannot be reused across two instances of the
+same component the way a class can.
 ```
 
 ```
@@ -111,7 +111,7 @@ already has, to `--accent`. An element with no such line, or whose line is alrea
 | `.field-line`, `.color-picker-hex` | `border-bottom 1px` | underline → accent |
 | `.color-picker-swatch` | `border 1px transparent` | border → accent |
 | `.dropdown` | `border 1px var(--border)` | border → accent |
-| `.action-add` | `border 1px var(--accent)` | inward ring |
+| `.action-add`, `.action-cancel` | `border 1px var(--accent)` | inward ring |
 | `.action-primary`, `.action-resume` | none; background is accent | inward ring in `--background` |
 | `.item-select`, `.item-remove`, `.revert-field` | none | inward ring |
 | `.dropdown-option` | none | inward ring |
@@ -157,9 +157,10 @@ Why: a rule targeting an element nothing can focus is dead CSS that reads as cov
 in review. `.item` itself carried exactly this mistake as a plain <li> with a click
 handler and a border-recolour focus rule that no element inside it could ever trigger.
 The fix restructured the row into `.item-select` (the clickable, focusable button) and
-`.item-remove` (its own button) — why both classes exist at all. Neither focus check in
-this skill's `check-rules.mjs` catches this: both read stylesheet rules, not whether any
-element in the DOM can ever reach them.
+`.item-remove` (its own button) — why both classes exist at all. Neither of
+`model-showcase`'s `assets/checks.js` focus checks — "base.css declares a default focus
+ring" and "no rule removes the outline without a replacement" — catches this: both read
+stylesheet rules, not whether any element in the DOM can ever reach them.
 ```
 
 ## Reduced motion
