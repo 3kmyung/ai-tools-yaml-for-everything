@@ -18,6 +18,13 @@ const options = new Map(
     .map((argument) => argument.replace(/^--/, "").split("="))
 );
 
+for (const [ name, value ] of options) {
+  if (value === undefined) {
+    console.error(`--${name} requires a value: --${name}=...`);
+    process.exit(1);
+  }
+}
+
 const root = resolve(uiDirectory);
 const width = options.get("width") || "1440";
 const height = options.get("height") || "900";
@@ -58,7 +65,16 @@ const target = screenshot
 if (screenshot) flags.push(`--screenshot=${resolve(screenshot)}`);
 else flags.push("--dump-dom");
 
-const { stdout } = await run(CHROME, [ ...flags, target ], { maxBuffer: 32 * 1024 * 1024 });
+const command = [ CHROME, ...flags, target ];
+let stdout;
+
+try {
+  ({ stdout } = await run(CHROME, [ ...flags, target ], { maxBuffer: 32 * 1024 * 1024 }));
+} catch (error) {
+  server.close();
+  console.error(`could not run ${command.join(" ")}: ${error.message}`);
+  process.exit(1);
+}
 
 server.close();
 

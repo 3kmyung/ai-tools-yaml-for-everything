@@ -64,6 +64,37 @@ function outlineIsAccentColored(styleDeclaration) {
   return /var\(--accent[,)]/.test(styleDeclaration.outline);
 }
 
+function borderColorOf(styleDeclaration) {
+  if (styleDeclaration.borderColor) return styleDeclaration.borderColor;
+
+  const match = styleDeclaration.border.match(/var\([^)]*\)|#[0-9a-fA-F]{3,8}|rgba?\([^)]*\)|hsla?\([^)]*\)/);
+
+  return match ? match[0] : "";
+}
+
+function selectorNamesTag(selectorText, tag) {
+  return new RegExp(`(^|[\\s,(])${tag}(?![\\w-])`).test(selectorText);
+}
+
+function isDefaultFocusRule(rule) {
+  return [ "button", "a", "input", "select" ].every((tag) => selectorNamesTag(rule.selectorText, tag));
+}
+
+function gridTrackCount(value) {
+  if (value === "none") return 0;
+
+  let depth = 0;
+  let count = 1;
+
+  for (const character of value) {
+    if (character === "(") depth += 1;
+    else if (character === ")") depth -= 1;
+    else if (character === " " && depth === 0) count += 1;
+  }
+
+  return count;
+}
+
 function millisecondsFromDuration(value) {
   const match = value.trim().match(/^(-?\d+(\.\d+)?)(ms|s)$/);
 
@@ -183,7 +214,7 @@ export const CHECKS = [
       ]);
 
       const offenders = sources.flatMap((source) => extractStyleRules(source)
-        .filter(({ selector, body }) => /(^|[;{])\s*color:\s*[^;]*var\(--accent[,)][^;]*;/.test(body) && !selector.includes(".icon"))
+        .filter(({ selector, body }) => /(^|[;{])\s*color:\s*[^;]*var\(--accent[,)][^;]*;/.test(body) && !/\.icon(?![\w-])/.test(selector))
         .map(({ selector }) => selector));
 
       return offenders.length === 0 ? true : offenders.join(" / ");
@@ -196,7 +227,7 @@ export const CHECKS = [
         .flatMap(readCssRules)
         .filter((rule) => rule.selectorText && rule.selectorText.includes(":focus-visible"));
 
-      const base = rules.find((rule) => rule.selectorText.includes("button") && rule.selectorText.includes("input"));
+      const base = rules.find(isDefaultFocusRule);
 
       if (!base) return "no default :focus-visible rule";
 
@@ -217,7 +248,7 @@ export const CHECKS = [
       const offenders = [ ...frameDocument.styleSheets ]
         .flatMap(readCssRules)
         .filter((rule) => rule.style && (rule.style.outlineStyle === "none" || rule.style.outlineWidth === "0px"))
-        .filter((rule) => !rule.style.borderColor && !rule.style.textDecorationThickness);
+        .filter((rule) => !borderColorOf(rule.style) && !rule.style.textDecorationThickness);
 
       return offenders.length === 0 ? true : offenders.map((rule) => rule.selectorText).join(", ");
     },
@@ -262,7 +293,7 @@ export const CHECKS = [
     },
   },
   {
-    name: "the page does not scroll sideways at this width",
+    name: "main does not scroll sideways at this width",
     run: (frameDocument) => {
       const main = frameDocument.querySelector("main");
 
@@ -275,11 +306,17 @@ export const CHECKS = [
     name: "main is single-column below 900px",
     run: (frameDocument, frameWindow) => {
       const main = frameDocument.querySelector("main");
-      const columns = frameWindow.getComputedStyle(main).gridTemplateColumns.split(" ").length;
+      const style = frameWindow.getComputedStyle(main);
+      const isGrid = style.display === "grid" || style.display === "inline-grid";
+      const columns = isGrid ? gridTrackCount(style.gridTemplateColumns) : 1;
 
-      if (frameWindow.innerWidth >= 900) return columns === 2 ? true : `${columns} columns at wide width`;
+      if (frameWindow.innerWidth >= 900) {
+        if (!isGrid) return `display is ${style.display} at wide width`;
 
-      return columns === 1 ? true : `${columns} columns at ${frameWindow.innerWidth}px`;
+        return columns === 2 ? true : `${columns} columns at wide width`;
+      }
+
+      return columns <= 1 ? true : `${columns} columns at ${frameWindow.innerWidth}px`;
     },
   },
   {
