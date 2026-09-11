@@ -1699,7 +1699,7 @@ git commit -m "Mark Task 12 complete in the model showcase plan"
 - Modify: `examples/README.md:177-181`
 
 **Interfaces:**
-- Consumes: both skills.
+- Consumes: both skills, and Task 15 — the harness must reach a true phone viewport before this task's screenshots mean anything.
 - Produces: the example. New modules beyond the house vocabulary: `dropzone.js`, `timeline.js`, `segments.js`, `hotwords.js`.
 
 This task is the loop, not a single pass. Each iteration deletes the example and regenerates it whole.
@@ -1844,6 +1844,92 @@ the Hugging Face card says 9B -- and marked it `needs verification` rather than
 guessing. A real run settles it, and the fixture moves from the model card's
 example output to a saved run, so the fast loop renders real segment lengths.
 EOF
+```
+
+---
+
+## Task 15: Capture at a true phone viewport
+
+**Runs after Task 7 and before Task 13.** It is numbered last only so that the earlier numbers, which the ledger and the extracted briefs already reference, stay stable.
+
+**Files:**
+- Modify: `.claude/skills/model-showcase/assets/ui-check.mjs`
+
+**Interfaces:**
+- Consumes: the harness from Task 1.
+- Produces: `--width` and `--height` that mean what they say at any size, and screenshots that include fixed-position elements. Task 13 and the later `model-report` plan both depend on this.
+
+Task 6 established the `< 600px` layout and its reviewer confirmed the harness cannot photograph it. Asking for `--width=390 --height=844` produces a page laid out at roughly 518px and then cropped to a 390px canvas: the reviewer's own run at those flags lost the RESOLUTION and FPS dropdowns and the entire footer action off the right edge. `position: fixed` elements are also absent from captures. The cause is `ui-check.mjs` passing the requested size straight to `--window-size` with no device-metrics override anywhere in the file.
+
+Two consequences make this worth its own task rather than a deferred minor. The stated reason Task 6 exists at all is that a later stage needs a portrait demo video at phone width, and a pipeline that floors at 518px cannot produce one. And the `< 600px` breakpoint currently has exactly one width of automated coverage, at 518px, because the assertions run in a viewport that never goes narrower.
+
+The assertions themselves are unaffected — they read the real iframe viewport and pass correctly at all three widths. This is a capture defect, not a layout defect.
+
+- [ ] **Step 1: Write the failing test**
+
+Append to `CHECKS` in `.claude/skills/model-showcase/assets/checks.js`:
+
+```js
+  {
+    name: "the viewport is the width that was asked for",
+    run: (frameDocument, frameWindow) => {
+      const requested = Number(new URL(frameWindow.location.href).searchParams.get("expect-width"));
+
+      if (!requested) return true;
+
+      return Math.abs(frameWindow.innerWidth - requested) <= 1
+        ? true
+        : `innerWidth ${frameWindow.innerWidth} but ${requested} was requested`;
+    },
+  },
+```
+
+and have `ui-check.mjs` append `?expect-width=<width>` to the iframe's source so the check has something to compare against. A run that does not set the parameter skips the check rather than failing it, so the default desktop run is unaffected.
+
+- [ ] **Step 2: Run it at 390 to verify it fails**
+
+```bash
+node .claude/skills/model-showcase/assets/ui-check.mjs \
+  examples/media-processing/youtube-to-playlist-video/ui --width=390 --height=844
+```
+Expected: `FAIL the viewport is the width that was asked for — innerWidth 518 but 390 was requested`, or whatever floor this machine's Chrome imposes.
+
+- [ ] **Step 3: Make the requested size real**
+
+`--window-size` is an operating-system window request and is subject to the platform's minimum window width, which is why it floors. The size that matters is the viewport, which is set through Chrome's device-metrics emulation rather than through the window.
+
+Find the flag or mechanism that applies a device-metrics override in the headless mode this harness uses, and apply the requested width, height and a device scale factor of 1. Do not switch the harness to a CDP session that must be torn down by hand — every Chrome invocation here is self-exiting by design, and a session that outlives a crashed run is how a process gets left behind. If the only workable route is a CDP session, say so and stop rather than introducing one.
+
+- [ ] **Step 4: Run it at all three widths to verify it passes**
+
+```bash
+for size in "1440 900" "800 900" "390 844"; do
+  set -- $size
+  node .claude/skills/model-showcase/assets/ui-check.mjs \
+    examples/media-processing/youtube-to-playlist-video/ui --width=$1 --height=$2
+done
+```
+Expected: exit 0 each time, with the new check passing rather than skipping at every width.
+
+- [ ] **Step 5: Confirm the capture matches**
+
+```bash
+node .claude/skills/model-showcase/assets/ui-check.mjs \
+  examples/media-processing/youtube-to-playlist-video/ui \
+  --width=390 --height=844 --screenshot=$SCRATCH/portrait.png
+```
+
+Open the image. Every header dropdown must be present or deliberately scrolled out of view by the settings row's own horizontal scroll, and the footer action must be visible. Compare against the description in Task 6's report of what was previously lost, and say whether each item has returned.
+
+- [ ] **Step 6: Confirm fixed-position elements are painted**
+
+The dropdown menu uses the native popover API and is positioned `fixed`. Capture a screenshot with a menu open — driving it from the page is acceptable — and say whether it appears. If it still does not, report that as a remaining limitation rather than working around it; it constrains what the demo video can show.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add .claude/skills/model-showcase/assets
+git commit -m "Give the harness a real viewport instead of a window size"
 ```
 
 ---
