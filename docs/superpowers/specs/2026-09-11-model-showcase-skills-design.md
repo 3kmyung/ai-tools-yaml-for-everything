@@ -222,12 +222,20 @@ Renames: `#render-playlist` → `.action-primary`, `#add-track` → `.action-add
 | `.field-line`, `.color-picker-hex` | `border-bottom 1px` | underline → accent |
 | `.color-picker-swatch` | `border 1px transparent` | border → accent |
 | `.dropdown` | `border 1px var(--border)` | border → accent |
-| `.item` | `border 1px var(--border)` | border → accent |
+| `.item-select` | none | inward ring |
 | `.action-add` | `border 1px var(--accent)` | inward ring |
-| `.action-primary` | none; background is accent | inward ring in `--background` |
+| `.action-primary`, `.action-resume` | none; background is accent | inward ring in `--background` |
 | `.item-remove`, `.revert-field` | none | inward ring |
 | `.dropdown-option` | none | inward ring |
 | `footer a` | none | `text-decoration-thickness: 2px` |
+
+`.item` is absent from that table on purpose. It is the `<li>` container, and a list item
+takes no keyboard focus — the focusable part of a row is the `<button class="item-select">`
+inside it. An earlier version of this design gave `.item` a focus rule, and a review found
+it was unreachable CSS: the row was a plain `<li>` with a click listener, so nothing could
+ever focus it. The restructuring that fixed that is why `.item-select` exists. **Before
+writing a focus rule for anything, check that the element can actually receive focus.**
+The rule below is what it looks like when that check is skipped.
 
 ```css
 /* base.css — default. Anything that does not supply its own indicator gets this. */
@@ -237,13 +245,13 @@ Renames: `#render-playlist` → `.action-primary`, `#add-track` → `.action-add
 }
 
 /* components.css — an element with its own indicator turns the default off. */
-:is(.dropdown, .item, .color-picker-swatch):focus-visible {
+:is(.dropdown, .color-picker-swatch):focus-visible {
   outline: none;
   border-color: var(--accent);
 }
 
 /* Only where the background is already accent does the ring invert. */
-.action-primary:focus-visible {
+:is(.action-primary, .action-resume):focus-visible {
   outline-color: var(--background);
   outline-offset: -3px;
 }
