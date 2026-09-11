@@ -426,7 +426,7 @@ Common:
 | Step | Who | Output |
 |---|---|---|
 | 1. Research | automatic | variants, sizes, licence, I/O mode, hardware, distinguishing mechanism |
-| 2. Map | automatic | which of the 35 model tasks, which driver, which existing example is the base |
+| 2. Map | automatic | which model task, which driver, which existing example is the base |
 | 3. **Demo angle** | **human** | one killer property, three screens that would show it, pick one |
 | 4. Generate | automatic | compose + `ui/` (invokes `ui-house-style`) + fixture + READMEs + index entry |
 | 5. Fast verify | automatic | `serve.mjs` → headless screenshot → self-critique checklist |

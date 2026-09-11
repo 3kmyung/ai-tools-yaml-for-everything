@@ -1618,7 +1618,7 @@ The I/O mode field feeds step 3: a family with both a batch and a streaming chec
 
 - [ ] **Step 3: Write `references/compose.md`**
 
-The 35 model tasks available under `src/mindor/core/component/services/model/tasks/`, how to pick the nearest existing example under `examples/model-tasks/` and copy its component block, `controller.webui.driver: static` with `static_dir: ./ui`, and the requirement that every workflow the UI calls carries an `id`.
+The model tasks available under `src/mindor/core/component/services/model/tasks/`, how to pick the nearest existing example under `examples/model-tasks/` and copy its component block, `controller.webui.driver: static` with `static_dir: ./ui`, and the requirement that every workflow the UI calls carries an `id`.
 
 The verbatim copy instruction for `ui/src/websocket-client.js`, with the reason: `stream_pull` backpressure, post-reconnect task resubscription and binary chunk framing are the model-compose WebSocket protocol, not design decisions.
 
