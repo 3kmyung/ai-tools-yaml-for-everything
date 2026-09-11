@@ -211,7 +211,10 @@ export function serve(root, port) {
     }
   });
 
-  return new Promise((resolve) => server.listen(port, "127.0.0.1", () => resolve(server)));
+  return new Promise((resolve, reject) => {
+    server.on("error", (error) => reject(new Error("could not listen on port " + port + ": " + error.message)));
+    server.listen(port, "127.0.0.1", () => resolve(server));
+  });
 }
 ```
 
@@ -271,13 +274,26 @@ if (screenshot) {
   process.exit(0);
 }
 
+const finished = /<title>done<\/title>/.test(stdout);
 const lines = [ ...stdout.matchAll(/<li class="(pass|fail)">([\s\S]*?)<\/li>/g) ]
   .map((match) => match[2].replace(/&mdash;|&#8212;/g, "—").trim());
 
 lines.forEach((line) => console.log(line));
 
+if (!finished) {
+  console.log("FAIL harness — check script did not finish (module import error, or --virtual-time-budget expired before the iframe finished loading)");
+  process.exit(1);
+}
+
+if (lines.length === 0) {
+  console.log("FAIL harness — no checks ran (CHECKS was empty)");
+  process.exit(1);
+}
+
 process.exit(lines.some((line) => line.startsWith("FAIL")) ? 1 : 0);
 ```
+
+The two guards are not belt and braces — they catch different failures. `test.html` sets `document.title = "done"` after the loop, so an empty `CHECKS` array still finishes and is caught by the line count, while a module-linking error or a `--virtual-time-budget` that expires mid-navigation never reaches that statement and is caught by the completion marker. Without both, a harness that ran nothing exits 0.
 
 - [ ] **Step 5: Run it to verify it passes**
 
