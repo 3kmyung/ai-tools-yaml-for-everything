@@ -14,8 +14,9 @@ file. Rules live in `references/`, read on demand — do not load all of them up
 
 1. **Tokens** — read `references/tokens.md`, lay down `base.css` unchanged. Do not
    invent a colour or a spacing/type/radius/duration value outside its scale.
-2. **Layout** — decide what the list is and what the workspace is for this example, then
-   map that decision onto the three-region skeleton in `references/layout.md`.
+2. **Layout** — decide batch or streaming before choosing a layout; the two produce
+   different skeletons. Then decide what the list is and what the workspace is for this
+   example, and map that decision onto the three-region skeleton in `references/layout.md`.
 3. **Components** — assemble the screen from `references/components.md` first. Write a
    new widget only when no existing one fits.
 4. **Self-critique** — re-read the written code against the checklist below. Fix anything
@@ -30,7 +31,7 @@ file. Rules live in `references/`, read on demand — do not load all of them up
 | `references/components.md` | assembling a dropdown, field, button, list item, popover, or status bar |
 | `references/css-patterns.md` | writing any CSS rule — elevation, state, focus, motion, or responsiveness |
 | `references/js-patterns.md` | writing any `.js` module for the UI |
-| `references/streaming.md` | the example has a streaming input or output, not a batch one |
+| `references/streaming.md` | the model produces incremental output or consumes live input, not a batch one |
 
 ## Self-critique checklist
 
