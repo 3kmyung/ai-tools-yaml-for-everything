@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Skills live in `~/.claude/skills/`. They are outside the repository by design; `.gitignore:187` excludes `.claude/`.
+- Skills live in `.claude/skills/`. They are outside the repository by design; `.gitignore:187` excludes `.claude/`.
 - Repository work happens on branch `features/youtube-to-playlist-video`.
 - Line endings are LF. `core.autocrlf=input` is set globally; there is no `.gitattributes`.
 - No comments in source files. Reasoning goes in the commit message.
@@ -43,7 +43,7 @@
 | `ui/src/status.js` | modify | `.action-cancel` / `.action-resume` / `.status-message` class names |
 | `.gitignore` | modify | ignore the generated verification harness inside `ui/` |
 
-### Skill — `~/.claude/skills/ui-house-style/`
+### Skill — `.claude/skills/ui-house-style/`
 
 | File | Action | Responsibility |
 |---|---|---|
@@ -56,7 +56,7 @@
 | `references/streaming.md` | create | streaming input and output vocabulary |
 | `check-rules.mjs` | create | asserts the prose's factual claims against the reference UI |
 
-### Skill — `~/.claude/skills/model-showcase/`
+### Skill — `.claude/skills/model-showcase/`
 
 | File | Action | Responsibility |
 |---|---|---|
@@ -81,9 +81,9 @@
 ## Task 1: Verification harness
 
 **Files:**
-- Create: `~/.claude/skills/model-showcase/assets/serve.mjs`
-- Create: `~/.claude/skills/model-showcase/assets/ui-check.mjs`
-- Create: `~/.claude/skills/model-showcase/assets/test.html`
+- Create: `.claude/skills/model-showcase/assets/serve.mjs`
+- Create: `.claude/skills/model-showcase/assets/ui-check.mjs`
+- Create: `.claude/skills/model-showcase/assets/test.html`
 - Modify: `examples/media-processing/youtube-to-playlist-video/.gitignore`
 
 **Interfaces:**
@@ -96,7 +96,7 @@ Python's `http.server` serves `.js` with a MIME type that blocks ES module loadi
 
 - [ ] **Step 1: Write the failing check**
 
-Create `~/.claude/skills/model-showcase/assets/test.html`:
+Create `.claude/skills/model-showcase/assets/test.html`:
 
 ```html
 <!DOCTYPE html>
@@ -150,7 +150,7 @@ Create `~/.claude/skills/model-showcase/assets/test.html`:
 </html>
 ```
 
-Create `~/.claude/skills/model-showcase/assets/checks.js` with one check that must fail until `serve.mjs` and `ui-check.mjs` work:
+Create `.claude/skills/model-showcase/assets/checks.js` with one check that must fail until `serve.mjs` and `ui-check.mjs` work:
 
 ```js
 export const CHECKS = [
@@ -169,14 +169,14 @@ export const CHECKS = [
 
 Run:
 ```bash
-node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
+node .claude/skills/model-showcase/assets/ui-check.mjs \
   examples/media-processing/youtube-to-playlist-video/ui
 ```
 Expected: FAIL with `Cannot find module .../ui-check.mjs`.
 
 - [ ] **Step 3: Write the server**
 
-Create `~/.claude/skills/model-showcase/assets/serve.mjs`:
+Create `.claude/skills/model-showcase/assets/serve.mjs`:
 
 ```js
 import { createServer } from "node:http";
@@ -220,7 +220,7 @@ export function serve(root, port) {
 
 - [ ] **Step 4: Write the Chrome driver**
 
-Create `~/.claude/skills/model-showcase/assets/ui-check.mjs`:
+Create `.claude/skills/model-showcase/assets/ui-check.mjs`:
 
 ```js
 import { execFile } from "node:child_process";
@@ -299,7 +299,7 @@ The two guards are not belt and braces — they catch different failures. `test.
 
 Run:
 ```bash
-node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
+node .claude/skills/model-showcase/assets/ui-check.mjs \
   examples/media-processing/youtube-to-playlist-video/ui
 ```
 Expected: `PASS stylesheets loaded`, exit 0.
@@ -328,7 +328,7 @@ git commit -m "Ignore the copied UI verification harness"
 - Modify: `examples/media-processing/youtube-to-playlist-video/ui/styles/base.css:8-11`
 - Modify: `examples/media-processing/youtube-to-playlist-video/ui/styles/components.css:279,337,341,461`
 - Modify: `examples/media-processing/youtube-to-playlist-video/ui/styles/layout.css:141`
-- Test: `~/.claude/skills/model-showcase/assets/checks.js`
+- Test: `.claude/skills/model-showcase/assets/checks.js`
 
 **Interfaces:**
 - Consumes: the harness from Task 1.
@@ -336,7 +336,7 @@ git commit -m "Ignore the copied UI verification harness"
 
 - [ ] **Step 1: Write the failing test**
 
-Replace the contents of `~/.claude/skills/model-showcase/assets/checks.js`:
+Replace the contents of `.claude/skills/model-showcase/assets/checks.js`:
 
 ```js
 function channel(value) {
@@ -427,7 +427,7 @@ export const CHECKS = [
 ];
 ```
 
-**The shipped `checks.js` is the authority, not this snippet.** Tasks 3–7 each append to the same file, so any copy printed here goes stale the moment the next task runs. Read `~/.claude/skills/model-showcase/assets/checks.js` for the current suite. Three corrections landed during this task and matter to anyone extending it:
+**The shipped `checks.js` is the authority, not this snippet.** Tasks 3–7 each append to the same file, so any copy printed here goes stale the moment the next task runs. Read `.claude/skills/model-showcase/assets/checks.js` for the current suite. Three corrections landed during this task and matter to anyone extending it:
 
 - `tokenColor` probes with a sentinel fallback, `var(${name}, rgb(1, 2, 3))`, and `requireTokenColor` treats the resolved sentinel as a missing token. Without it, `color` inherits from `body { color: var(--text) }` and an undefined token resolves to near-black, which clears 4.5:1 against any light surface — a contrast check that passes because its subject does not exist.
 - The second check reads `#render-playlist`'s computed `color` against its computed `background-color`. The token-pair version it replaced was `contrast()` called with its arguments swapped, and `contrast()` sorts its luminances internally, so it was the first check written twice.
@@ -437,7 +437,7 @@ export const CHECKS = [
 
 Run:
 ```bash
-node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
+node .claude/skills/model-showcase/assets/ui-check.mjs \
   examples/media-processing/youtube-to-playlist-video/ui
 ```
 Expected: `FAIL` on the accent-as-text check, naming `#render-playlist, #add-track, .cancel-render, .resume-render` and `#warning`; `FAIL` on `--link`; `FAIL` on `#hint` at about `2.15`. With the sentinel fallback in place the two token checks also fail with `--accent-text is not defined`.
@@ -470,7 +470,7 @@ In `layout.css`, change `#hint { color: var(--disabled); }` to `color: var(--tex
 
 Run:
 ```bash
-node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
+node .claude/skills/model-showcase/assets/ui-check.mjs \
   examples/media-processing/youtube-to-playlist-video/ui
 ```
 Expected: four `PASS` lines, exit 0.
@@ -479,7 +479,7 @@ Expected: four `PASS` lines, exit 0.
 
 Run:
 ```bash
-node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
+node .claude/skills/model-showcase/assets/ui-check.mjs \
   examples/media-processing/youtube-to-playlist-video/ui \
   --screenshot=$SCRATCH/shot-accent.png
 ```
@@ -509,7 +509,7 @@ EOF
 **Files:**
 - Modify: `examples/media-processing/youtube-to-playlist-video/ui/styles/base.css:55-58`
 - Modify: `examples/media-processing/youtube-to-playlist-video/ui/styles/components.css`
-- Test: `~/.claude/skills/model-showcase/assets/checks.js`
+- Test: `.claude/skills/model-showcase/assets/checks.js`
 
 **Interfaces:**
 - Consumes: `--accent` and `--accent-text` from Task 2.
@@ -555,7 +555,7 @@ Append to the `CHECKS` array in `checks.js`:
 
 Run:
 ```bash
-node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
+node .claude/skills/model-showcase/assets/ui-check.mjs \
   examples/media-processing/youtube-to-playlist-video/ui
 ```
 Expected: `FAIL base.css declares a default focus ring — no default :focus-visible rule` and `FAIL no rule removes the outline without a replacement — :is(button, a, input, select):focus-visible`.
@@ -604,7 +604,7 @@ footer a:focus-visible {
 
 Run:
 ```bash
-node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
+node .claude/skills/model-showcase/assets/ui-check.mjs \
   examples/media-processing/youtube-to-playlist-video/ui
 ```
 Expected: all checks `PASS`, exit 0.
@@ -637,7 +637,7 @@ EOF
 
 **Files:**
 - Modify: `examples/media-processing/youtube-to-playlist-video/ui/styles/base.css`
-- Test: `~/.claude/skills/model-showcase/assets/checks.js`
+- Test: `.claude/skills/model-showcase/assets/checks.js`
 
 **Interfaces:**
 - Consumes: nothing from earlier tasks.
@@ -671,7 +671,7 @@ Append to `CHECKS`:
 
 Run:
 ```bash
-node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
+node .claude/skills/model-showcase/assets/ui-check.mjs \
   examples/media-processing/youtube-to-playlist-video/ui
 ```
 Expected: `FAIL base.css honours prefers-reduced-motion — no prefers-reduced-motion block`.
@@ -694,7 +694,7 @@ Append to `base.css`:
 
 Run:
 ```bash
-node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
+node .claude/skills/model-showcase/assets/ui-check.mjs \
   examples/media-processing/youtube-to-playlist-video/ui
 ```
 Expected: all checks `PASS`.
@@ -704,7 +704,7 @@ Expected: all checks `PASS`.
 The block does not touch the scroll fades at all, which is the right outcome but not for the reason it first appears. Every element using those keyframes drives them through `animation-timeline: scroll(self inline|block)`, a scroll-progress timeline: progress is the scroll fraction and `animation-duration` does not enter the calculation, so collapsing the duration is a no-op and the mask keeps tracking scroll exactly as before. A gradient that follows the reader's own scrolling is not the kind of motion `prefers-reduced-motion` exists to stop — no autoplay, no loop, no movement the reader did not cause. Capture a screenshot and confirm nothing is clipped:
 
 ```bash
-node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
+node .claude/skills/model-showcase/assets/ui-check.mjs \
   examples/media-processing/youtube-to-playlist-video/ui \
   --screenshot=$SCRATCH/shot-motion.png
 ```
@@ -733,7 +733,7 @@ EOF
 - Modify: `ui/styles/components.css:254,260,261,279,293,314,332,337,343,347,418,430,438,442,446,450,454`
 - Modify: `ui/src/track-list.js:14,15,37,44,64`
 - Modify: `ui/src/status.js:46,79,93`
-- Test: `~/.claude/skills/model-showcase/assets/checks.js`
+- Test: `.claude/skills/model-showcase/assets/checks.js`
 
 All paths are under `examples/media-processing/youtube-to-playlist-video/`.
 
@@ -801,7 +801,7 @@ Append to `CHECKS`:
 
 Run:
 ```bash
-node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
+node .claude/skills/model-showcase/assets/ui-check.mjs \
   examples/media-processing/youtube-to-playlist-video/ui
 ```
 Expected: three `FAIL` lines. The first lists `#render-playlist`, `#add-track`, `#warning`, `#log`; the second lists `.track`, `.track-label`, `.remove-track`, `.cancel-render`, `.resume-render`; the third lists all nine required classes.
@@ -917,7 +917,7 @@ The second `cancel.className` at line 93 takes the same value.
 
 Run:
 ```bash
-node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
+node .claude/skills/model-showcase/assets/ui-check.mjs \
   examples/media-processing/youtube-to-playlist-video/ui
 ```
 Expected: all checks `PASS`.
@@ -925,7 +925,7 @@ Expected: all checks `PASS`.
 - [ ] **Step 7: Confirm the render appearance is unchanged**
 
 ```bash
-node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
+node .claude/skills/model-showcase/assets/ui-check.mjs \
   examples/media-processing/youtube-to-playlist-video/ui \
   --screenshot=$SCRATCH/shot-renames.png
 ```
@@ -958,7 +958,7 @@ EOF
 **Files:**
 - Modify: `examples/media-processing/youtube-to-playlist-video/ui/styles/layout.css`
 - Modify: `examples/media-processing/youtube-to-playlist-video/ui/styles/components.css`
-- Test: `~/.claude/skills/model-showcase/assets/checks.js`
+- Test: `.claude/skills/model-showcase/assets/checks.js`
 
 **Interfaces:**
 - Consumes: the class vocabulary from Task 5.
@@ -1010,7 +1010,7 @@ Run:
 ```bash
 for size in "1440 900" "800 900" "390 844"; do
   set -- $size
-  node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
+  node .claude/skills/model-showcase/assets/ui-check.mjs \
     examples/media-processing/youtube-to-playlist-video/ui --width=$1 --height=$2
 done
 ```
@@ -1115,7 +1115,7 @@ Run:
 ```bash
 for size in "1440 900" "800 900" "390 844"; do
   set -- $size
-  node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
+  node .claude/skills/model-showcase/assets/ui-check.mjs \
     examples/media-processing/youtube-to-playlist-video/ui --width=$1 --height=$2
 done
 ```
@@ -1124,7 +1124,7 @@ Expected: every run exits 0.
 - [ ] **Step 6: Capture the portrait screenshot**
 
 ```bash
-node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
+node .claude/skills/model-showcase/assets/ui-check.mjs \
   examples/media-processing/youtube-to-playlist-video/ui \
   --width=390 --height=844 --screenshot=../../../../../tmp-portrait.png
 ```
@@ -1155,7 +1155,7 @@ EOF
 **Files:**
 - Modify: `examples/media-processing/youtube-to-playlist-video/ui/src/icons.js`
 - Modify: `examples/media-processing/youtube-to-playlist-video/ui/styles/components.css` (`.icon` stroke width)
-- Test: `~/.claude/skills/model-showcase/assets/checks.js`
+- Test: `.claude/skills/model-showcase/assets/checks.js`
 
 **Interfaces:**
 - Consumes: nothing from earlier tasks.
@@ -1199,7 +1199,7 @@ Append to `CHECKS`:
 
 Run:
 ```bash
-node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
+node .claude/skills/model-showcase/assets/ui-check.mjs \
   examples/media-processing/youtube-to-playlist-video/ui
 ```
 Expected: `FAIL icons use a 24-unit viewBox — remove, revert, add, check, chevron`.
@@ -1256,7 +1256,7 @@ In `components.css`, change `.icon { stroke-width: 1; }` to `stroke-width: 1.5;`
 
 Run:
 ```bash
-node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
+node .claude/skills/model-showcase/assets/ui-check.mjs \
   examples/media-processing/youtube-to-playlist-video/ui
 ```
 Expected: all checks `PASS`.
@@ -1264,7 +1264,7 @@ Expected: all checks `PASS`.
 - [ ] **Step 7: Confirm the icons look right**
 
 ```bash
-node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
+node .claude/skills/model-showcase/assets/ui-check.mjs \
   examples/media-processing/youtube-to-playlist-video/ui \
   --screenshot=$SCRATCH/shot-icons.png
 ```
@@ -1290,14 +1290,14 @@ EOF
 ## Task 8: `ui-house-style` — tokens and layout
 
 **Files:**
-- Create: `~/.claude/skills/ui-house-style/SKILL.md`
-- Create: `~/.claude/skills/ui-house-style/references/tokens.md`
-- Create: `~/.claude/skills/ui-house-style/references/layout.md`
-- Create: `~/.claude/skills/ui-house-style/check-rules.mjs`
+- Create: `.claude/skills/ui-house-style/SKILL.md`
+- Create: `.claude/skills/ui-house-style/references/tokens.md`
+- Create: `.claude/skills/ui-house-style/references/layout.md`
+- Create: `.claude/skills/ui-house-style/check-rules.mjs`
 
 **Interfaces:**
 - Consumes: the corrected reference UI from Tasks 2–7.
-- Produces: `check-rules.mjs`, run as `node ~/.claude/skills/ui-house-style/check-rules.mjs <reference-ui-dir>`, exiting non-zero when a claim in the references does not match the reference UI. Later tasks extend its `RULES` array.
+- Produces: `check-rules.mjs`, run as `node .claude/skills/ui-house-style/check-rules.mjs <reference-ui-dir>`, exiting non-zero when a claim in the references does not match the reference UI. Later tasks extend its `RULES` array.
 
 The rules documents make factual claims about a real directory. `check-rules.mjs` is what stops them drifting — it is the test for prose.
 
@@ -1305,7 +1305,7 @@ The rules documents make factual claims about a real directory. `check-rules.mjs
 
 - [ ] **Step 1: Write the failing test**
 
-Create `~/.claude/skills/ui-house-style/check-rules.mjs`:
+Create `.claude/skills/ui-house-style/check-rules.mjs`:
 
 ```js
 import { readFile } from "node:fs/promises";
@@ -1359,7 +1359,7 @@ process.exit(failed ? 1 : 0);
 
 Run:
 ```bash
-node ~/.claude/skills/ui-house-style/check-rules.mjs \
+node .claude/skills/ui-house-style/check-rules.mjs \
   examples/media-processing/youtube-to-playlist-video/ui
 ```
 Expected: both rules fail; `references/tokens.md` does not exist.
@@ -1382,7 +1382,7 @@ The three-region skeleton, the `clamp(13rem, 22vw, 20rem)` list column, the foot
 
 Run:
 ```bash
-node ~/.claude/skills/ui-house-style/check-rules.mjs \
+node .claude/skills/ui-house-style/check-rules.mjs \
   examples/media-processing/youtube-to-playlist-video/ui
 ```
 Expected: both rules `PASS`.
@@ -1401,10 +1401,10 @@ git commit -m "Mark Task 8 complete in the model showcase plan"
 ## Task 9: `ui-house-style` — components, CSS, JavaScript
 
 **Files:**
-- Create: `~/.claude/skills/ui-house-style/references/components.md`
-- Create: `~/.claude/skills/ui-house-style/references/css-patterns.md`
-- Create: `~/.claude/skills/ui-house-style/references/js-patterns.md`
-- Modify: `~/.claude/skills/ui-house-style/check-rules.mjs`
+- Create: `.claude/skills/ui-house-style/references/components.md`
+- Create: `.claude/skills/ui-house-style/references/css-patterns.md`
+- Create: `.claude/skills/ui-house-style/references/js-patterns.md`
+- Modify: `.claude/skills/ui-house-style/check-rules.mjs`
 
 **Interfaces:**
 - Consumes: `check-rules.mjs` and its `RULES` array from Task 8.
@@ -1459,7 +1459,7 @@ Append to `RULES` in `check-rules.mjs`:
 
 Run:
 ```bash
-node ~/.claude/skills/ui-house-style/check-rules.mjs \
+node .claude/skills/ui-house-style/check-rules.mjs \
   examples/media-processing/youtube-to-playlist-video/ui
 ```
 Expected: three new `FAIL` lines about missing files.
@@ -1496,7 +1496,7 @@ Named exports only, no `export default`, no `class`, `createX()` factories retur
 
 Run:
 ```bash
-node ~/.claude/skills/ui-house-style/check-rules.mjs \
+node .claude/skills/ui-house-style/check-rules.mjs \
   examples/media-processing/youtube-to-playlist-video/ui
 ```
 Expected: all rules `PASS`.
@@ -1513,9 +1513,9 @@ git commit -m "Mark Task 9 complete in the model showcase plan"
 ## Task 10: `ui-house-style` — streaming
 
 **Files:**
-- Create: `~/.claude/skills/ui-house-style/references/streaming.md`
-- Modify: `~/.claude/skills/ui-house-style/check-rules.mjs`
-- Modify: `~/.claude/skills/ui-house-style/SKILL.md`
+- Create: `.claude/skills/ui-house-style/references/streaming.md`
+- Modify: `.claude/skills/ui-house-style/check-rules.mjs`
+- Modify: `.claude/skills/ui-house-style/SKILL.md`
 
 **Interfaces:**
 - Consumes: `check-rules.mjs` from Task 9.
@@ -1550,7 +1550,7 @@ Append to `RULES`:
 
 Run:
 ```bash
-node ~/.claude/skills/ui-house-style/check-rules.mjs \
+node .claude/skills/ui-house-style/check-rules.mjs \
   examples/media-processing/youtube-to-playlist-video/ui
 ```
 Expected: `FAIL streaming.md covers all fourteen rules` with an ENOENT for the missing file.
@@ -1567,7 +1567,7 @@ Add to the reference list in `SKILL.md`: read `streaming.md` whenever the model 
 
 Run:
 ```bash
-node ~/.claude/skills/ui-house-style/check-rules.mjs \
+node .claude/skills/ui-house-style/check-rules.mjs \
   examples/media-processing/youtube-to-playlist-video/ui
 ```
 Expected: all rules `PASS`.
@@ -1584,9 +1584,9 @@ git commit -m "Mark Task 10 complete in the model showcase plan"
 ## Task 11: `model-showcase` — research and compose
 
 **Files:**
-- Create: `~/.claude/skills/model-showcase/SKILL.md`
-- Create: `~/.claude/skills/model-showcase/references/research.md`
-- Create: `~/.claude/skills/model-showcase/references/compose.md`
+- Create: `.claude/skills/model-showcase/SKILL.md`
+- Create: `.claude/skills/model-showcase/references/research.md`
+- Create: `.claude/skills/model-showcase/references/compose.md`
 
 **Interfaces:**
 - Consumes: `ui-house-style`, invoked from step 4 of this skill's process.
@@ -1642,8 +1642,8 @@ git commit -m "Mark Task 11 complete in the model showcase plan"
 ## Task 12: `model-showcase` — READMEs and verification
 
 **Files:**
-- Create: `~/.claude/skills/model-showcase/references/readme.md`
-- Create: `~/.claude/skills/model-showcase/references/verify.md`
+- Create: `.claude/skills/model-showcase/references/readme.md`
+- Create: `.claude/skills/model-showcase/references/verify.md`
 
 **Interfaces:**
 - Consumes: the harness from Task 1, already present under `assets/`.
@@ -1661,7 +1661,7 @@ The index entry: `examples/README.md` carries one line per showcase example at l
 
 The fast loop: copy `assets/test.html` and `assets/checks.js` into the example's `ui/`, write a `fixture.json` matching the workflow's output shape, run `node assets/ui-check.mjs <example>/ui` at `1440×900`, `800×900` and `390×844`, then capture a screenshot at each.
 
-The checks every generated example must pass: the acceptance list from the spec, expressed as `CHECKS` entries. Read `~/.claude/skills/model-showcase/assets/checks.js` as it stands after Task 7 and carry those entries forward — do not reconstruct them from the code blocks in Tasks 2–7, which are each a snapshot of one moment in a file seven tasks edit in turn.
+The checks every generated example must pass: the acceptance list from the spec, expressed as `CHECKS` entries. Read `.claude/skills/model-showcase/assets/checks.js` as it stands after Task 7 and carry those entries forward — do not reconstruct them from the code blocks in Tasks 2–7, which are each a snapshot of one moment in a file seven tasks edit in turn.
 
 Two habits from that file are worth stating as rules, because both were defects it had to be corrected for: a check that cannot distinguish "the thing I measure is absent" from "the thing I measure is fine" is worse than no check, and a check whose red state has never been observed is not yet a check.
 
@@ -1675,8 +1675,8 @@ Add `ui/test.html`, `ui/checks.js` and `ui/fixture.json` to the generated exampl
 
 Run:
 ```bash
-grep -c "ui-check.mjs" ~/.claude/skills/model-showcase/references/verify.md
-ls ~/.claude/skills/model-showcase/assets/
+grep -c "ui-check.mjs" .claude/skills/model-showcase/references/verify.md
+ls .claude/skills/model-showcase/assets/
 ```
 Expected: a non-zero count, and `serve.mjs`, `ui-check.mjs`, `test.html`, `checks.js` all present.
 
@@ -1733,7 +1733,7 @@ changes one function rather than every module:
 ```bash
 for size in "1440 900" "800 900" "390 844"; do
   set -- $size
-  node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
+  node .claude/skills/model-showcase/assets/ui-check.mjs \
     examples/showcase/transcribe-long-meeting/ui --width=$1 --height=$2
 done
 ```
@@ -1826,7 +1826,7 @@ Save one run's `transcription` array over `ui/fixture.json`, trimmed to a handfu
 ```bash
 for size in "1440 900" "800 900" "390 844"; do
   set -- $size
-  node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
+  node .claude/skills/model-showcase/assets/ui-check.mjs \
     examples/showcase/transcribe-long-meeting/ui --width=$1 --height=$2
 done
 ```
