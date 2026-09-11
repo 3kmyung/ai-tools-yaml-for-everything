@@ -14,7 +14,7 @@
 
 - Skills live in `.claude/skills/`. They are outside the repository by design; `.gitignore:187` excludes `.claude/`.
 - Repository work happens on branch `features/youtube-to-playlist-video`.
-- Line endings are LF. `core.autocrlf=input` is set globally; there is no `.gitattributes`.
+- Line endings: match the surrounding file, which in practice means CRLF. `core.autocrlf=input` is set at both global and local scope and there is no `.gitattributes`, but the committed blobs are CRLF throughout — upstream's `README.md` is 304 CR over 304 lines, and so is every file this plan has touched. An earlier version of this constraint asserted LF, which was simply false about this repository; a reviewer nevertheless reported verifying LF on three files that are CRLF. Do not assert a line-ending verdict without running the check, and do not convert a file's endings as a side effect of editing it.
 - No comments in source files. Reasoning goes in the commit message.
 - Write files with the Edit and Write tools, never `sed`, `perl`, or shell redirection into a tracked file.
 - No `Co-Authored-By` trailer in commits. Backtick every identifier in the commit body.
