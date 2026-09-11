@@ -28,7 +28,10 @@ export function showStatus(message) {
   const status = statusElement();
   status.hidden = false;
 
-  status.replaceChildren(Object.assign(document.createElement("span"), { textContent: message }));
+  status.replaceChildren(Object.assign(document.createElement("span"), {
+    className: "status-message",
+    textContent: message,
+  }));
 }
 
 export function showProgress(options) {
@@ -43,7 +46,7 @@ export function showProgress(options) {
 
   const cancel = document.createElement("button");
   cancel.type = "button";
-  cancel.className = "cancel-render";
+  cancel.className = "action-cancel";
 
   if (cancelling) {
     cancel.textContent = "Cancelling…";
@@ -76,7 +79,7 @@ export function showInterrupt(state, options) {
 
   const resume = document.createElement("button");
   resume.type = "button";
-  resume.className = "resume-render";
+  resume.className = "action-resume";
 
   if (resuming) {
     resume.textContent = "Resuming…";
@@ -90,7 +93,7 @@ export function showInterrupt(state, options) {
 
   const cancel = document.createElement("button");
   cancel.type = "button";
-  cancel.className = "cancel-render";
+  cancel.className = "action-cancel";
   cancel.textContent = "Cancel";
 
   cancel.addEventListener("click", () => {
