@@ -54,11 +54,77 @@ code block, including this one. As of this writing it groups into:
 | Responsive | no sideways scroll at the current width; `main` is single-column below 900px; `.field-body` is container-queried |
 | Icons | every entry in `ICONS` keeps Lucide's 24-unit `viewBox`; a rendered icon is 16px wide with `aria-hidden="true"` |
 
-**Adapt the domain-noun list on every copy.** The regex behind "carries no domain nouns"
-and any element-specific check such as the primary-action contrast check are written
-against the previous example's own vocabulary. Copying `checks.js` into a new example
-without updating that word list to the new domain nouns does not fail loudly — it passes,
-silently, because the pattern never matches anything in the new file.
+## Portable checks versus this example's furniture
+
+Every `CHECKS` entry was written against one interface — the playlist editor. Twelve of
+the seventeen measure house style and travel unchanged to any generated interface. Five
+name this example's own elements, vocabulary or structure and must be re-decided, in the
+open, before the first run against a new one.
+
+| # | Check | Portable | Adaptation for a new interface |
+|---|---|---|---|
+| 1 | `--accent-text` / `--text-caption` contrast | Portable | — |
+| 2 | `#render-playlist` rendered-text contrast | Per-example | rename the id literal to the new interface's own primary-action element |
+| 3 | `--link` resolves to `--accent-text` | Portable | — |
+| 4 | no text rule paints with `--accent` | Portable | — |
+| 5 | `#hint` does not fall back to `--disabled` | Per-example | rename the id literal to the new interface's own instructional-caption element if one exists; delete the check if it does not |
+| 6 | `base.css` declares a default focus ring | Portable | — |
+| 7 | no rule removes the outline without a replacement | Portable | — |
+| 8 | `base.css` honours `prefers-reduced-motion` | Portable | — |
+| 9 | `components.css` carries no ID selectors | Portable | — |
+| 10 | `components.css` carries no domain nouns | Per-example | replace the banned word list with the new interface's own domain nouns |
+| 11 | the component vocabulary is present | Per-example | drop any required class whose role this interface has no equivalent for; never rename or invent a replacement class — these are the design system's own fixed names, not domain nouns |
+| 12 | no sideways scroll at the current width | Portable | — |
+| 13 | `main` is single-column below 900px | Portable | — |
+| 14 | field bodies are container-queried | Per-example | if the interface has no `.field`/`.field-body` construct at all, delete the check |
+| 15 | icons keep Lucide's 24-unit `viewBox` | Portable | — |
+| 16 | a rendered icon is 16px with `aria-hidden` | Portable | — (depends only on an icon named `check`, which the shared dropdown vocabulary already requires of every interface that has a dropdown) |
+| 17 | the viewport is the width that was asked for | Portable | — |
+
+A per-example check whose named element, vocabulary or structure genuinely has no
+counterpart in the new interface is deleted from `CHECKS`, not left red and not rewritten
+so it vacuously passes. Both are how the suite stops meaning anything.
+
+**Edit `assets/checks.js` itself, never the copy inside an example's own `ui/`.**
+`assets/ui-check.mjs` copies `assets/checks.js` into the target `ui/` unconditionally on
+every invocation. An edit made only to `ui/checks.js` survives until the next fast-loop
+run and is then silently overwritten. Adapt the five per-example checks in
+`assets/checks.js` itself, right after writing the new interface's `components.css` and
+before that interface's first fast-loop run.
+
+**Check 10's word list is derived by the same agent that just wrote the new interface's
+`components.css`, not by a separate reviewer.** Read that file's own class names,
+subtract every name already listed in `components.md`'s component vocabulary, and
+whatever domain-specific stems remain are the new banned list. For a transcription
+interface with a file drop zone, a speaker timeline and a segment list, that list is
+`speaker|segment|transcript` in place of `track|playlist|render`.
+
+**Check 14 has no surviving subject in a transcription interface.** A file drop zone, a
+speaker timeline and a segment list are not editable metadata fields, so an interface
+built from them has no `.field`/`.field-body` construct at all. Its subject is absent,
+not merely relocated: the check is deleted for this interface, not left failing and not
+softened to pass when `.field-body` is missing.
+
+## The ritual
+
+Follow this, in order, whenever `checks.js` is carried into a newly generated interface:
+
+1. Finish the new interface's `index.html`, `styles/`, and `src/` first. The checks
+   describe a finished house style; they are not a spec to satisfy before the UI exists.
+2. Open `assets/checks.js` in the skill directory — not the copy under the new example's
+   own `ui/` — and apply the table above: rename checks 2 and 5's id literals, or delete
+   either one that has no counterpart; rewrite check 10's word list from the new
+   interface's own class names; trim check 11's required list to the roles this interface
+   actually has; delete check 14 if the interface has no `.field-body`.
+3. Leave the twelve portable checks untouched.
+4. Run the fast loop (`ui-check.mjs` at all three widths). It copies the just-edited
+   `assets/checks.js` into the target `ui/` automatically.
+5. For every red line still standing after step 2, decide in the open which of the two
+   rules below applies: fix the interface if the interface is wrong, fix the check if it
+   is the check that no longer applies and step 2 missed it. Never edit a check merely to
+   change its color.
+6. Before deleting a check, confirm its element or workflow truly has no equivalent by
+   rereading the new interface's own plan, not by the check's silence.
 
 ## Two rules about checks
 
