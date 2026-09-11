@@ -155,7 +155,6 @@ footer {
   gap: var(--space-3);
   padding: var(--space-2) var(--space-3);
   background: var(--background-panel);
-  color: var(--accent);
   opacity: 1;
   translate: 0 0;
   transition: opacity var(--duration-base) ease, translate var(--duration-base) ease, display var(--duration-base) allow-discrete;

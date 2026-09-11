@@ -11,10 +11,10 @@ every generated `ui/`; do not re-derive or re-order it.
   --background-panel: #eef0f2;
   --border: #9c9ea4;
   --text: #1c1d1f;
-  --text-caption: #6d7077;
+  --text-caption: #6b6d74;
   --disabled: #a9abb0;
   --accent: #007ffb;
-  --accent-text: #0a6ed9;
+  --accent-text: #0a6bd4;
   --icon: var(--text-caption);
   --link: var(--accent-text);
 
@@ -115,37 +115,44 @@ the ten custom properties above.
 
 ## The accent split
 
-`--accent` (`#007ffb`) and `--accent-text` (`#0a6ed9`) are not interchangeable, and
+`--accent` (`#007ffb`) and `--accent-text` (`#0a6bd4`) are not interchangeable, and
 `--link` is not a third colour — it aliases `--accent-text`.
 
-| Property | Measures against `--background` | Use for |
-|---|---|---|
-| `--accent` | 3.61:1 | fills, borders, focus rings — never text |
-| `--accent-text` | 4.62:1 | link text, warning text, text sitting on an accent fill |
-| `--disabled` | 2.15:1 | disabled controls only |
-| `--text-caption` | 4.63:1 | instructional and secondary text |
+Three of the reference UI's four regions (`header`, `#tracks`, `footer`) paint
+`--background-panel`, not `--background` — a text token has to clear 4.5:1 on both
+surfaces, and `--background-panel` is the tighter of the two.
 
-`--accent` fails WCAG AA for normal text (needs 4.5:1) at 3.61:1; `--accent-text` clears
-it at 4.62:1 and stays in the same blue family, so a component keeping the accent hue as
-text reads `--accent-text`, not `--accent`.
+| Property | On `--background` | On `--background-panel` | Use for |
+|---|---|---|---|
+| `--accent` | 3.61:1 | 3.39:1 | fills, borders, focus rings — never text |
+| `--accent-text` | 4.82:1 | 4.52:1 | link text, warning text, text sitting on an accent fill |
+| `--disabled` | 2.15:1 | 2.02:1 | disabled controls only |
+| `--text-caption` | 4.83:1 | 4.52:1 | instructional and secondary text |
+
+`--background-panel` governs: both text tokens are chosen so they clear 4.5:1 there,
+which leaves headroom on `--background`. `--accent` fails WCAG AA for normal text (needs
+4.5:1) on either surface, at 3.61:1 and 3.39:1; `--accent-text` clears both at 4.82:1 and
+4.52:1 and stays in the same blue family, so a component keeping the accent hue as text
+reads `--accent-text`, not `--accent`.
 
 ```
 ✗ color: var(--accent); on any text node.
 → color: var(--accent-text); for that same blue used as text.
-Why: --accent measures 3.61:1 against --background, below the 4.5:1 AA floor for normal
-text. The fill itself is fine at that ratio; only text use fails.
+Why: --accent measures 3.61:1 against --background and 3.39:1 against
+--background-panel, below the 4.5:1 AA floor for normal text on either surface. The fill
+itself is fine at those ratios; only text use fails.
 ```
 
 ## `--disabled` is not for content
 
-`--disabled` (`#a9abb0`, 2.15:1) is exempt from contrast requirements because it marks a
-control the user cannot currently activate — the low contrast itself communicates
-"unavailable." Real instructional text, such as an empty-state hint, is not exempt just
-because it is quiet.
+`--disabled` (`#a9abb0`, 2.15:1 on `--background`, 2.02:1 on `--background-panel`) is
+exempt from contrast requirements because it marks a control the user cannot currently
+activate — the low contrast itself communicates "unavailable." Real instructional text,
+such as an empty-state hint, is not exempt just because it is quiet.
 
 ```
 ✗ color: var(--disabled); on a hint, placeholder, or any sentence meant to be read.
-→ color: var(--text-caption); (4.63:1).
+→ color: var(--text-caption); (4.83:1 on --background, 4.52:1 on --background-panel).
 Why: --disabled signals "cannot activate this control," not "this is minor text." Reusing
 it for content that must be read fails contrast for no exemption WCAG actually grants.
 ```
