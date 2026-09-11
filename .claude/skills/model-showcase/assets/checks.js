@@ -19,7 +19,7 @@ function contrast(foreground, background) {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
-function tokenColor(frameDocument, frameWindow, name) {
+function requireTokenColor(frameDocument, frameWindow, name) {
   const probe = frameDocument.createElement("div");
   probe.style.color = `var(${name}, ${missingTokenSentinel})`;
 
@@ -27,18 +27,16 @@ function tokenColor(frameDocument, frameWindow, name) {
   const resolved = frameWindow.getComputedStyle(probe).color;
   probe.remove();
 
-  return resolved;
+  return resolved === missingTokenSentinel ? { name, missing: true } : { name, color: resolved };
 }
 
-function requireTokenColor(frameDocument, frameWindow, name) {
-  const resolved = tokenColor(frameDocument, frameWindow, name);
-
-  return resolved === missingTokenSentinel ? { name, missing: true } : { name, color: resolved };
+function flattenCssRules(rules) {
+  return rules.flatMap((rule) => (rule.cssRules ? [ rule, ...flattenCssRules([ ...rule.cssRules ]) ] : [ rule ]));
 }
 
 function readCssRules(sheet) {
   try {
-    return [ ...sheet.cssRules ];
+    return flattenCssRules([ ...sheet.cssRules ]);
   } catch (error) {
     return [];
   }
@@ -78,6 +76,48 @@ function millisecondsFromDuration(value) {
 
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+const groupingAtRule = /^@(media|supports|container|starting-style|layer|scope)\b/i;
+const opaqueAtRule = /^@(-webkit-)?(keyframes|property|font-face|page|counter-style|font-palette-values)\b/i;
+
+function matchingBraceIndex(source, openIndex) {
+  let depth = 0;
+
+  for (let index = openIndex; index < source.length; index += 1) {
+    if (source[index] === "{") depth += 1;
+    else if (source[index] === "}") {
+      depth -= 1;
+      if (depth === 0) return index;
+    }
+  }
+
+  return -1;
+}
+
+function extractStyleRules(source) {
+  const rules = [];
+  let cursor = 0;
+
+  while (cursor < source.length) {
+    const openIndex = source.indexOf("{", cursor);
+
+    if (openIndex === -1) break;
+
+    const closeIndex = matchingBraceIndex(source, openIndex);
+
+    if (closeIndex === -1) break;
+
+    const prelude = source.slice(cursor, openIndex).trim();
+    const body = source.slice(openIndex + 1, closeIndex);
+
+    if (groupingAtRule.test(prelude)) rules.push(...extractStyleRules(body));
+    else if (!opaqueAtRule.test(prelude)) rules.push({ selector: prelude, body });
+
+    cursor = closeIndex + 1;
+  }
+
+  return rules;
 }
 
 async function stylesheetSource(path) {
@@ -155,9 +195,9 @@ export const CHECKS = [
         stylesheetSource("./styles/layout.css"),
       ]);
 
-      const offenders = sources.flatMap((source) => [ ...source.matchAll(/([^{}]+)\{([^}]*)\}/g) ]
-        .filter(([ , selector, body ]) => /(^|[;{])\s*color:\s*[^;]*var\(--accent[,)][^;]*;/.test(body) && !selector.includes(".icon"))
-        .map(([ , selector ]) => selector.trim()));
+      const offenders = sources.flatMap((source) => extractStyleRules(source)
+        .filter(({ selector, body }) => /(^|[;{])\s*color:\s*[^;]*var\(--accent[,)][^;]*;/.test(body) && !selector.includes(".icon"))
+        .map(({ selector }) => selector));
 
       return offenders.length === 0 ? true : offenders.join(" / ");
     },
