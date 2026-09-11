@@ -277,7 +277,7 @@ header .setting {
 }
 
 #warning {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .icon {
@@ -322,7 +322,7 @@ header .setting {
   border: 1px solid var(--accent);
   border-radius: var(--radius-full);
   background: none;
-  color: var(--accent);
+  color: var(--accent-text);
   cursor: pointer;
   font-weight: 500;
   text-transform: uppercase;
@@ -336,12 +336,12 @@ header .setting {
 
 #render-playlist, .resume-render {
   border-color: transparent;
-  background: var(--accent);
+  background: var(--accent-text);
   color: var(--background);
 }
 
 :is(#render-playlist, .resume-render):is(:hover, :focus-visible) {
-  background: color-mix(in srgb, var(--accent) 85%, black);
+  background: color-mix(in srgb, var(--accent-text) 85%, black);
 }
 
 :is(.cancel-render, .resume-render):disabled {
