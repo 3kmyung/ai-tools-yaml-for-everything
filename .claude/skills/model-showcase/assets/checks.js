@@ -272,4 +272,27 @@ export const CHECKS = [
         : "container-type not set";
     },
   },
+  {
+    name: "icons use a 24-unit viewBox",
+    run: async () => {
+      const { ICONS } = await import("./src/icons.js");
+      const wrong = Object.entries(ICONS)
+        .filter(([ , spec ]) => spec.viewBox !== "0 0 24 24")
+        .map(([ name ]) => name);
+
+      return wrong.length === 0 ? true : wrong.join(", ");
+    },
+  },
+  {
+    name: "icons still render at 16px",
+    run: async () => {
+      const { icon } = await import("./src/icons.js");
+      const svg = icon("check");
+
+      if (svg.getAttribute("width") !== "16") return `width ${svg.getAttribute("width")}`;
+      if (svg.getAttribute("aria-hidden") !== "true") return "missing aria-hidden";
+
+      return true;
+    },
+  },
 ];
