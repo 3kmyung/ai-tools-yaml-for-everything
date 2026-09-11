@@ -4,11 +4,10 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { serve } from "./serve.mjs";
+import { screenInfoFlag } from "./viewport.mjs";
 
 const CHROME = "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const PORT = 8099;
-const VIEWPORT_FRAME_WIDTH = 24;
-const VIEWPORT_FRAME_HEIGHT = 111;
 const run = promisify(execFile);
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -45,9 +44,6 @@ if (testHtml === testTemplate) {
 await writeFile(join(root, "test.html"), testHtml);
 await copyFile(join(here, "checks.js"), join(root, "checks.js"));
 
-const screenWidth = Number(width) + VIEWPORT_FRAME_WIDTH;
-const screenHeight = Number(height) + VIEWPORT_FRAME_HEIGHT;
-
 const server = await serve(root, PORT);
 const flags = [
   "--headless",
@@ -55,7 +51,7 @@ const flags = [
   "--no-sandbox",
   "--virtual-time-budget=5000",
   "--start-maximized",
-  `--screen-info={${screenWidth}x${screenHeight} devicePixelRatio=1}`,
+  screenInfoFlag(width, height),
 ];
 
 const target = screenshot

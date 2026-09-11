@@ -45,6 +45,17 @@ frameworks; this one holds the framework fixed and compares hardware.
 a machine with no `torch` import available. Without it, a three-machine comparison
 cannot be made honestly at all — see the annotation below.
 
+```
+✗ Trusting `vram_bytes` from `assets/bench-hw.py` when the component's `runtime` is
+  `virtualenv` or `docker`.
+→ Read peak video memory from the component's own subprocess for those runtimes; treat
+  `bench-hw.py`'s own reading as a confirmed zero, not a missing one.
+Why: a CUDA context is per-process. `bench-hw.py` runs the orchestrator in its own
+process and calls `torch.cuda.max_memory_allocated()` there; a component with `runtime:
+type: virtualenv` (VibeVoice's transcriber, for one) loads its model in a separate
+interpreter whose CUDA allocations that call cannot see.
+```
+
 ## The hardware axis's metrics
 
 | Metric | Definition | Purpose |
