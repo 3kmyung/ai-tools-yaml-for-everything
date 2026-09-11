@@ -114,6 +114,30 @@ scale-compliant way instead — `border-color: var(--text)` on the marker itself
 than reaching for a fourth, stronger alpha step that does not exist on the scale either.
 
 ```
+✗ A hue-rotate angle set shipped with no check confirming that every angle it produces
+  still clears a usable floor against the surfaces it sits on.
+→ Add a check to that interface's own `ui/checks.local.js` asserting every angle the
+  interface derives clears 3:1 against both `--background` and `--background-panel`,
+  measured by copying the marker's computed `filter` value onto a canvas and reading the
+  pixel `getImageData` returns, not by recomputing the hue-rotate matrix by hand —
+  `getComputedStyle` on the marker itself returns the pre-filter fill, so it cannot answer
+  what the filter actually paints.
+Why: rotation angle changes contrast on a non-monotonic curve, not a safe range with soft
+edges — a sweep of the accent hue through hue-rotate found some angles under 3:1 against
+`--background` and a wider band under 3:1 against the tighter `--background-panel` alone,
+so an angle picked on the assumption that "some rotation" is always safe can generate a
+marker the same colour as the surface behind it, and nothing in the portable suite reads
+a filtered colour to catch that before it ships.
+```
+
+A colour set is not usable on the strength of the derivation rule alone; it is usable
+once its own example's check has measured it and passed. Restating the shape those two
+rules share on purpose: derive from the one token and never invent a second one, then
+verify what that derivation actually painted before trusting it — the same relationship
+`tokens.md` already has between defining `--accent`/`--accent-text` and writing down the
+exact ratios each one measures at.
+
+```
 ✗ outline: 0 or outline: none with no replacement indicator in the same declaration
   block.
 → Only pair a removed default outline with a replacement in the same block: a
