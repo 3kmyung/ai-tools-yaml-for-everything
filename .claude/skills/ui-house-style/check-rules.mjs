@@ -12,6 +12,21 @@ async function fencedBlock(referenceFile, language) {
   return match ? match[1] : null;
 }
 
+function widthBreakpoints(styleSheet) {
+  const mediaQueries = styleSheet.match(/@media[^{]+/g) || [];
+  const breakpoints = new Set();
+
+  for (const mediaQuery of mediaQueries) {
+    if (!mediaQuery.includes("width")) continue;
+
+    const pixelValues = mediaQuery.match(/\d+px/g) || [];
+
+    pixelValues.forEach((pixelValue) => breakpoints.add(pixelValue));
+  }
+
+  return Array.from(breakpoints);
+}
+
 const RULES = [
   {
     name: "tokens.md embeds base.css verbatim",
@@ -23,10 +38,13 @@ const RULES = [
     },
   },
   {
-    name: "layout.md states both breakpoints",
+    name: "layout.md states every width breakpoint in layout.css",
     run: async () => {
+      const styleSheet = await readFile(join(reference, "styles/layout.css"), "utf8");
       const source = await readFile(join(here, "references/layout.md"), "utf8");
-      const missing = [ "900px", "600px" ].filter((value) => !source.includes(value));
+
+      const breakpoints = widthBreakpoints(styleSheet);
+      const missing = breakpoints.filter((breakpoint) => !source.includes(breakpoint));
 
       return missing.length === 0 ? true : missing.join(", ");
     },
