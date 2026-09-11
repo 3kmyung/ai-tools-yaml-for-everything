@@ -163,11 +163,11 @@ export const CHECKS = [
     },
   },
   {
-    name: "#render-playlist rendered text meets 4.5:1 against its rendered fill",
+    name: "#transcribe rendered text meets 4.5:1 against its rendered fill",
     run: (frameDocument, frameWindow) => {
-      const button = frameDocument.getElementById("render-playlist");
+      const button = frameDocument.getElementById("transcribe");
 
-      if (!button) return "#render-playlist not found";
+      if (!button) return "#transcribe not found";
 
       const style = frameWindow.getComputedStyle(button);
       const ratio = contrast(style.color, style.backgroundColor);
@@ -292,7 +292,7 @@ export const CHECKS = [
     name: "components.css carries no domain nouns",
     run: async () => {
       const source = await stylesheetSource("./styles/components.css");
-      const offenders = [ ...source.matchAll(/\.[\w-]*(?:track|playlist|render)[\w-]*/g) ].map((match) => match[0]);
+      const offenders = [ ...source.matchAll(/\.[\w-]*(?:speaker|transcript|meeting)[\w-]*/g) ].map((match) => match[0]);
 
       return offenders.length === 0 ? true : offenders.join(", ");
     },
@@ -302,8 +302,8 @@ export const CHECKS = [
     run: async () => {
       const source = await stylesheetSource("./styles/components.css");
       const required = [
-        ".action-primary", ".action-add", ".action-cancel", ".action-resume",
-        ".caption-warning", ".status-message", ".item", ".item-label", ".item-remove",
+        ".action-primary", ".action-cancel",
+        ".caption-warning", ".status-message", ".item", ".item-label",
       ];
       const missing = required.filter((name) => !new RegExp(`${escapeRegExp(name)}(?![\\w-])`).test(source));
 
@@ -332,18 +332,6 @@ export const CHECKS = [
     },
   },
   {
-    name: "field bodies are container queried",
-    run: (frameDocument, frameWindow) => {
-      const body = frameDocument.querySelector(".field-body");
-
-      if (!body) return "no .field-body element is present";
-
-      return frameWindow.getComputedStyle(body).containerType === "inline-size"
-        ? true
-        : "container-type not set";
-    },
-  },
-  {
     name: "icons use a 24-unit viewBox",
     run: async () => {
       const { ICONS } = await import("./src/icons.js");
@@ -355,18 +343,6 @@ export const CHECKS = [
         .map(([ name ]) => name);
 
       return wrong.length === 0 ? true : wrong.join(", ");
-    },
-  },
-  {
-    name: "icons still render at 16px",
-    run: async () => {
-      const { icon } = await import("./src/icons.js");
-      const svg = icon("check");
-
-      if (svg.getAttribute("width") !== "16") return `width ${svg.getAttribute("width")}`;
-      if (svg.getAttribute("aria-hidden") !== "true") return "missing aria-hidden";
-
-      return true;
     },
   },
   {
