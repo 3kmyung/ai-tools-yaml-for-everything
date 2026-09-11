@@ -80,6 +80,14 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+async function stylesheetSource(path) {
+  const response = await fetch(path);
+
+  if (!response.ok) throw new Error(`${path} returned ${response.status}`);
+
+  return response.text();
+}
+
 export const CHECKS = [
   {
     name: "--accent-text on --background meets 4.5:1",
@@ -123,7 +131,7 @@ export const CHECKS = [
   {
     name: "no text rule paints with --accent",
     run: async () => {
-      const source = await fetch("./styles/components.css").then((response) => response.text());
+      const source = await stylesheetSource("./styles/components.css");
       const offenders = [ ...source.matchAll(/([^{}]+)\{([^}]*)\}/g) ]
         .filter(([ , selector, body ]) => /(^|[;{])\s*color:\s*[^;]*var\(--accent[,)][^;]*;/.test(body) && !selector.includes(".icon"))
         .map(([ , selector ]) => selector.trim());
@@ -210,7 +218,7 @@ export const CHECKS = [
   {
     name: "components.css carries no ID selectors",
     run: async () => {
-      const source = await fetch("./styles/components.css").then((response) => response.text());
+      const source = await stylesheetSource("./styles/components.css");
       const selectors = [ ...source.matchAll(/[^{}]*\{/g) ].map((match) => match[0]).join(" ");
       const offenders = [ ...selectors.matchAll(/#[a-zA-Z][\w-]*/g) ].map((match) => match[0]);
 
@@ -220,7 +228,7 @@ export const CHECKS = [
   {
     name: "components.css carries no domain nouns",
     run: async () => {
-      const source = await fetch("./styles/components.css").then((response) => response.text());
+      const source = await stylesheetSource("./styles/components.css");
       const offenders = [ ...source.matchAll(/\.[\w-]*(?:track|playlist|render)[\w-]*/g) ].map((match) => match[0]);
 
       return offenders.length === 0 ? true : offenders.join(", ");
@@ -229,7 +237,7 @@ export const CHECKS = [
   {
     name: "the component vocabulary is present",
     run: async () => {
-      const source = await fetch("./styles/components.css").then((response) => response.text());
+      const source = await stylesheetSource("./styles/components.css");
       const required = [
         ".action-primary", ".action-add", ".action-cancel", ".action-resume",
         ".caption-warning", ".status-message", ".item", ".item-label", ".item-remove",
@@ -265,7 +273,7 @@ export const CHECKS = [
     run: (frameDocument, frameWindow) => {
       const body = frameDocument.querySelector(".field-body");
 
-      if (!body) return true;
+      if (!body) return "no .field-body element is present";
 
       return frameWindow.getComputedStyle(body).containerType === "inline-size"
         ? true
@@ -276,6 +284,9 @@ export const CHECKS = [
     name: "icons use a 24-unit viewBox",
     run: async () => {
       const { ICONS } = await import("./src/icons.js");
+
+      if (Object.keys(ICONS).length === 0) return "ICONS is empty";
+
       const wrong = Object.entries(ICONS)
         .filter(([ , definition ]) => definition.viewBox !== "0 0 24 24")
         .map(([ name ]) => name);
