@@ -113,21 +113,24 @@ time, against the diff it describes, and is never silently out of date afterward
 ## Paragraphs
 
 A function body reads as declaration, then work, then return, each its own paragraph
-separated by a blank line — not one dense block.
+separated by a blank line — not one dense block. `popover.js`'s `trackPlacement` is the
+shipped example, quoted verbatim:
 
 ```js
-export function errorMessage(error, fallback) {
-  const isConnectionLoss = error instanceof TypeError;
+export function trackPlacement(anchor, element) {
+  const reposition = () => placePopover(anchor, element);
 
-  if (isConnectionLoss) return "Lost connection to the render server.";
+  window.addEventListener("resize", reposition);
 
-  return fallback;
+  return () => window.removeEventListener("resize", reposition);
 }
 ```
 
 ## File size
 
 One file, one concern. `hex.js` converts between hex strings and channel arrays and does
-nothing else; `popover.js` places and repositions a popover and does nothing else. Past
-100 lines, look for the split — a file growing past that point is usually two concerns
-that have not been named apart yet, not one concern that legitimately needs the room.
+nothing else; `popover.js` places and repositions a popover and does nothing else. 100
+lines is not a ceiling this reference holds itself to — `app.js` orchestrates the whole
+screen and `websocket-client.js` carries the whole wire protocol, and both run well past
+it. Past 100 lines, ask whether the file has quietly picked up a second concern; split
+only when the answer is yes, not because a line counter tripped.
