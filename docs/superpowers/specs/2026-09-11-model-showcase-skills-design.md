@@ -260,9 +260,20 @@ the scroll fades:
 }
 ```
 
-This is safe for the scroll-fade animations: with the animation collapsed, the custom
-properties settle at their `to` values (`--scroll-fade-start: var(--space-5)`,
-`--scroll-fade-end: 0px`), which leaves the mask opaque rather than hiding content.
+The `!important` is load-bearing rather than defensive. `footer` carries its own
+`transition` declaration, and a type selector beats the universal `*, *::before,
+*::after`; without the flag the reduced-motion override loses the cascade and the footer
+keeps sliding.
+
+This block does not affect the scroll fades, and the reason is worth stating because the
+obvious explanation is wrong. Every element using those keyframes drives them through
+`animation-timeline: scroll(self inline|block)`, a scroll-progress timeline: progress is
+the scroll fraction, and `animation-duration` does not enter into it. Collapsing the
+duration is a no-op for them — the mask keeps tracking scroll exactly as before rather
+than settling at its `to` value. That is the correct outcome. A gradient that follows the
+scroll position is not motion in the sense `prefers-reduced-motion` is about; it has no
+autoplay, no loop, and moves only as fast as the reader scrolls. Anything genuinely
+time-driven is collapsed by the block above.
 
 **Responsive.** The reference UI has zero `@media` and zero `@container` rules, and
 `main`'s two-column grid has a hard floor of `13rem + 16rem = 464px`, below which a
