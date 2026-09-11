@@ -141,7 +141,7 @@ button instead of an image, painted through the `--swatch` custom property rathe
 `background-color` directly, so both the field's swatch and the picker's suggestion
 swatches share one painting mechanism.
 
-## Colour picker — the `color-picker` family of classes
+## Colour picker — the `.color-picker-*` family
 
 One `.color-picker` popover is built lazily on first use and reused for every colour
 field afterward; it is not rebuilt per field. It holds three `.color-picker-channel`
