@@ -179,6 +179,12 @@ function selectTrack(id) {
   renderAll({ list: false });
 }
 
+function deselectTrack() {
+  selectedId = null;
+
+  renderAll();
+}
+
 function renderPreview() {
   const track = selected();
 
@@ -261,6 +267,12 @@ function bindActions() {
   addTrackButton.addEventListener("click", addTrack);
 
   document.getElementById("render-playlist").addEventListener("click", () => renderRunner.start());
+
+  document.getElementById("render-playlist-compact").addEventListener("click", () => {
+    document.getElementById("render-playlist").click();
+  });
+
+  document.getElementById("back-to-tracks").addEventListener("click", deselectTrack);
 }
 
 export function buildRenderInput() {

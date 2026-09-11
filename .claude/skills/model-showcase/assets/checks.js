@@ -239,4 +239,37 @@ export const CHECKS = [
       return missing.length === 0 ? true : missing.join(", ");
     },
   },
+  {
+    name: "the page does not scroll sideways at this width",
+    run: (frameDocument) => {
+      const main = frameDocument.querySelector("main");
+
+      return main.scrollWidth > main.clientWidth
+        ? `scrollWidth ${main.scrollWidth} > clientWidth ${main.clientWidth}`
+        : true;
+    },
+  },
+  {
+    name: "main is single-column below 900px",
+    run: (frameDocument, frameWindow) => {
+      const main = frameDocument.querySelector("main");
+      const columns = frameWindow.getComputedStyle(main).gridTemplateColumns.split(" ").length;
+
+      if (frameWindow.innerWidth >= 900) return columns === 2 ? true : `${columns} columns at wide width`;
+
+      return columns === 1 ? true : `${columns} columns at ${frameWindow.innerWidth}px`;
+    },
+  },
+  {
+    name: "field bodies are container queried",
+    run: (frameDocument, frameWindow) => {
+      const body = frameDocument.querySelector(".field-body");
+
+      if (!body) return true;
+
+      return frameWindow.getComputedStyle(body).containerType === "inline-size"
+        ? true
+        : "container-type not set";
+    },
+  },
 ];
