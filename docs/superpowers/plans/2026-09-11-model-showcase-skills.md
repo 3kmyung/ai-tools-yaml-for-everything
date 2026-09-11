@@ -1608,7 +1608,11 @@ Required fields: variants and parameter counts, licence, input and output shape,
 
 The licence gate: stop and ask for anything other than MIT or Apache-2.0, with the VibeVoice TTS withdrawal as the worked example — weights pulled 2025-09-04, repository restored 2025-09-05 without the TTS code.
 
-The no-guessing rule: parameter counts, context lengths and benchmark figures need a source URL or the field is marked `needs verification`. Worked example: VibeVoice-ASR is listed as 7B on GitHub and 9B on the Hugging Face card.
+The no-guessing rule: parameter counts, context lengths and benchmark figures need a source URL or the field is marked `needs verification`. Worked example: VibeVoice-ASR is listed as 7B on GitHub, 9B on the `microsoft/VibeVoice-ASR` card, and 8B on the `microsoft/VibeVoice-ASR-HF` card — three official figures for one model.
+
+The usage-scope gate, separate from the licence gate: record verbatim any statement restricting how the authors want the model used. VibeVoice is MIT and its README still says "This model is intended for research and development purposes only." It does not stop the work; it is a sentence `report.md` and `social.md` then require the output to carry.
+
+Published leaderboard numbers go in the research table with their datasets, as a baseline for the three-machine measurement — including the unflattering ones. VibeVoice-ASR averages 7.77% WER at RTFx 51.80 and its worst row is AMI at 17.20%, which is meeting audio, which is this example's own subject.
 
 The I/O mode field feeds step 3: a family with both a batch and a streaming checkpoint splits the demo angles along that line first.
 
@@ -1706,7 +1710,13 @@ Invoke `model-showcase` with `microsoft/VibeVoice-ASR`. At the step 3 gate, choo
 
 - [ ] **Step 2: Write the fixture**
 
-`ui/fixture.json` matching the workflow output shape:
+`ui/fixture.json` matching the workflow output shape. **Which shape that is, is unresolved
+and Task 14 settles it.** This repository's `speech-to-text-vibevoice` README documents
+`{ text, start_time, end_time, speaker_id }`, while the Transformers model doc shows the
+model emitting — and `processor.decode(..., return_format="parsed")` returning —
+`{ Start, End, Speaker, Content }`. Write the fixture in the README's shape, and put a
+single adapter function between the fixture and the render functions so that Task 14
+changes one function rather than every module:
 
 ```json
 {
@@ -1803,7 +1813,9 @@ Drop a multi-speaker recording of at least ten minutes onto the page. Confirm th
 
 - [ ] **Step 3: Resolve the open figures**
 
-Settle the parameter count that the research step marked `needs verification` — GitHub says 7B, the Hugging Face card says 9B — by reading what the loaded checkpoint reports. Update all three READMEs.
+Settle the parameter count that the research step marked `needs verification` — GitHub says 7B, the `microsoft/VibeVoice-ASR` card says 9B, and the `microsoft/VibeVoice-ASR-HF` card says 8B — by reading what the loaded checkpoint reports. Update all three READMEs.
+
+Settle the output schema the same way. Record which field names the workflow actually returns — the README's `{ text, start_time, end_time, speaker_id }` or the Transformers doc's `{ Start, End, Speaker, Content }` — rewrite the adapter function from Task 13 Step 2 against them, and correct whichever document was wrong in the same commit.
 
 - [ ] **Step 4: Replace the fixture with real output**
 
