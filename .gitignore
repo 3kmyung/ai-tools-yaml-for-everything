@@ -190,3 +190,10 @@ CLAUDE.md
 # (e.g. fireredtts3, cosyvoice). Only src/mindor is tracked here.
 /src/*/
 !/src/mindor/
+
+# Project-local Claude skills are versioned; the rest of .claude/ is not.
+# A negation cannot re-include a path whose parent directory is excluded,
+# so the directory itself is re-included and its contents excluded again.
+!.claude/
+.claude/*
+!.claude/skills/
