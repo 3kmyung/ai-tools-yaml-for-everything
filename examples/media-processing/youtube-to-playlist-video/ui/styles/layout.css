@@ -182,7 +182,7 @@ footer .action-primary {
   display: none;
 }
 
-#back-to-tracks {
+header .action-back {
   display: none;
 }
 
@@ -255,7 +255,7 @@ footer .action-primary {
     display: none;
   }
 
-  body:has(.item.is-selected) #back-to-tracks {
+  body:has(.item.is-selected) header .action-back {
     display: inline-flex;
   }
 
