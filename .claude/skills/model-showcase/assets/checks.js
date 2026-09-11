@@ -90,17 +90,36 @@ async function stylesheetSource(path) {
 
 export const CHECKS = [
   {
-    name: "--accent-text on --background meets 4.5:1",
+    name: "--accent-text and --text-caption meet 4.5:1 on --background and --background-panel",
     run: (frameDocument, frameWindow) => {
-      const accentText = requireTokenColor(frameDocument, frameWindow, "--accent-text");
-      const background = requireTokenColor(frameDocument, frameWindow, "--background");
+      const textTokens = [ "--accent-text", "--text-caption" ];
+      const surfaceTokens = [ "--background", "--background-panel" ];
 
-      if (accentText.missing) return `${accentText.name} is not defined`;
-      if (background.missing) return `${background.name} is not defined`;
+      const failures = [];
 
-      const ratio = contrast(accentText.color, background.color);
+      for (const textToken of textTokens) {
+        const foreground = requireTokenColor(frameDocument, frameWindow, textToken);
 
-      return ratio >= 4.5 ? true : `ratio ${ratio.toFixed(2)}`;
+        if (foreground.missing) {
+          failures.push(`${foreground.name} is not defined`);
+          continue;
+        }
+
+        for (const surfaceToken of surfaceTokens) {
+          const surface = requireTokenColor(frameDocument, frameWindow, surfaceToken);
+
+          if (surface.missing) {
+            failures.push(`${surface.name} is not defined`);
+            continue;
+          }
+
+          const ratio = contrast(foreground.color, surface.color);
+
+          if (ratio < 4.5) failures.push(`${textToken} on ${surfaceToken} is ${ratio.toFixed(3)}`);
+        }
+      }
+
+      return failures.length === 0 ? true : failures.join(" / ");
     },
   },
   {
@@ -131,10 +150,14 @@ export const CHECKS = [
   {
     name: "no text rule paints with --accent",
     run: async () => {
-      const source = await stylesheetSource("./styles/components.css");
-      const offenders = [ ...source.matchAll(/([^{}]+)\{([^}]*)\}/g) ]
+      const sources = await Promise.all([
+        stylesheetSource("./styles/components.css"),
+        stylesheetSource("./styles/layout.css"),
+      ]);
+
+      const offenders = sources.flatMap((source) => [ ...source.matchAll(/([^{}]+)\{([^}]*)\}/g) ]
         .filter(([ , selector, body ]) => /(^|[;{])\s*color:\s*[^;]*var\(--accent[,)][^;]*;/.test(body) && !selector.includes(".icon"))
-        .map(([ , selector ]) => selector.trim());
+        .map(([ , selector ]) => selector.trim()));
 
       return offenders.length === 0 ? true : offenders.join(" / ");
     },
