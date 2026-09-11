@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { copyFile } from "node:fs/promises";
+import { copyFile, readFile, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
@@ -7,6 +7,8 @@ import { serve } from "./serve.mjs";
 
 const CHROME = "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const PORT = 8099;
+const VIEWPORT_FRAME_WIDTH = 24;
+const VIEWPORT_FRAME_HEIGHT = 111;
 const run = promisify(execFile);
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -21,8 +23,17 @@ const width = options.get("width") || "1440";
 const height = options.get("height") || "900";
 const screenshot = options.get("screenshot");
 
-await copyFile(join(here, "test.html"), join(root, "test.html"));
+const testTemplate = await readFile(join(here, "test.html"), "utf8");
+const testHtml = testTemplate.replace(
+  'src="./index.html"',
+  `src="./index.html?expect-width=${width}"`,
+);
+
+await writeFile(join(root, "test.html"), testHtml);
 await copyFile(join(here, "checks.js"), join(root, "checks.js"));
+
+const screenWidth = Number(width) + VIEWPORT_FRAME_WIDTH;
+const screenHeight = Number(height) + VIEWPORT_FRAME_HEIGHT;
 
 const server = await serve(root, PORT);
 const flags = [
@@ -30,7 +41,8 @@ const flags = [
   "--disable-gpu",
   "--no-sandbox",
   "--virtual-time-budget=5000",
-  `--window-size=${width},${height}`,
+  "--start-maximized",
+  `--screen-info={${screenWidth}x${screenHeight} devicePixelRatio=1}`,
 ];
 
 const target = screenshot

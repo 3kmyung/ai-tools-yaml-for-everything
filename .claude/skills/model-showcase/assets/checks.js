@@ -295,4 +295,16 @@ export const CHECKS = [
       return true;
     },
   },
+  {
+    name: "the viewport is the width that was asked for",
+    run: (frameDocument, frameWindow) => {
+      const requested = Number(new URL(frameWindow.location.href).searchParams.get("expect-width"));
+
+      if (!requested) return true;
+
+      return Math.abs(frameWindow.innerWidth - requested) <= 1
+        ? true
+        : `innerWidth ${frameWindow.innerWidth} but ${requested} was requested`;
+    },
+  },
 ];
