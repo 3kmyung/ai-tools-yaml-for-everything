@@ -8,8 +8,9 @@
   --text-caption: #6d7077;
   --disabled: #a9abb0;
   --accent: #007ffb;
+  --accent-text: #0a6ed9;
   --icon: var(--text-caption);
-  --link: var(--accent);
+  --link: var(--accent-text);
 
   --alpha-1: 6%;
   --alpha-2: 12%;
