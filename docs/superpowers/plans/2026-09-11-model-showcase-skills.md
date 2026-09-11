@@ -24,6 +24,7 @@
 - Chrome is at `/c/Program Files/Google/Chrome/Application/chrome.exe`.
 - Colour contrast targets WCAG 2.1 AA: 4.5:1 for normal text.
 - Breakpoints are exactly `900px` and `600px`. They are not tokenised; custom properties do not work in `@media` conditions.
+- Screenshots go to the session scratchpad, never into the repository. Export it once per shell: `SCRATCH="C:/Users/Unknoown/AppData/Local/Temp/claude/D--users-home-projects-ai-tools-yaml-for-everything/cc7e991d-9bf9-42d2-8ac6-859fc8a0fbec/scratchpad"`.
 
 ---
 
@@ -87,7 +88,7 @@
 
 **Interfaces:**
 - Consumes: nothing.
-- Produces: `serve.mjs` serves a directory on a given port and exits on SIGINT. `ui-check.mjs` exports nothing; run as `node ui-check.mjs <ui-dir> [--width N] [--height N] [--screenshot path]` and exits non-zero when any assertion in the page reports `FAIL`. `checks.js` exports `CHECKS`, an array of `{ name, run }` where `run(frameDocument, frameWindow)` returns `true` or a failure string; results are written into `<ul id="results">` as `<li class="pass">` / `<li class="fail">`.
+- Produces: `serve.mjs` serves a directory on a given port and exits on SIGINT. `ui-check.mjs` exports nothing; run as `node ui-check.mjs <ui-dir> [--width=N] [--height=N] [--screenshot=PATH]` — the flags take the `=` form, which is what the parser splits on — and exits non-zero when any assertion in the page reports `FAIL`. `checks.js` exports `CHECKS`, an array of `{ name, run }` where `run(frameDocument, frameWindow)` returns `true` or a failure string; results are written into `<ul id="results">` as `<li class="pass">` / `<li class="fail">`.
 
 Python's `http.server` serves `.js` with a MIME type that blocks ES module loading, which is why this server exists. Chrome is driven in `--dump-dom` mode so that it exits by itself; there is no CDP session and no process to kill.
 
@@ -379,6 +380,17 @@ export const CHECKS = [
     },
   },
   {
+    name: "no text rule paints with --accent",
+    run: async () => {
+      const source = await fetch("./styles/components.css").then((response) => response.text());
+      const offenders = [ ...source.matchAll(/([^{}]+)\{([^}]*)\}/g) ]
+        .filter(([ , selector, body ]) => /color:\s*var\(--accent\)\s*;/.test(body) && !selector.includes(".icon"))
+        .map(([ , selector ]) => selector.trim());
+
+      return offenders.length === 0 ? true : offenders.join(" / ");
+    },
+  },
+  {
     name: "#hint does not use --disabled",
     run: (frameDocument, frameWindow) => {
       const hint = frameDocument.getElementById("hint");
@@ -400,7 +412,7 @@ Run:
 node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
   examples/media-processing/youtube-to-playlist-video/ui
 ```
-Expected: four `FAIL` lines; `--accent-text` is undefined so `tokenColor` returns the inherited colour, and `#hint` reports about `2.15`.
+Expected: five `FAIL` lines. `--accent-text` is undefined so `tokenColor` returns the inherited colour; the accent-as-text check names `#render-playlist, #add-track, .cancel-render, .resume-render` and `#warning`; `#hint` reports about `2.15`.
 
 - [ ] **Step 3: Add the tokens**
 
@@ -420,8 +432,11 @@ In `components.css`:
 - `#warning { color: var(--accent); }` → `color: var(--accent-text);`
 - `#render-playlist, .resume-render { … color: var(--background); }` → change `background: var(--accent)` to `background: var(--accent-text)`
 - `:is(#render-playlist, .resume-render):is(:hover, :focus-visible) { background: color-mix(in srgb, var(--accent) 85%, black); }` → `color-mix(in srgb, var(--accent-text) 85%, black)`
+- `#render-playlist, #add-track, .cancel-render, .resume-render { … border: 1px solid var(--accent); … color: var(--accent); }` → keep `border: 1px solid var(--accent)` and change `color` to `var(--accent-text)`. The outlined buttons paint their label with the accent, which is the same 3.61:1 failure as the filled one. A 1px border is not text and stays on `--accent`, which clears the 3:1 floor for non-text contrast.
 
 In `layout.css`, change `#hint { color: var(--disabled); }` to `color: var(--text-caption);`.
+
+`.dropdown-option .icon { color: var(--accent); }` stays. It paints a graphic, not text.
 
 - [ ] **Step 5: Run it to verify it passes**
 
@@ -438,7 +453,7 @@ Run:
 ```bash
 node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
   examples/media-processing/youtube-to-playlist-video/ui \
-  --screenshot=../../../../../tmp-accent.png
+  --screenshot=$SCRATCH/shot-accent.png
 ```
 Confirm the blue still reads as the same family, then delete the file.
 
@@ -663,7 +678,7 @@ The scroll-fade keyframes animate `--scroll-fade-start` toward `var(--space-5)` 
 ```bash
 node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
   examples/media-processing/youtube-to-playlist-video/ui \
-  --screenshot=../../../../../tmp-motion.png
+  --screenshot=$SCRATCH/shot-motion.png
 ```
 Delete the file afterwards.
 
@@ -884,7 +899,7 @@ Expected: all checks `PASS`.
 ```bash
 node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
   examples/media-processing/youtube-to-playlist-video/ui \
-  --screenshot=../../../../../tmp-renames.png
+  --screenshot=$SCRATCH/shot-renames.png
 ```
 Compare against the Task 2 screenshot; the only intended difference is the focus ring. Delete both files.
 
@@ -1026,7 +1041,7 @@ Append to `layout.css`:
 }
 ```
 
-Add the footer action to `index.html` beside the log, hidden by default in `components.css`:
+Add the footer action to `index.html` beside the log:
 
 ```html
   <footer>
@@ -1034,6 +1049,8 @@ Add the footer action to `index.html` beside the log, hidden by default in `comp
     <button id="render-playlist-compact" class="action-primary" type="button">Render</button>
   </footer>
 ```
+
+Both `footer .action-primary` rules live in `layout.css`, not `components.css` — which region shows which copy of the action is a layout decision, and `components.css` must not name page regions. Add the default above the media queries:
 
 ```css
 footer .action-primary {
@@ -1221,7 +1238,7 @@ Expected: all checks `PASS`.
 ```bash
 node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
   examples/media-processing/youtube-to-playlist-video/ui \
-  --screenshot=../../../../../tmp-icons.png
+  --screenshot=$SCRATCH/shot-icons.png
 ```
 Confirm the chevron and the remove glyph match their previous weight, then delete the file.
 
@@ -1327,7 +1344,7 @@ Body: one page only. The four-step process (tokens, layout, components, self-cri
 
 - [ ] **Step 4: Write `references/tokens.md`**
 
-Embed the current `styles/base.css` in a ```css fence, byte for byte. Then the scale rule, the component-intrinsic exception (`2.5rem` thumbnail, `1.75rem` icon button, `0.875rem` slider thumb), the accent split with the measured ratios (`--accent` 3.61:1 as text, `--accent-text` 4.62:1), and the rule that `--disabled` is for disabled controls and never for instructional text.
+Embed the current `styles/base.css` in a ```css fence, byte for byte. It must be the **first** ```css fence in the file — `check-rules.mjs` reads the first one — so any other CSS example in this file comes after it. Then the scale rule, the component-intrinsic exception (`2.5rem` thumbnail, `1.75rem` icon button, `0.875rem` slider thumb), the accent split with the measured ratios (`--accent` 3.61:1 as text, `--accent-text` 4.62:1), and the rule that `--disabled` is for disabled controls and never for instructional text.
 
 - [ ] **Step 5: Write `references/layout.md`**
 
@@ -1426,6 +1443,8 @@ Markup and behaviour for each widget in the vocabulary from Task 5: `.field`, `.
 Include the icon rule: take SVG from Lucide (ISC), copy only path data into `ICONS`, 24-unit viewBox rendered at 16px, `stroke-width: 1.5`, `fill: none`, `aria-hidden="true"`, and do not mix in a filled set.
 
 Include the truncation rule: add the selector to the existing shared list rather than repeating `overflow`, `text-overflow`, `white-space`.
+
+Name only class names that exist in the current `components.css` — `check-rules.mjs` rejects any backticked `.class` it cannot find there. Superseded names such as `.track` belong in `css-patterns.md`'s ban list, not here.
 
 - [ ] **Step 4: Write `references/css-patterns.md`**
 
