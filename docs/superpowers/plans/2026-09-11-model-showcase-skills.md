@@ -120,7 +120,11 @@ Create `~/.claude/skills/model-showcase/assets/test.html`:
     const results = document.getElementById("results");
 
     await new Promise((resolve) => {
-      if (frame.contentDocument && frame.contentDocument.readyState === "complete") resolve();
+      const navigated = frame.contentDocument
+        && frame.contentDocument.readyState === "complete"
+        && frame.contentWindow.location.href !== "about:blank";
+
+      if (navigated) resolve();
       else frame.addEventListener("load", resolve, { once: true });
     });
 
@@ -128,7 +132,9 @@ Create `~/.claude/skills/model-showcase/assets/test.html`:
     const frameWindow = frame.contentWindow;
 
     for (const check of CHECKS) {
-      const outcome = await check.run(frameDocument, frameWindow).catch((failure) => String(failure));
+      const outcome = await Promise.resolve()
+        .then(() => check.run(frameDocument, frameWindow))
+        .catch((failure) => String(failure));
       const passed = outcome === true;
 
       const entry = document.createElement("li");
