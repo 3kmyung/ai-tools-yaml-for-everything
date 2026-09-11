@@ -68,19 +68,21 @@ if (screenshot) {
 }
 
 const finished = /<title>done<\/title>/.test(stdout);
-const lines = [ ...stdout.matchAll(/<li class="(pass|fail)">([\s\S]*?)<\/li>/g) ]
-  .map((match) => match[2].replace(/&mdash;|&#8212;/g, "—").trim());
+const entries = [ ...stdout.matchAll(/<li class="(pass|fail|info)">([\s\S]*?)<\/li>/g) ]
+  .map((match) => ({ className: match[1], text: match[2].replace(/&mdash;|&#8212;/g, "—").trim() }));
 
-lines.forEach((line) => console.log(line));
+entries.forEach((entry) => console.log(entry.text));
 
 if (!finished) {
   console.log("FAIL harness — check script did not finish (module import error, or --virtual-time-budget expired before the iframe finished loading)");
   process.exit(1);
 }
 
-if (lines.length === 0) {
+const checkEntries = entries.filter((entry) => entry.className === "pass" || entry.className === "fail");
+
+if (checkEntries.length === 0) {
   console.log("FAIL harness — no checks ran (CHECKS was empty)");
   process.exit(1);
 }
 
-process.exit(lines.some((line) => line.startsWith("FAIL")) ? 1 : 0);
+process.exit(checkEntries.some((entry) => entry.className === "fail") ? 1 : 0);

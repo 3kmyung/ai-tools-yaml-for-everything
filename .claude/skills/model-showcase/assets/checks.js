@@ -12,14 +12,14 @@ function luminance(color) {
   return 0.2126 * channel(red) + 0.7152 * channel(green) + 0.0722 * channel(blue);
 }
 
-function contrast(foreground, background) {
+export function contrast(foreground, background) {
   const lighter = Math.max(luminance(foreground), luminance(background));
   const darker = Math.min(luminance(foreground), luminance(background));
 
   return (lighter + 0.05) / (darker + 0.05);
 }
 
-function requireTokenColor(frameDocument, frameWindow, name) {
+export function requireTokenColor(frameDocument, frameWindow, name) {
   const probe = frameDocument.createElement("div");
   probe.style.color = `var(${name}, ${missingTokenSentinel})`;
 
@@ -74,7 +74,7 @@ function millisecondsFromDuration(value) {
   return unit === "s" ? Number(number) * 1000 : Number(number);
 }
 
-function escapeRegExp(value) {
+export function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
@@ -120,7 +120,7 @@ function extractStyleRules(source) {
   return rules;
 }
 
-async function stylesheetSource(path) {
+export async function stylesheetSource(path) {
   const response = await fetch(path);
 
   if (!response.ok) throw new Error(`${path} returned ${response.status}`);
@@ -163,19 +163,6 @@ export const CHECKS = [
     },
   },
   {
-    name: "#transcribe rendered text meets 4.5:1 against its rendered fill",
-    run: (frameDocument, frameWindow) => {
-      const button = frameDocument.getElementById("transcribe");
-
-      if (!button) return "#transcribe not found";
-
-      const style = frameWindow.getComputedStyle(button);
-      const ratio = contrast(style.color, style.backgroundColor);
-
-      return ratio >= 4.5 ? true : `ratio ${ratio.toFixed(2)}`;
-    },
-  },
-  {
     name: "--link resolves to --accent-text",
     run: (frameDocument, frameWindow) => {
       const link = requireTokenColor(frameDocument, frameWindow, "--link");
@@ -200,20 +187,6 @@ export const CHECKS = [
         .map(({ selector }) => selector));
 
       return offenders.length === 0 ? true : offenders.join(" / ");
-    },
-  },
-  {
-    name: "#hint does not use --disabled",
-    run: (frameDocument, frameWindow) => {
-      const hint = frameDocument.getElementById("hint");
-      const background = requireTokenColor(frameDocument, frameWindow, "--background");
-
-      if (!hint) return "#hint not found";
-      if (background.missing) return `${background.name} is not defined`;
-
-      const ratio = contrast(frameWindow.getComputedStyle(hint).color, background.color);
-
-      return ratio >= 4.5 ? true : `ratio ${ratio.toFixed(2)}`;
     },
   },
   {
@@ -286,28 +259,6 @@ export const CHECKS = [
       const offenders = [ ...selectors.matchAll(/#[a-zA-Z][\w-]*/g) ].map((match) => match[0]);
 
       return offenders.length === 0 ? true : offenders.join(", ");
-    },
-  },
-  {
-    name: "components.css carries no domain nouns",
-    run: async () => {
-      const source = await stylesheetSource("./styles/components.css");
-      const offenders = [ ...source.matchAll(/\.[\w-]*(?:speaker|transcript|meeting)[\w-]*/g) ].map((match) => match[0]);
-
-      return offenders.length === 0 ? true : offenders.join(", ");
-    },
-  },
-  {
-    name: "the component vocabulary is present",
-    run: async () => {
-      const source = await stylesheetSource("./styles/components.css");
-      const required = [
-        ".action-primary", ".action-cancel",
-        ".caption-warning", ".status-message", ".item", ".item-label",
-      ];
-      const missing = required.filter((name) => !new RegExp(`${escapeRegExp(name)}(?![\\w-])`).test(source));
-
-      return missing.length === 0 ? true : missing.join(", ");
     },
   },
   {
