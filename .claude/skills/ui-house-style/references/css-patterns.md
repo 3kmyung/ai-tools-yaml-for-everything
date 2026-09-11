@@ -104,10 +104,9 @@ already has, to `--accent`. An element with no such line, or whose line is alrea
 | `.field-line`, `.color-picker-hex` | `border-bottom 1px` | underline → accent |
 | `.color-picker-swatch` | `border 1px transparent` | border → accent |
 | `.dropdown` | `border 1px var(--border)` | border → accent |
-| `.item` | `border 1px var(--border)` | border → accent |
 | `.action-add` | `border 1px var(--accent)` | inward ring |
-| `.action-primary` | none; background is accent | inward ring in `--background` |
-| `.item-remove`, `.revert-field` | none | inward ring |
+| `.action-primary`, `.action-resume` | none; background is accent | inward ring in `--background` |
+| `.item-select`, `.item-remove`, `.revert-field` | none | inward ring |
 | `.dropdown-option` | none | inward ring |
 | `footer a` | none | `text-decoration-thickness: 2px` |
 
@@ -119,13 +118,13 @@ already has, to `--accent`. An element with no such line, or whose line is alrea
 }
 
 /* components.css — an element with its own indicator turns the default off. */
-:is(.dropdown, .item, .color-picker-swatch):focus-visible {
+:is(.dropdown, .color-picker-swatch):focus-visible {
   outline: none;
   border-color: var(--accent);
 }
 
 /* Only where the background is already accent does the ring invert. */
-.action-primary:focus-visible {
+:is(.action-primary, .action-resume):focus-visible {
   outline-color: var(--background);
   outline-offset: -3px;
 }
@@ -133,7 +132,29 @@ already has, to `--accent`. An element with no such line, or whose line is alrea
 
 An element left off both the middle block's selector list and the table above is not
 exempt from focus indication — it simply has no line of its own to recolour, so the
-`base.css` default inward ring already covers it correctly with no override needed.
+`base.css` default inward ring already covers it correctly with no override needed. That
+is why `.item-select` needs no entry in the middle block: it has no outer line, so the
+default ring is already correct for it.
+
+`.item` itself — the `<li>` — takes no rule here, because it cannot take focus. It is a
+plain container; the row's clickable, focusable surface is the `<button class=
+"item-select">` inside it. Confirm this before writing any focus rule:
+
+```
+✗ A focus-visible rule for an element that cannot receive focus — a bare <li>, a <div>
+  with a click listener, or any container this house style has not made into a real
+  button, link, or input.
+→ Restructure the element into an actual focusable one first — a <button>, not a <div>
+  with role="button" and a tabindex — then write the focus rule against that.
+Why: a rule targeting an element nothing can focus is dead CSS that reads as coverage
+in review. `.item` itself carried exactly this mistake: an earlier pass gave the row a
+border-recolour focus rule while it was still a plain <li> with a click handler, and no
+element inside it could ever trigger `:focus-visible`. The fix was not a CSS change — the
+row was restructured into `.item-select` (the clickable, focusable button) and
+`.item-remove` (its own button), which is why `.item-select` exists at all. Neither of
+the two focus checks in this skill's `check-rules.mjs` catches this: both read
+stylesheet rules, not whether any element in the DOM can ever reach them.
+```
 
 ## Reduced motion
 
