@@ -60,7 +60,10 @@ is exactly how one component's hover state quietly stops matching the rest.
 → Style by class.
 Why: a component is reusable by definition, and an ID is unique by definition. An ID
 selector on a component is a contradiction that resolves itself the first time the
-example needs two of that component on the same page.
+example needs two of that component on the same page. This is not hypothetical either —
+commit 846fe3a8's own message records that renaming the example required changing "the
+Render button's DOM id and the CSS that selects it": #render-playlist was two edits
+where .action-primary would have been one.
 ```
 
 ```
