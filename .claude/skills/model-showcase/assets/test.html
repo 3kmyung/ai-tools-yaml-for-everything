@@ -13,10 +13,36 @@
   <iframe id="subject" src="./index.html"></iframe>
   <ul id="results"></ul>
   <script type="module">
-    import { CHECKS } from "./checks.js";
+    import { CHECKS as portableChecks } from "./checks.js";
 
     const frame = document.getElementById("subject");
     const results = document.getElementById("results");
+
+    function appendResult(className, text) {
+      const entry = document.createElement("li");
+      entry.className = className;
+      entry.textContent = text;
+
+      results.appendChild(entry);
+    }
+
+    async function loadLocalChecks() {
+      const response = await fetch("./checks.local.js");
+
+      if (response.status === 404) {
+        appendResult("info", "0 per-example checks — no checks.local.js in this example");
+        return [];
+      }
+
+      if (!response.ok) throw new Error(`checks.local.js returned ${response.status}`);
+
+      const module = await import("./checks.local.js");
+      const count = module.CHECKS.length;
+
+      appendResult("info", `${count} per-example check${count === 1 ? "" : "s"} loaded from checks.local.js`);
+
+      return module.CHECKS;
+    }
 
     await new Promise((resolve) => {
       const navigated = frame.contentDocument
@@ -30,15 +56,14 @@
     const frameDocument = frame.contentDocument;
     const frameWindow = frame.contentWindow;
 
+    const localChecks = await loadLocalChecks();
+    const CHECKS = [ ...portableChecks, ...localChecks ];
+
     for (const check of CHECKS) {
       const outcome = await Promise.resolve().then(() => check.run(frameDocument, frameWindow)).catch((failure) => String(failure));
       const passed = outcome === true;
 
-      const entry = document.createElement("li");
-      entry.className = passed ? "pass" : "fail";
-      entry.textContent = (passed ? "PASS " : "FAIL ") + check.name + (passed ? "" : " — " + outcome);
-
-      results.appendChild(entry);
+      appendResult(passed ? "pass" : "fail", (passed ? "PASS " : "FAIL ") + check.name + (passed ? "" : " — " + outcome));
     }
 
     document.title = "done";
