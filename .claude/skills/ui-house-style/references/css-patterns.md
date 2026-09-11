@@ -171,10 +171,11 @@ review and unusable for anyone tabbing through the page. A rule that turns the r
 without also turning something else on has silently deleted focus indication.
 ```
 
-`layout.css` keeps its ID selectors on `#settings`, `#workspace`, `#log`, and `#hint`.
-Those are singletons in the fixed three-region skeleton, not components, and that
-skeleton does not change per example — the ban above is about a reusable component
-leaking a per-example identity, not about IDs as a mechanism.
+`layout.css` keeps its ID selectors on the skeleton's singleton page regions —
+`#settings`, `#workspace`, `#log`, `#hint`, and each example's own list and workspace
+regions such as `#track-scroller` or its equivalent. Those are not components, and
+unlike a component's class name they are allowed to be per-example — the ban above is
+about a reusable component leaking a per-example identity, not about IDs as a mechanism.
 
 ## Focus indication
 
@@ -193,20 +194,27 @@ already has, to `--accent`. An element with no such line, or whose line is alrea
 | `.dropdown-option` | none | inward ring |
 | `footer a` | none | `text-decoration-thickness: 2px` |
 
+`base.css` supplies the default that anything without its own indicator gets:
+
 ```css
-/* base.css — default. Anything that does not supply its own indicator gets this. */
 :is(button, a, input, select):focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
+```
 
-/* components.css — an element with its own indicator turns the default off. */
+`components.css` turns that default off wherever an element carries its own indicator:
+
+```css
 :is(.dropdown, .color-picker-swatch):focus-visible {
   outline: none;
   border-color: var(--accent);
 }
+```
 
-/* Only where the background is already accent does the ring invert. */
+The ring inverts only where the background is already accent:
+
+```css
 :is(.action-primary, .action-resume):focus-visible {
   outline-color: var(--background);
   outline-offset: -3px;
