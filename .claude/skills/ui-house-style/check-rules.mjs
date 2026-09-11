@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -53,11 +53,17 @@ function classExists(styleSheet, name) {
 }
 
 function markerLines(source) {
-  return source.split("\n").filter((line) => /^(✗|→|Why:) /.test(line));
+  return source.split("\n").filter((line) => /^\s*(✗|→|Why:) /.test(line));
 }
 
 function linesStartingWith(source, marker) {
   return source.split("\n").filter((line) => line.startsWith(marker));
+}
+
+async function referenceMarkdownFiles() {
+  const entries = await readdir(join(here, "references"));
+
+  return entries.filter((entry) => entry.endsWith(".md"));
 }
 
 const RULES = [
@@ -97,18 +103,25 @@ const RULES = [
     },
   },
   {
-    name: "css-patterns.md writes every ban as ban, replacement, reason",
+    name: "every reference file writes bans as ban, replacement, reason",
     run: async () => {
-      const source = await readFile(join(here, "references/css-patterns.md"), "utf8");
-      const markers = markerLines(source).map((line) => line.match(/^(✗|→|Why:)/)[1]);
-      const bans = markers.filter((marker) => marker === "✗").length;
+      const files = await referenceMarkdownFiles();
+      const brokenFiles = [];
 
-      if (bans === 0) return "no bans found";
+      for (const file of files) {
+        const source = await readFile(join(here, "references", file), "utf8");
+        const markers = markerLines(source).map((line) => line.match(/^\s*(✗|→|Why:)/)[1]);
+        const bans = markers.filter((marker) => marker === "✗").length;
 
-      const expected = Array.from({ length: bans }, () => [ "✗", "→", "Why:" ]).flat();
-      const matches = markers.length === expected.length && markers.every((marker, index) => marker === expected[index]);
+        if (bans === 0) continue;
 
-      return matches ? true : `markers out of order or mispaired: ${markers.join(" ")}`;
+        const expected = Array.from({ length: bans }, () => [ "✗", "→", "Why:" ]).flat();
+        const matches = markers.length === expected.length && markers.every((marker, index) => marker === expected[index]);
+
+        if (!matches) brokenFiles.push(`${file}: ${markers.join(" ")}`);
+      }
+
+      return brokenFiles.length === 0 ? true : brokenFiles.join("; ");
     },
   },
   {
