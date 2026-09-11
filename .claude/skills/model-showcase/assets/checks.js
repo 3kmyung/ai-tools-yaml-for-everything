@@ -203,4 +203,36 @@ export const CHECKS = [
       return true;
     },
   },
+  {
+    name: "components.css carries no ID selectors",
+    run: async () => {
+      const source = await fetch("./styles/components.css").then((response) => response.text());
+      const selectors = source.split("}").map((block) => block.split("{")[0]).join(" ");
+      const offenders = [ ...selectors.matchAll(/#[a-zA-Z][\w-]*/g) ].map((match) => match[0]);
+
+      return offenders.length === 0 ? true : offenders.join(", ");
+    },
+  },
+  {
+    name: "components.css carries no domain nouns",
+    run: async () => {
+      const source = await fetch("./styles/components.css").then((response) => response.text());
+      const offenders = [ ...source.matchAll(/\.[\w-]*(?:track|playlist|render)[\w-]*/g) ].map((match) => match[0]);
+
+      return offenders.length === 0 ? true : offenders.join(", ");
+    },
+  },
+  {
+    name: "the component vocabulary is present",
+    run: async () => {
+      const source = await fetch("./styles/components.css").then((response) => response.text());
+      const required = [
+        ".action-primary", ".action-add", ".action-cancel", ".action-resume",
+        ".caption-warning", ".status-message", ".item", ".item-label", ".item-remove",
+      ];
+      const missing = required.filter((name) => !source.includes(name));
+
+      return missing.length === 0 ? true : missing.join(", ");
+    },
+  },
 ];
