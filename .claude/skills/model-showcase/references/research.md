@@ -56,12 +56,29 @@ the value. Without one, mark the field `needs verification` rather than writing 
 that came from memory or from resolving a conflict by choosing the source you liked best.
 A `needs verification` field is settled by the step 6 real run, not by step 1.
 
+**For a parameter-count conflict specifically, check the checkpoint's own weight-index
+metadata before falling back to `needs verification`.** A model card's stated size is a
+rounded label chosen by whoever wrote the card; the checkpoint's own
+`model.safetensors.index.json` (or the equivalent `pytorch_model.bin.index.json`) carries
+a `metadata.total_parameters` field computed from the actual weight shapes on disk. This
+is one more GET under the same sourcing rule that already governs everything else in this
+document — a raw JSON file, not a rendered page — and it turns a guess between two rounded
+labels into an exact figure for the exact checkpoint you are about to run.
+
 Worked example: `microsoft/VibeVoice-ASR` is listed as 7B on GitHub, 9B on the
 `microsoft/VibeVoice-ASR` Hugging Face card, and 8B on the `microsoft/VibeVoice-ASR-HF`
-card — three official figures for one model, none of them wrong on its own terms. The
-research table records all three with their sources and marks the field `needs
-verification`; it does not average them, pick the median, or pick the one that sounds
-most impressive.
+card — three official figures for one model, none of them wrong on its own terms.
+Fetching `model.safetensors.index.json` from each of the two Hugging Face repositories
+settles what the card labels only round: `microsoft/VibeVoice-ASR`'s
+`metadata.total_parameters` is `8674021857` (≈8.67B, which the "9B" badge rounds up from),
+and `microsoft/VibeVoice-ASR-HF`'s is `8330325888` (≈8.33B, which "8B" rounds down from).
+GitHub's "7B" is left unresolved by this technique — it names the base language-model
+backbone's nominal size, not the checkpoint's total parameter count, and no index file
+speaks to a nominal name. The research table records the two exact index-file figures with
+their source URLs, records GitHub's "7B" with its own source and what it most likely
+refers to, and marks the field `needs verification` only for the part the index files
+could not settle — it does not average the numbers, pick the median, or pick the one that
+sounds most impressive.
 
 ## The baseline rule
 
