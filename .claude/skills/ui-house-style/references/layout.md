@@ -25,11 +25,13 @@ footer   log, hides itself when there is nothing to show
 grid-template-columns: clamp(13rem, 22vw, 20rem) minmax(16rem, 1fr);
 ```
 
-The list column is `clamp(13rem, 22vw, 20rem)`: never narrower than 13rem (a list item's
-thumbnail plus a readable label), never wider than 20rem (past that it steals space from
-the workspace for no benefit), and 22vw in between so it scales with the viewport rather
-than jumping between two fixed widths. The workspace takes the rest with a `16rem` floor
-of its own.
+| Bound | Value | Reason |
+|---|---|---|
+| Minimum | `13rem` | fits a list item's thumbnail plus a readable label |
+| Fluid | `22vw` | scales with the viewport instead of jumping between two fixed widths |
+| Maximum | `20rem` | past this it steals space from the workspace for no benefit |
+
+The workspace takes the rest with a `16rem` floor of its own.
 
 ## The footer's self-hiding
 
@@ -151,7 +153,7 @@ existing example of this.
 → @media (width < 900px); with the literal number, repeated in this document and in
   css-patterns.md.
 Why: custom properties cannot be used inside an @media condition — the CSS Custom
-Properties spec resolves var() at computed-value time, which is after media queries have
-already been evaluated. There is no token to invent here; the fix is keeping the two
-numbers consistent by writing them down in one place.
+Properties specification resolves var() at computed-value time, which is after media
+queries have already been evaluated. There is no token to invent here; the fix is keeping
+the two numbers consistent by writing them down in one place.
 ```

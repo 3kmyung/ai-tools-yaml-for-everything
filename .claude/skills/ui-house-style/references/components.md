@@ -23,11 +23,12 @@ where they live.
 </div>
 ```
 
-`.field` is the outer row: the editable value plus its own `.revert-field` button.
-`.field-body` holds the label above the control. `.field-control` gets `.is-default`
-whenever the value is a derived default the reader has not overridden — text dims to
-`--disabled` and turns italic. `.revert-field` is disabled exactly while `.is-default`
-holds; there is one boolean, read in two places, not two booleans that can disagree.
+| Class | Role |
+|---|---|
+| `.field` | the outer row: the editable value plus its own `.revert-field` button |
+| `.field-body` | holds the label above the control |
+| `.field-control` | gets `.is-default` whenever the value is a derived default the reader has not overridden — text dims to `--disabled` and turns italic |
+| `.revert-field` | disabled exactly while `.is-default` holds — one boolean, read in two places, not two that can disagree |
 
 A field whose control is an image or a colour swatch — `.field-control` containing a
 `.thumbnail-frame` — lays out as a row instead of a column; `layout.md`'s breakpoint
@@ -92,11 +93,13 @@ the only one that gets the hover tint); nothing else keys off it.
 
 ## Action buttons — `.action-primary`, `.action-add`, `.action-cancel`, `.action-resume`
 
-`.action-primary` and `.action-resume` are filled: an accent background with
-`--background` text, reserved for the one constructive action a screen offers at a time.
-`.action-add` and `.action-cancel` are outlined: transparent background, accent border
-and text. A screen showing both a filled and an outlined action is choosing which one it
-wants the eye to land on first — do not fill two buttons in the same view.
+| Style | Classes | Look |
+|---|---|---|
+| Filled | `.action-primary`, `.action-resume` | accent background, `--background` text — reserved for the one constructive action a screen offers at a time |
+| Outlined | `.action-add`, `.action-cancel` | transparent background, accent border and text |
+
+A screen showing both a filled and an outlined action is choosing which one it wants the
+eye to land on first — do not fill two buttons in the same view.
 
 A button's label is not fixed text; it is state. `.action-cancel` and `.action-resume`
 swap their own `textContent` and `disabled` attribute in place while an operation is in
@@ -121,9 +124,14 @@ text, so it borrows the accent hue instead of the caption grey.
 
 ## Status bar — `.status-message`, `.status-trailing`, `.status-video`
 
-The log region carries exactly one of: a `.status-message` span (plain text), a
-`.status-message` beside a `.status-trailing` group (trailing action buttons, such as
-`.action-cancel` during a render), or a `.status-video` element once a render finishes.
+The log region carries exactly one of these three states:
+
+| State | Content |
+|---|---|
+| Message only | `.status-message` span, plain text |
+| Message with actions | `.status-message` beside a `.status-trailing` group of trailing action buttons, such as `.action-cancel` during a render |
+| Finished | a `.status-video` element once a render finishes |
+
 Replace the region's children wholesale with `replaceChildren()` for each state change;
 do not leave a stale trailing group behind an updated message. The region's own
 appearance and disappearance is `layout.md`'s footer self-hiding mechanism and is not
@@ -144,14 +152,18 @@ swatches share one painting mechanism.
 ## Colour picker — the `.color-picker-*` family
 
 One `.color-picker` popover is built lazily on first use and reused for every colour
-field afterward; it is not rebuilt per field. It holds three `.color-picker-channel`
-rows (R, G, B — each a `.color-picker-slider` plus a `.color-picker-readout`), a
-`.color-picker-hex` text line, and a `.color-picker-suggestions` block of
-`.color-picker-swatches` drawn from the active cover's extracted palette. Every channel
-slider's `--from`/`--to` gradient stops repaint on every input so the track always shows
-what moving the thumb in either direction would produce. `.color-picker-suggestions`
-carries `hidden` rather than being removed from the DOM when a track has no cover to
-draw suggestions from.
+field afterward; it is not rebuilt per field. It holds:
+
+- three `.color-picker-channel` rows (R, G, B), each a `.color-picker-slider` plus a
+  `.color-picker-readout`
+- a `.color-picker-hex` text line
+- a `.color-picker-suggestions` block of `.color-picker-swatches` drawn from the active
+  cover's extracted palette
+
+Every channel slider's `--from`/`--to` gradient stops repaint on every input so the track
+always shows what moving the thumb in either direction would produce.
+`.color-picker-suggestions` carries `hidden` rather than being removed from the DOM when
+a track has no cover to draw suggestions from.
 
 ## Icons
 

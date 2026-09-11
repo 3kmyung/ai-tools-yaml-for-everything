@@ -26,6 +26,7 @@ function returns.
 → function createReopenGuard() {
     let dismissedAnchor = null;
     let dismissedAt = 0;
+
     return {
       record: (anchor) => { dismissedAnchor = anchor; dismissedAt = Date.now(); },
       blocks: (anchor) => anchor === dismissedAnchor && Date.now() - dismissedAt < 250,
@@ -104,7 +105,6 @@ that introduced the code instead.
 ✗ // guard against reopening the menu we just closed
   if (reopenGuard.blocks(anchor)) return;
 → if (reopenGuard.blocks(anchor)) return;
-  (the reasoning is written in the commit that added reopenGuard, not beside the call)
 Why: a comment drifts from the code next to it the first time the code changes and
 nobody updates the sentence describing it. A commit message is checked once, at review
 time, against the diff it describes, and is never silently out of date afterward.

@@ -66,12 +66,10 @@ is exactly how one component's hover state quietly stops matching the rest.
 → Style by class.
 Why: a component is reusable by definition, and an ID is unique by definition. An ID
 selector on a component is a contradiction that resolves itself the first time the
-example needs two of that component on the same page. This is not hypothetical either —
-commit 846fe3a8's own message records the cost of styling by id: renaming an example
-required changing "the Render button's DOM id and the CSS that selects it." This
-example's own components.css carried the same shape in #render-playlist, and commit
-6464ebae converted it to .action-primary — citing 846fe3a8 as the reason — so the next
-rename would not cost the same two edits again.
+example needs two of that component on the same page. This example's own components.css
+once carried that mistake as #render-playlist, converted since to .action-primary:
+renaming an example under an ID selector meant editing both the DOM id and the CSS
+selecting it, twice for one rename.
 ```
 
 ```
@@ -82,10 +80,8 @@ rename would not cost the same two edits again.
 Why: components.css is shared across every generated example. .track only means
 something in a track-based example; the next example's list of speakers or slides has
 to either rename every one of these classes or invent its own domain-named duplicates.
-.item works for both, unchanged. This is not hypothetical — renaming one example's
-tracks to another's cameras required editing the DOM id and the CSS selecting it in the
-same commit, and is the single largest source of the divergence between two examples'
-otherwise-shared components.css.
+.item works for both, unchanged. Domain-named classes are the single largest source of
+divergence between two examples' otherwise-shared components.css.
 ```
 
 ```
@@ -158,13 +154,12 @@ plain container; the row's clickable, focusable surface is the `<button class=
 → Restructure the element into an actual focusable one first — a <button>, not a <div>
   with role="button" and a tabindex — then write the focus rule against that.
 Why: a rule targeting an element nothing can focus is dead CSS that reads as coverage
-in review. `.item` itself carried exactly this mistake: an earlier pass gave the row a
-border-recolour focus rule while it was still a plain <li> with a click handler, and no
-element inside it could ever trigger `:focus-visible`. The fix was not a CSS change — the
-row was restructured into `.item-select` (the clickable, focusable button) and
-`.item-remove` (its own button), which is why `.item-select` exists at all. Neither of
-the two focus checks in this skill's `check-rules.mjs` catches this: both read
-stylesheet rules, not whether any element in the DOM can ever reach them.
+in review. `.item` itself carried exactly this mistake as a plain <li> with a click
+handler and a border-recolour focus rule that no element inside it could ever trigger.
+The fix restructured the row into `.item-select` (the clickable, focusable button) and
+`.item-remove` (its own button) — why both classes exist at all. Neither focus check in
+this skill's `check-rules.mjs` catches this: both read stylesheet rules, not whether any
+element in the DOM can ever reach them.
 ```
 
 ## Reduced motion
