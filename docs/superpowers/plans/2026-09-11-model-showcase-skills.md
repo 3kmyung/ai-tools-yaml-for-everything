@@ -427,6 +427,12 @@ export const CHECKS = [
 ];
 ```
 
+**The shipped `checks.js` is the authority, not this snippet.** Tasks 3–7 each append to the same file, so any copy printed here goes stale the moment the next task runs. Read `~/.claude/skills/model-showcase/assets/checks.js` for the current suite. Three corrections landed during this task and matter to anyone extending it:
+
+- `tokenColor` probes with a sentinel fallback, `var(${name}, rgb(1, 2, 3))`, and `requireTokenColor` treats the resolved sentinel as a missing token. Without it, `color` inherits from `body { color: var(--text) }` and an undefined token resolves to near-black, which clears 4.5:1 against any light surface — a contrast check that passes because its subject does not exist.
+- The second check reads `#render-playlist`'s computed `color` against its computed `background-color`. The token-pair version it replaced was `contrast()` called with its arguments swapped, and `contrast()` sorts its luminances internally, so it was the first check written twice.
+- The accent-as-text guard matches `color:` declarations whose value mentions `var(--accent)` anywhere — `/(^|[;{])\s*color:\s*[^;]*var\(--accent[,)][^;]*;/`. Requiring `)` or `,` after `--accent` admits `color-mix(in srgb, var(--accent) 85%, black)` while excluding `var(--accent-text)`, and the leading anchor keeps `border-color:` out.
+
 - [ ] **Step 2: Run it to verify it fails**
 
 Run:
@@ -434,7 +440,7 @@ Run:
 node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
   examples/media-processing/youtube-to-playlist-video/ui
 ```
-Expected: five `FAIL` lines. `--accent-text` is undefined so `tokenColor` returns the inherited colour; the accent-as-text check names `#render-playlist, #add-track, .cancel-render, .resume-render` and `#warning`; `#hint` reports about `2.15`.
+Expected: `FAIL` on the accent-as-text check, naming `#render-playlist, #add-track, .cancel-render, .resume-render` and `#warning`; `FAIL` on `--link`; `FAIL` on `#hint` at about `2.15`. With the sentinel fallback in place the two token checks also fail with `--accent-text is not defined`.
 
 - [ ] **Step 3: Add the tokens**
 
@@ -1651,7 +1657,9 @@ The index entry: `examples/README.md` carries one line per showcase example at l
 
 The fast loop: copy `assets/test.html` and `assets/checks.js` into the example's `ui/`, write a `fixture.json` matching the workflow's output shape, run `node assets/ui-check.mjs <example>/ui` at `1440×900`, `800×900` and `390×844`, then capture a screenshot at each.
 
-The checks every generated example must pass: the acceptance list from the spec, expressed as the same `CHECKS` entries used in Tasks 2–7.
+The checks every generated example must pass: the acceptance list from the spec, expressed as `CHECKS` entries. Read `~/.claude/skills/model-showcase/assets/checks.js` as it stands after Task 7 and carry those entries forward — do not reconstruct them from the code blocks in Tasks 2–7, which are each a snapshot of one moment in a file seven tasks edit in turn.
+
+Two habits from that file are worth stating as rules, because both were defects it had to be corrected for: a check that cannot distinguish "the thing I measure is absent" from "the thing I measure is fine" is worse than no check, and a check whose red state has never been observed is not yet a check.
 
 The fixture lifecycle: hand-written from the model card's example output on the first pass, replaced with one saved real run after step 6.
 
