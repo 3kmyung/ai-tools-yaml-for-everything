@@ -555,6 +555,27 @@ Two further things the research step recorded that the demo must not misstate:
   context, because the states carry across and the language model sees the whole hour in
   one 64K window. The README and the paper are describing the absence of a *pipelined*
   chunking stage, and the demo copy says that, not "no chunking".
+
+  The two window sizes being compared are different kinds of number, and that is the
+  point worth making rather than the sizes themselves. Whisper's 30 seconds is an
+  architectural constant: the encoder was trained on exactly that span, shorter audio is
+  padded to it, and longer audio cannot be fed in. VibeVoice's 60 seconds is a runtime
+  memory parameter the documentation invites you to lower — "if chunks of 60 seconds are
+  too large for your device, the `acoustic_tokenizer_chunk_size` argument passed to
+  `generate` can be adjusted" — which it could not be if the value changed the result.
+  Neither number affects the frame rate, which is fixed by the hop length.
+
+  So the difference is not at the tokenizer at all. It is that Whisper decodes each
+  window independently, with the decoder starting fresh, while VibeVoice decodes the
+  whole hour once. Speaker identity and context survive because of that, not because of
+  how the audio was windowed on the way in.
+
+  **Verify the invariance rather than asserting it.** Transcribe the same audio at
+  `acoustic_tokenizer_chunk_size` 1440000 and again at 64000 and diff the two
+  transcriptions. Identical output turns "the chunk size is a memory knob" from something
+  the documentation implies into something measured; different output means the sentence
+  comes out of the report. The run is cheap next to the ones already planned, and the
+  claim is otherwise the kind that gets repeated because it sounds authoritative.
 - **The 7.5 Hz frame rate is arithmetic, not a claim.** 24000 Hz ÷ the acoustic
   tokenizer's hop length of 3200 = 7.5 tokens per second, so 60 minutes is 27,000 tokens
   and fits the 64K budget. The repository's own driver records the same derivation at
