@@ -84,6 +84,35 @@ to either rename every one of these classes or invent its own domain-named dupli
 divergence between two examples' otherwise-shared components.css.
 ```
 
+## Categorical colour for a small enumerable set
+
+An interface sometimes has to tell apart a handful of categories at a glance — a
+speaker, a track, a label — and one hue is not enough for that.
+
+```
+✗ A second accent hue hand-picked to distinguish one category from another, such as a
+  fixed hex value for "speaker two" alongside --accent for "speaker one."
+→ Derive every category past the first from --accent with filter: hue-rotate(Ndeg), on a
+  small, non-text marker element — a dot, a bar segment — never on text, and never as a
+  replacement for a text label the row already carries.
+Why: tokens.md's ten custom properties hold exactly one accent hue; a hand-picked second
+one is a colour invented outside that scale. hue-rotate derives every additional
+category from the token that already exists instead of adding new ones, and confining it
+to a decorative, non-text marker sidesteps the contrast arithmetic tokens.md works out
+for --accent-text, which a rotated hue has not been checked against. Pair the marker with
+the row's own text label — a speaker name, a category name — so colour is never the only
+channel telling two categories apart.
+```
+
+Paint the marker's fill with `--accent` at full strength, not `color-mix`'d down through
+`--alpha-1`–`--alpha-3`. Those three steps exist for a tint sitting on top of content
+that is already legible without it — a hover wash, a selected-row background — and read
+as barely-there pastel once they are the only thing carrying a category's identity, which
+defeats the reason the marker exists. Mark a selected or active item some other
+scale-compliant way instead — `border-color: var(--text)` on the marker itself, the
+`.item.is-selected` border-accent treatment fields and list items already use — rather
+than reaching for a fourth, stronger alpha step that does not exist on the scale either.
+
 ```
 ✗ outline: 0 or outline: none with no replacement indicator in the same declaration
   block.
