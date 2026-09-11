@@ -701,7 +701,7 @@ Expected: all checks `PASS`.
 
 - [ ] **Step 5: Confirm the scroll fade does not hide content**
 
-The scroll-fade keyframes animate `--scroll-fade-start` toward `var(--space-5)` and `--scroll-fade-end` toward `0px`. With the animation collapsed both settle at their `to` values, which leaves the mask opaque. Capture a screenshot and confirm nothing is clipped:
+The block does not touch the scroll fades at all, which is the right outcome but not for the reason it first appears. Every element using those keyframes drives them through `animation-timeline: scroll(self inline|block)`, a scroll-progress timeline: progress is the scroll fraction and `animation-duration` does not enter the calculation, so collapsing the duration is a no-op and the mask keeps tracking scroll exactly as before. A gradient that follows the reader's own scrolling is not the kind of motion `prefers-reduced-motion` exists to stop — no autoplay, no loop, no movement the reader did not cause. Capture a screenshot and confirm nothing is clipped:
 
 ```bash
 node ~/.claude/skills/model-showcase/assets/ui-check.mjs \
