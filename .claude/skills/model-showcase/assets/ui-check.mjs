@@ -23,11 +23,17 @@ const width = options.get("width") || "1440";
 const height = options.get("height") || "900";
 const screenshot = options.get("screenshot");
 
-const testTemplate = await readFile(join(here, "test.html"), "utf8");
+const iframeSourceAttribute = 'src="./index.html"';
+const testHtmlPath = join(here, "test.html");
+const testTemplate = await readFile(testHtmlPath, "utf8");
 const testHtml = testTemplate.replace(
-  'src="./index.html"',
+  iframeSourceAttribute,
   `src="./index.html?expect-width=${width}"`,
 );
+
+if (testHtml === testTemplate) {
+  throw new Error(`could not find ${iframeSourceAttribute} in ${testHtmlPath} to inject expect-width`);
+}
 
 await writeFile(join(root, "test.html"), testHtml);
 await copyFile(join(here, "checks.js"), join(root, "checks.js"));
