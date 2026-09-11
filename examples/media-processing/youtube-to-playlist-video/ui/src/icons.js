@@ -1,15 +1,15 @@
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
-function definition(width, height, path) {
-  return { width: width, height: height, path: path, viewBox: "0 0 " + width + " " + height };
+function definition(paths) {
+  return { paths: paths, viewBox: "0 0 24 24" };
 }
 
 export const ICONS = {
-  remove: definition(16, 16, "M4.5 4.5L11.5 11.5M11.5 4.5L4.5 11.5"),
-  revert: definition(16, 16, "M3.75 10.21A4.5 4.5 0 1 0 3.75 6.12M6.48 5.49L3.75 6.12L4.19 3.35"),
-  add: definition(16, 16, "M8.5 4.5V12.5M4.5 8.5H12.5"),
-  check: definition(16, 16, "M3.5 8.5L6.5 11.5L12.5 5.5"),
-  chevron: definition(16, 16, "M4.5 6.25L8 9.75L11.5 6.25"),
+  remove: definition([ "M18 6 6 18", "m6 6 12 12" ]),
+  revert: definition([ "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8", "M3 3v5h5" ]),
+  add: definition([ "M5 12h14", "M12 5v14" ]),
+  check: definition([ "M20 6 9 17l-5-5" ]),
+  chevron: definition([ "m6 9 6 6 6-6" ]),
 };
 
 export function icon(name) {
@@ -17,15 +17,17 @@ export function icon(name) {
 
   const svg = document.createElementNS(SVG_NAMESPACE, "svg");
   svg.setAttribute("class", "icon");
-  svg.setAttribute("width", spec.width);
-  svg.setAttribute("height", spec.height);
+  svg.setAttribute("width", "16");
+  svg.setAttribute("height", "16");
   svg.setAttribute("viewBox", spec.viewBox);
   svg.setAttribute("aria-hidden", "true");
 
-  const path = document.createElementNS(SVG_NAMESPACE, "path");
-  path.setAttribute("d", spec.path);
+  spec.paths.forEach((data) => {
+    const path = document.createElementNS(SVG_NAMESPACE, "path");
+    path.setAttribute("d", data);
 
-  svg.appendChild(path);
+    svg.appendChild(path);
+  });
 
   return svg;
 }
