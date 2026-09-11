@@ -46,6 +46,12 @@ Why: a scroll listener runs on the main thread on every frame of scrolling. A
 scroll-driven animation is computed on the compositor and costs nothing per frame.
 ```
 
+This ban is about painting a visual effect from scroll position, not about reading scroll
+position to make a decision. `streaming.md`'s pinned-to-bottom auto-scroll check reads
+`scrollTop`/`scrollHeight` to decide whether to scroll at all — control flow evaluated
+once per arrival, not a paint evaluated once per scroll frame — and is not the pattern
+this rule forbids.
+
 ```
 ✗ A new hover or focus declaration written for one more component.
 → Add the component's selector to the existing :is(...) list that already declares that

@@ -36,6 +36,15 @@ this file and say so, not as a mistake in the example to quietly fix.
    snapping them back down on the next arrival overrides a decision they just made, and
    is the single most common complaint about live chat and log interfaces.
    ```
+   Reading `scrollTop`/`scrollHeight` to decide whether the scroller is pinned is not the
+   scroll-event-listener pattern `css-patterns.md` bans. That ban is about a listener
+   painting a visual effect — a mask, an offset — from scroll position on every scroll
+   frame, which `animation-timeline: scroll(...)` now does with no listener at all.
+   Deciding whether to auto-scroll is control flow evaluated once per arrival, not a
+   paint evaluated once per scroll frame, and no scroll-timeline primitive can express
+   "move the scroll position" in the first place — every one of them reads a position
+   that has already settled. The two rules meet here without contradicting each other;
+   `css-patterns.md` names the same exception where its own ban is stated.
 3. Unconfirmed (partial) text — a word a transcription model has not yet finalized, a
    token still subject to revision — is `--text-caption`. Once confirmed it becomes
    `--text`. The colour change transitions on `--duration-fast`.
@@ -50,13 +59,18 @@ this file and say so, not as a mistake in the example to quietly fix.
 4. No `translate` on item entry.
    ```
    ✗ A `translate` entry animation on each arriving item.
-   → `@starting-style` animating `opacity` only, the same enter mechanism the footer's
-     own reveal in `layout.md` already uses.
+   → `@starting-style` animating `opacity` only.
    Why: translate reads as motion at batch rates and as noise at streaming rates — the
    opening paragraph's dozen-items-versus-ten-a-second example is this rule. Opacity has
    no direction for the reader's eye to track, so it does not compound as arrivals speed
    up.
    ```
+   This is deliberately stricter than the footer's own reveal in `layout.md`, which pairs
+   `opacity` with `translate: 0 100%`. That combination is fine there because the footer
+   appears once per render, not once per arrival — a translate that can never repeat
+   faster than an operation finishing has no rate to compound at. An item entering a
+   streaming list has no such floor; the footer is the contrast that shows why one-off
+   reveals get to keep translate and per-arrival ones do not.
 5. A number that changes while the reader is looking at it — a timecode, a running
    counter — uses `font-variant-numeric: tabular-nums`, the property
    `.color-picker-readout` already sets.
@@ -77,16 +91,39 @@ this file and say so, not as a mistake in the example to quietly fix.
    chunk spends layout work on frames the reader can never actually see as separate,
    which a single `requestAnimationFrame` flush does not.
    ```
-7. The streaming region is `aria-live="polite"` with `aria-atomic="false"`, and only
-   confirmed units — never the in-flight partial — are appended to it.
+7. The streaming region is `aria-live="polite"` with `aria-atomic="false"`. Each confirmed
+   unit — a word, a line, a sentence — is added with `appendChild`, once, and never
+   removed or rewritten; the in-flight partial renders elsewhere and never touches the
+   live region's own children.
    ```
    ✗ Updating the live region's text on every partial revision, including the word still
      being finalized.
-   → Append a unit once it is confirmed; let the partial render visually without ever
-     touching the live region's own content.
+   → Append a unit once it is confirmed, with `appendChild`; let the partial render
+     visually somewhere else without ever touching the live region's own children.
    Why: a screen reader announces every change made to a polite live region. Rewriting
    the same partial word several times a second before it settles makes the region
    unusable; announcing each confirmed unit once is what "polite" is for.
+   ```
+   `js-patterns.md`'s `replaceChildren` mandate does not reach this region.
+   `replaceChildren` is for a region whose whole content changes at once, the way the
+   status bar swaps a message for a video; this region only grows, so calling
+   `replaceChildren` per chunk would rebuild — and re-announce — every unit already
+   confirmed, exactly what the ban above exists to prevent.
+
+   A model can revise text it already confirmed — live captioning does this routinely —
+   and this house style does not let that revision reach back into the node that already
+   announced it.
+   ```
+   ✗ Rewriting or removing an already-appended confirmed unit because the model revised
+     its content.
+   → Append the revision as its own new unit, marked as a correction in whatever way the
+     screen fits (a leading "Correction:" span, a class the style sheet paints
+     differently); the earlier unit stays exactly as it was announced.
+   Why: an append-only region is predictable only because nothing already announced ever
+   changes again. Mutating a past node reopens the two-source-of-truth problem
+   `css-patterns.md` already bans JS class toggling for — here the second source of truth
+   is a screen reader's own memory of what it already read aloud, which no code can
+   revise after the fact.
    ```
 8. Progress and cancellation reuse the existing `showProgress({ onCancel })` language
    already rendered into the footer by `status.js`. A streaming screen does not grow a
