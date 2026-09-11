@@ -128,12 +128,32 @@ const RULES = [
       return missing.length === 0 ? true : missing.join(", ");
     },
   },
+  {
+    name: "streaming.md covers all fourteen rules",
+    run: async () => {
+      const source = await readFile(join(here, "references/streaming.md"), "utf8");
+      const required = [
+        "overflow-y", "pinned", "--text-caption", "translate", "tabular-nums",
+        "requestAnimationFrame", "aria-live", "showProgress", "user gesture",
+        "red dot", "<meter>", "label", "WebAudio", "prefers-reduced-motion",
+      ];
+      const missing = required.filter((term) => !source.includes(term));
+
+      return missing.length === 0 ? true : missing.join(", ");
+    },
+  },
 ];
 
 let failed = false;
 
 for (const rule of RULES) {
-  const outcome = await rule.run();
+  let outcome;
+
+  try {
+    outcome = await rule.run();
+  } catch (error) {
+    outcome = error.message;
+  }
 
   console.log((outcome === true ? "PASS " : "FAIL ") + rule.name + (outcome === true ? "" : " — " + outcome));
   if (outcome !== true) failed = true;
