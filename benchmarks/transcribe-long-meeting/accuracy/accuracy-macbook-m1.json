@@ -1,0 +1,14 @@
+{
+  "session": "ES2004a",
+  "reference": "/Users/unknoown/bench-audio/ES2004a.reference.json",
+  "hypothesis": "/Users/unknoown/bench-results/ES2004a.hypothesis.json",
+  "scorer": "meeteval",
+  "normaliser": "transformers EnglishTextNormalizer",
+  "collar_seconds": 5.0,
+  "reference_words": 2505,
+  "hypothesis_segments": 149,
+  "non_speech_segments_dropped": 22,
+  "tcpwer": 0.17655786350148367,
+  "cpwer": 0.1728486646884273,
+  "wer": 0.17470326409495548
+}

@@ -28,6 +28,13 @@ microphone condition cannot be matched the same way: the published table labels
 its row `ami_test` and names no condition, so the report states which recording
 the local run used and claims nothing about the published one.
 
+Two shapes of hypothesis arrive here. A `model-compose` run hands back one object
+with `text`, `start_time`, `end_time` and `speaker_id` per segment. The MLX
+conversion streams the same content as text fragments that concatenate into JSON
+whose fields are `Content`, `Start`, `End` and `Speaker`. Both are read; a
+converted build is free to rename its fields and the scorer is not free to
+assume it did not.
+
 VibeVoice-ASR also emits non-speech events as segments of their own —
 `[Breathing]`, `[Music]`, `[Environmental Sounds]` — carrying no speaker. AMI's
 manual annotation does not transcribe those, so scoring them would count every
@@ -60,7 +67,18 @@ def parse_arguments(argv=None):
     return parser.parse_args(argv)
 
 
+def field(segment, *names):
+    for name in names:
+        if name in segment:
+            return segment[name]
+
+    return None
+
+
 def segments_of(payload):
+    if isinstance(payload, list) and payload and all(isinstance(item, str) for item in payload):
+        return segments_of(json.loads("".join(payload)))
+
     if isinstance(payload, dict):
         for key in ("transcription", "segments", "output", "result"):
             if key in payload:
@@ -82,10 +100,10 @@ def to_seglst(payload, session):
     non_speech = 0
 
     for index, segment in enumerate(segments_of(payload)):
-        text = segment.get("text")
-        start = segment.get("start_time", segment.get("start"))
-        end = segment.get("end_time", segment.get("end"))
-        speaker = segment.get("speaker_id", segment.get("speaker"))
+        text = field(segment, "text", "Content", "words")
+        start = field(segment, "start_time", "start", "Start")
+        end = field(segment, "end_time", "end", "End")
+        speaker = field(segment, "speaker_id", "speaker", "Speaker")
 
         if text is None or start is None or end is None:
             raise ValueError(
