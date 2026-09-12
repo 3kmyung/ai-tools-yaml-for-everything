@@ -68,7 +68,7 @@ bf16으로 돌린 두 기기끼리의 차이가 0.22%p였는데, 양자화 손�
 
 ```
 예제와 측정값 전부:
-https://github.com/<owner>/<repository>/tree/main/examples/showcase/speaker-diarization-vibevoice
+https://github.com/<owner>/<repository>/tree/main/releases/speaker-diarization-vibevoice
 ```
 
 ## What this thread does not say

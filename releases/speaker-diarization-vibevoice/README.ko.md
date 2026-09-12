@@ -29,7 +29,7 @@
 ## 실행 방법
 
 ```bash
-cd examples/showcase/speaker-diarization-vibevoice
+cd releases/speaker-diarization-vibevoice
 model-compose up
 ```
 

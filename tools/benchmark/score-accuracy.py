@@ -4,7 +4,7 @@
         --reference ES2004a.reference.json \\
         --hypothesis ES2004a.hypothesis.json \\
         --session ES2004a \\
-        --output benchmarks/speaker-diarization-vibevoice/accuracy/bfloat16.json
+        --output releases/speaker-diarization-vibevoice/benchmarks/accuracy/bfloat16.json
 
 MeetEval computes every number here. What this file does is convert the
 workflow's own output into the SegLST shape MeetEval reads, and record which
