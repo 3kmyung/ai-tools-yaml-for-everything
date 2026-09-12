@@ -98,6 +98,8 @@ def run(arguments):
     sampler = threading.Thread(target=sample_resources, args=(collector, stop_sampling), daemon=True)
     sampler.start()
 
+    run_error = None
+
     try:
         first = True
         count = 0
@@ -112,12 +114,16 @@ def run(arguments):
         collector.ingest(emit("pipeline", "done", count=count))
     except Exception as error:
         collector.ingest(emit("runtime", "error", detail=str(error)))
+        run_error = f"{error.__class__.__name__}: {error}"
     finally:
         stop_sampling.set()
         sampler.join(timeout=2)
 
     valid, errors = collector.is_valid()
     summary = collector.summary() if valid else {}
+
+    if run_error is not None:
+        errors = [ *errors, run_error ]
 
     result = build_result(
         example=arguments.example,
