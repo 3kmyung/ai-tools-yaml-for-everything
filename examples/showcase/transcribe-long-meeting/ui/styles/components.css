@@ -18,6 +18,12 @@
   filter: hue-rotate(var(--category-hue));
 }
 
+.category-swatch.is-unattributed {
+  background: none;
+  border: 1px solid var(--text-caption);
+  filter: none;
+}
+
 header .setting, .caption-warning {
   flex: none;
   font-size: var(--text-sm);
@@ -120,8 +126,30 @@ header .setting input[type="text"]:focus-visible {
   transition: border-color var(--duration-fast) ease;
 }
 
+.timeline-segment.is-unattributed {
+  background: none;
+  border-color: var(--border);
+  filter: none;
+}
+
 .timeline-segment.is-selected {
   border-color: var(--text);
+}
+
+.detail-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+}
+
+.detail-text {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.7;
 }
 
 .timeline-legend {
