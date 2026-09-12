@@ -140,18 +140,51 @@ def resolve_workflow_input(raw, audio_path):
     return workflow_input
 
 
-async def terminate_bounded(manager, timeout):
+def arm_force_exit(timeout, code, message):
+    finished = threading.Event()
+
+    def watchdog():
+        if finished.wait(timeout):
+            return
+
+        print(message, flush=True)
+        sys.stdout.flush()
+        sys.stderr.flush()
+        os._exit(code)
+
+    threading.Thread(target=watchdog, daemon=True).start()
+
+    return finished
+
+
+async def shutdown_or_die(manager, launch, timeout, valid):
+    finished = arm_force_exit(
+        timeout * 2,
+        0 if valid else 1,
+        f"shutdown wedged past {timeout * 2:g}s and was not interruptible; "
+        f"exiting hard so no component subprocess keeps this machine's accelerator",
+    )
+
     try:
         await asyncio.wait_for(manager.terminate_services(verbose=False), timeout)
+        shutdown_error = None
     except asyncio.TimeoutError:
-        return (
+        shutdown_error = (
             f"shutdown did not finish within {timeout:g}s; a component subprocess may "
             f"still hold this machine's accelerator memory"
         )
     except Exception as error:
-        return f"shutdown raised {error.__class__.__name__}: {error}"
+        shutdown_error = f"shutdown raised {error.__class__.__name__}: {error}"
 
-    return None
+    launch.cancel()
+    try:
+        await launch
+    except (asyncio.CancelledError, Exception):
+        pass
+
+    finished.set()
+
+    return shutdown_error
 
 
 async def await_ready(manager, launch, timeout):
@@ -200,11 +233,14 @@ async def run(arguments):
     sampler = threading.Thread(target=sample_resources, args=(collector, stop_sampling), daemon=True)
     sampler.start()
 
+    run_error = None
+
     try:
         state = await workflow
 
         if state.error:
             collector.ingest(emit("runtime", "error", detail=str(state.error)))
+            run_error = str(state.error)
         else:
             first = True
             count = 0
@@ -217,22 +253,18 @@ async def run(arguments):
                     first = False
 
             collector.ingest(emit("pipeline", "done", count=count))
+    except Exception as error:
+        collector.ingest(emit("runtime", "error", detail=str(error)))
+        run_error = f"{error.__class__.__name__}: {error}"
     finally:
         stop_sampling.set()
         sampler.join(timeout=2)
 
-        shutdown_error = await terminate_bounded(manager, arguments.shutdown_timeout)
-        launch.cancel()
-        try:
-            await launch
-        except (asyncio.CancelledError, Exception):
-            pass
-
     valid, errors = collector.is_valid()
     summary = collector.summary() if valid else {}
 
-    if shutdown_error is not None:
-        errors = [ *errors, shutdown_error ]
+    if run_error is not None:
+        errors = [ *errors, run_error ]
 
     result = build_result(
         example=arguments.example,
@@ -252,6 +284,12 @@ async def run(arguments):
         errors=errors,
     )
     write_result(arguments, result)
+
+    shutdown_error = await shutdown_or_die(manager, launch, arguments.shutdown_timeout, valid)
+
+    if shutdown_error is not None:
+        result["errors"] = [ *errors, shutdown_error ]
+        write_result(arguments, result)
 
     return 0 if valid and shutdown_error is None else 1
 
