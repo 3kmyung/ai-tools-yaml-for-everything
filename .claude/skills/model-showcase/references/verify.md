@@ -71,7 +71,7 @@ duplicating them.
 `styles/` and `src/` — `ui-check.mjs` never writes it and never overwrites it. It holds
 whichever of the remaining slots have a subject in that interface:
 
-| Slot | What it checks | `youtube-to-playlist-video` | `transcribe-long-meeting` |
+| Slot | What it checks | `youtube-to-playlist-video` | `speaker-diarization-vibevoice` |
 |---|---|---|---|
 | Primary-action contrast | the id'd primary action's rendered text against its rendered fill at 4.5:1 | `#render-playlist` | `#transcribe` |
 | Instructional caption | `#hint` does not fall back to `--disabled`'s contrast | present | present |
@@ -81,7 +81,7 @@ whichever of the remaining slots have a subject in that interface:
 
 A blank cell above is not a vacuous check quietly passing — that interface's
 `checks.local.js` simply carries no entry for that slot, and `test.html`'s `info` line
-reports the resulting count (four for `transcribe-long-meeting`, five for
+reports the resulting count (four for `speaker-diarization-vibevoice`, five for
 `youtube-to-playlist-video`), so the absence is something the operator reads rather than
 something that happens silently.
 
@@ -126,7 +126,7 @@ and rewritten so it vacuously passes. Both are how the suite stops meaning anyth
 `components.css`, not by a separate reviewer.** Read that file's own class names,
 subtract every name already listed in `components.md`'s component vocabulary, and
 whatever domain-specific stems remain are the new banned list. For
-`transcribe-long-meeting`'s file drop zone, speaker timeline and segment list, that list
+`speaker-diarization-vibevoice`'s file drop zone, speaker timeline and segment list, that list
 is `speaker|transcript|meeting` in `ui/checks.local.js`, unrelated to
 `youtube-to-playlist-video`'s own `track|playlist|render` in its own file.
 

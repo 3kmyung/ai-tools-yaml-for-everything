@@ -1,11 +1,11 @@
 """Measure one machine's row through `model-compose` and PyTorch.
 
     python bench-hw.py \\
-        --compose-file examples/showcase/transcribe-long-meeting/model-compose.yml \\
+        --compose-file examples/showcase/speaker-diarization-vibevoice/model-compose.yml \\
         --workflow-id transcribe-meeting \\
         --workflow-input '{"audio": "@audio", "context_info": "Microsoft,VibeVoice"}' \\
         --audio meeting.wav \\
-        --example transcribe-long-meeting \\
+        --example speaker-diarization-vibevoice \\
         --machine rtx-4090 \\
         --build microsoft/VibeVoice-ASR \\
         --precision float16 \\

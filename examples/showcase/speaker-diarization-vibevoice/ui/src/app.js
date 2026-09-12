@@ -6,7 +6,7 @@ import { markSelectedTimelineBlock, renderTimeline } from "./timeline.js";
 import { errorMessage, hideStatus, showFinished, showProgress, showStatus } from "./status.js";
 
 const HEAVY_DURATION_SECONDS = 30 * 60;
-const TASK_STORAGE_KEY = "transcribe-long-meeting/task";
+const TASK_STORAGE_KEY = "speaker-diarization-vibevoice/task";
 
 const api = createApi();
 

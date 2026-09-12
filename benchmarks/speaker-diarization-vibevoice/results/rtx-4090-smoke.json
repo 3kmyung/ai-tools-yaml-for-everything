@@ -1,5 +1,5 @@
 {
-  "example": "transcribe-long-meeting",
+  "example": "speaker-diarization-vibevoice",
   "machine": "rtx-4090-smoke",
   "conditions": {
     "runtime": "model-compose + pytorch",

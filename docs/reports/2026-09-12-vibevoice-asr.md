@@ -42,11 +42,11 @@ Read from the checkpoint's own weight index, not estimated. It matters for secti
 
 ## 3. What was built
 
-`examples/showcase/transcribe-long-meeting` — a `model-compose.yml` that wires the
+`examples/showcase/speaker-diarization-vibevoice` — a `model-compose.yml` that wires the
 model to an HTTP endpoint and a web interface: drop an audio file, optionally supply
 hotwords, get a speaker-coloured segment list and a timeline.
 
-![The transcription interface showing a speaker-coloured segment list, a timeline strip and the selected segment's text](media/transcribe-long-meeting.png)
+![The transcription interface showing a speaker-coloured segment list, a timeline strip and the selected segment's text](media/speaker-diarization-vibevoice.png)
 
 The sample data on screen is this report's own AMI run, not a hand-written fixture.
 That swap found two defects a written fixture had hidden: the model emits non-speech
@@ -205,7 +205,7 @@ unchecked field and a checked, clean field read identically otherwise.
 
 | What | Where |
 |---|---|
-| Example | `examples/showcase/transcribe-long-meeting` |
+| Example | `examples/showcase/speaker-diarization-vibevoice` |
 | Model card | https://huggingface.co/microsoft/VibeVoice-ASR |
 | Leaderboard figures | https://huggingface.co/microsoft/VibeVoice-ASR-HF |
 | Technical report | https://arxiv.org/abs/2601.18184 |
