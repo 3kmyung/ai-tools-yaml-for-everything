@@ -25,10 +25,29 @@ export function formatTimestamp(seconds) {
   return minutes + ":" + String(remainingSeconds).padStart(2, "0");
 }
 
-function renderSegmentLabel(segment) {
-  return speakerName(segment.speakerId) + " · " +
-    formatTimestamp(segment.startTime) + "–" + formatTimestamp(segment.endTime) +
-    " — " + segment.text;
+function renderSegmentMeta(segment) {
+  const meta = document.createElement("span");
+  meta.className = "item-meta";
+
+  const speaker = document.createElement("span");
+  speaker.className = "item-speaker";
+  speaker.textContent = speakerName(segment.speakerId);
+
+  const range = document.createElement("span");
+  range.className = "item-range";
+  range.textContent = formatTimestamp(segment.startTime) + "–" + formatTimestamp(segment.endTime);
+
+  meta.append(speaker, range);
+
+  return meta;
+}
+
+function renderSegmentText(segment) {
+  const text = document.createElement("span");
+  text.className = "item-text";
+  text.textContent = segment.text;
+
+  return text;
 }
 
 export function renderSegmentList(listElement, segments, options) {
@@ -54,7 +73,7 @@ export function renderSegmentList(listElement, segments, options) {
 
       const label = document.createElement("span");
       label.className = "item-label";
-      label.textContent = renderSegmentLabel(segment);
+      label.append(renderSegmentMeta(segment), renderSegmentText(segment));
 
       select.append(swatch, label);
       item.appendChild(select);
