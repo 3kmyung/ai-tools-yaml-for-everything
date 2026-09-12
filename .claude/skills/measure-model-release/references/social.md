@@ -46,7 +46,7 @@ the first for the reader's five seconds of attention and both lose.
 ```
 ✗ The post reads as advice to deploy the model — "빠르고 정확해서 바로 프로덕션에 써도
   됩니다" or anything with that shape.
-→ When `model-showcase`'s research step recorded a usage-scope restriction, the thread
+→ When `build-model-release`'s research step recorded a usage-scope restriction, the thread
   carries it — quoted or closely paraphrased, in one of the later posts, not the first —
   and the post stops short of recommending deployment itself.
 Why: a 280-character first post has no room for the full usage-scope quote, but the

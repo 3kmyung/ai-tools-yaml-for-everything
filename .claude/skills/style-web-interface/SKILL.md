@@ -1,9 +1,8 @@
 ---
-name: ui-house-style
-description: Use when writing any web UI for a model-compose example — supplies the house design tokens, layout skeleton, component vocabulary, and the bans that keep generated frontends from defaulting to generic AI styling.
+description: Use when writing any web UI for a model-compose release — supplies the house design tokens, layout skeleton, component vocabulary, and the bans that keep generated frontends from defaulting to generic AI styling.
 ---
 
-# ui-house-style
+# style-web-interface
 
 The house style is extracted from
 `releases/youtube-to-playlist-video/ui/`. That directory is the source
@@ -56,7 +55,7 @@ reference files against the reference UI the rules were extracted from — never
 generated example, whose own vocabulary and prose it has no way to judge:
 
 ```
-node .claude/skills/ui-house-style/check-rules.mjs releases/youtube-to-playlist-video/ui
+node .claude/skills/style-web-interface/check-rules.mjs releases/youtube-to-playlist-video/ui
 ```
 
 Run it after editing any file in `references/`, before committing that edit.

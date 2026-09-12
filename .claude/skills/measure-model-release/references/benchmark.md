@@ -349,5 +349,5 @@ look comparable without making them so.
 ```
 
 No expectation about relative DGX Spark performance gets written down before it is
-measured — the same no-guessing rule that governs `model-showcase`'s research step
+measured — the same no-guessing rule that governs `build-model-release`'s research step
 governs every number here.

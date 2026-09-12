@@ -100,7 +100,7 @@ a reshoot.
 ```
 ✗ Summarising a usage-scope restriction in the report's own words — "the authors suggest
   caution before production use."
-→ Quote the restriction verbatim, exactly as `model-showcase`'s research step recorded
+→ Quote the restriction verbatim, exactly as `build-model-release`'s research step recorded
   it in the research table.
 Why: a permissive licence and an author writing "do not ship this without further
 testing" are both true of the same model at once. A paraphrase can round the second one
