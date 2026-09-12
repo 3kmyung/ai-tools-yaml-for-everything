@@ -1,7 +1,7 @@
 # benchmark.md
 
 Read this before running or describing any measurement — before touching
-`assets/bench-hw.py`, before invoking either external accuracy harness, and before
+`tools/benchmark/bench-hw.py`, before invoking either external accuracy harness, and before
 writing a single number into `report.md`.
 
 ## Why accuracy is measured once and hardware once per machine
@@ -37,42 +37,48 @@ separately measured one — see the runtime section below.
 ## Where a run puts its files
 
 A benchmark run lands on a machine that belongs to someone else and is usually running
-their work. Everything it creates goes under one directory so that cleaning up is one
-removal, and nothing it creates goes anywhere a person would mistake for their own:
+their work. It gets its own clone rather than borrowing theirs, and everything it
+creates lives inside that clone:
 
 ```
-~/.benchmark/
-├── worktree/              the checkout the run drives, and the project root during it
-│   └── .venv/<component>  created by model-compose from the compose file's runtime path
-├── input/                 audio and reference annotations, downloaded
-└── logs/
+<clone>/
+├── .benchmark/            gitignored
+│   ├── input/             audio and reference annotations, downloaded
+│   ├── logs/
+│   └── .venv/             the run's own interpreter and packages
+├── examples/<name>/
+└── tools/benchmark/
 ```
 
 Measured output is the exception and does not live there: results, accuracy and
-transcripts are copied into the repository under `benchmarks/<example>/` and committed,
-because they are the product of the run rather than its scaffolding.
+transcripts are committed under `benchmarks/<example>/`, because they are the product of
+the run rather than its scaffolding.
+
+```
+✗ Adding a worktree or a branch to a clone that belongs to the machine's owner.
+→ Clone the deliverable branch somewhere of your own and work there.
+Why: a worktree in their clone puts your branch in their `git branch` output and your
+build artefacts one directory from their uncommitted work. Disk is cheaper than that.
+```
 
 ```
 ✗ Scattering `~/bench-worktree`, `~/bench-audio`, `~/bench-results`, `~/bench-venv` and
   `~/bench-*.log` across a shared machine's home directory.
-→ One `~/.benchmark/` per machine, removed whole when the run is done.
+→ One clone, with `.benchmark/` inside it, removed whole when the run is done.
 Why: this was done the scattered way first, and cleaning three machines afterwards took
 six paths per machine plus a `pip uninstall` from a system interpreter that should never
-have been written to. A directory whose name says what it is also tells the machine's
-owner what they are looking at.
+have been written to.
 ```
 
 ```
-✗ `pip install --user` for a scoring or plotting dependency on a machine you do not own.
-→ Install into the run's own virtual environment under `~/.benchmark/`.
+✗ `pip install --user`, or any use of the machine's system interpreter, on a machine you
+  do not own.
+→ Create `.benchmark/.venv` in the clone and install into it, on every machine, even the
+  one where the packages happen to be importable already.
 Why: `--user` writes into the owner's interpreter and survives every cleanup that only
-removes directories.
+removes directories. This went wrong on exactly the machine where a virtual environment
+felt unnecessary.
 ```
-
-The checkout is a git worktree of whatever clone the machine already has, on a branch
-named for the run, so the owner's checked-out branch and uncommitted work are never
-touched. Cleanup is `git worktree remove` and `git branch -D` in their clone, then
-`rm -rf ~/.benchmark`.
 
 ## Reusing the existing harness
 
@@ -107,7 +113,7 @@ there is indistinguishable from "this machine has no accelerator" — which is p
 the difference a cross-machine table exists to show.
 
 ```
-✗ Trusting `vram_bytes` from `assets/bench-hw.py` when the component's `runtime` is
+✗ Trusting `vram_bytes` from `tools/benchmark/bench-hw.py` when the component's `runtime` is
   `virtualenv` or `docker`.
 → Read peak video memory from the component's own subprocess for those runtimes; treat
   `bench-hw.py`'s own reading as a confirmed zero, not a missing one.
@@ -183,7 +189,7 @@ exists, the machine leaves the table and its arithmetic goes to the report's lim
 section, where "this does not fit in N gigabytes" is a checkable claim that needs no run
 at all.
 
-When the row does survive, `assets/bench-hw.py` takes `--quantization`,
+When the row does survive, `tools/benchmark/bench-hw.py` takes `--quantization`,
 `--quantization-backend`, and `--quantization-skip-modules`, and renders them into
 `conditions.numerics`, which is the label the report table carries verbatim.
 

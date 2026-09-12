@@ -36,8 +36,8 @@ anything.
 
 | Runner | For a machine that |
 |---|---|
-| `assets/bench-hw.py` | runs the reference checkpoint through `model-compose` and PyTorch |
-| `assets/bench-mlx.py` | has no PyTorch build and runs an MLX conversion instead |
+| `tools/benchmark/bench-hw.py` | runs the reference checkpoint through `model-compose` and PyTorch |
+| `tools/benchmark/bench-mlx.py` | has no PyTorch build and runs an MLX conversion instead |
 
 Both write the same result shape through `benchmarks/common/harness.py`, so their rows
 land in one table.
