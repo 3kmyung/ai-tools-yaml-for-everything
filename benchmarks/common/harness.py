@@ -23,6 +23,7 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
+import threading
 import time
 import wave
 from pathlib import Path
@@ -111,35 +112,130 @@ def audio_duration_seconds(path):
         return round(handle.getnframes() / handle.getframerate(), 4)
 
 
-def snapshot_system():
-    process = psutil.Process()
+class ProcessTree:
+    """The runner's process and its descendants, held across samples.
 
-    with process.oneshot():
-        rss_bytes = process.memory_info().rss
-        cpu_percent = process.cpu_percent(None)
-        num_threads = process.num_threads()
+    `cpu_percent(None)` reports the share of one process since that same
+    process object was last asked. A fresh `psutil.Process` has nothing to
+    compare against and answers 0.0, so re-reading `children()` every tick
+    reports zero forever — which is what the first valid run did.
+    """
 
-    for child in process.children(recursive=True):
+    def __init__(self):
+        self.root = psutil.Process()
+        self.tracked = { self.root.pid: self.root }
+        self.root.cpu_percent(None)
+
+    def refresh(self):
+        for child in self.root.children(recursive=True):
+            if child.pid not in self.tracked:
+                try:
+                    child.cpu_percent(None)
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    continue
+
+                self.tracked[child.pid] = child
+
+        return self.tracked
+
+    def pids(self):
+        return set(self.tracked)
+
+
+def nvidia_smi_vram_bytes(pids):
+    if not pids or shutil.which("nvidia-smi") is None:
+        return 0
+
+    try:
+        output = subprocess.run(
+            ["nvidia-smi", "--query-compute-apps=pid,used_memory", "--format=csv,noheader,nounits"],
+            capture_output=True, text=True, timeout=10,
+        )
+    except (subprocess.SubprocessError, OSError):
+        return 0
+
+    if output.returncode != 0:
+        return 0
+
+    total = 0
+
+    for line in output.stdout.splitlines():
+        fields = [ field.strip() for field in line.split(",") ]
+
+        if len(fields) != 2 or not fields[0].isdigit() or not fields[1].isdigit():
+            continue
+
+        if int(fields[0]) in pids:
+            total += int(fields[1]) * 1024 * 1024
+
+    return total
+
+
+def snapshot_system(tree=None, vram_bytes=None):
+    tree = tree if tree is not None else ProcessTree()
+    rss_bytes = 0
+    cpu_percent = 0.0
+    num_threads = 0
+
+    for process in list(tree.refresh().values()):
         try:
-            with child.oneshot():
-                rss_bytes += child.memory_info().rss
-                cpu_percent += child.cpu_percent(None)
-                num_threads += child.num_threads()
+            with process.oneshot():
+                rss_bytes += process.memory_info().rss
+                cpu_percent += process.cpu_percent(None)
+                num_threads += process.num_threads()
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             continue
 
+    if vram_bytes is None:
+        vram_bytes = max(sample_vram_bytes(), nvidia_smi_vram_bytes(tree.pids()))
+
     return SystemSample(t=time.time(), rss_bytes=rss_bytes, cpu_percent=cpu_percent,
-                        num_threads=num_threads, vram_bytes=sample_vram_bytes())
+                        num_threads=num_threads, vram_bytes=vram_bytes)
 
 
-def sample_resources(collector, stop):
-    psutil.Process().cpu_percent(None)
+class AcceleratorReader:
+    """Latest accelerator reading, refreshed on its own thread.
 
-    while not stop.is_set():
-        sample = snapshot_system()
-        collector.add_sample(sample.rss_bytes, sample.cpu_percent, sample.num_threads,
-                             vram_bytes=sample.vram_bytes)
-        stop.wait(0.1)
+    Reading another process's video memory means running `nvidia-smi`, which
+    costs tens of milliseconds on Linux and over a second on Windows. Doing
+    that inline collapsed a 0.1-second sampler to roughly one sample per
+    second, so the resident-set curve it exists to capture was gone.
+    """
+
+    def __init__(self, tree, interval=1.0):
+        self.tree = tree
+        self.interval = interval
+        self.value = 0
+        self._stop = threading.Event()
+        self._thread = threading.Thread(target=self._run, daemon=True)
+
+    def start(self):
+        self._thread.start()
+
+        return self
+
+    def stop(self):
+        self._stop.set()
+        self._thread.join(timeout=self.interval + 5)
+
+    def _run(self):
+        while not self._stop.is_set():
+            self.value = max(sample_vram_bytes(), nvidia_smi_vram_bytes(self.tree.pids()))
+            self._stop.wait(self.interval)
+
+
+def sample_resources(collector, stop, interval=0.1, accelerator_interval=1.0):
+    tree = ProcessTree()
+    accelerator = AcceleratorReader(tree, accelerator_interval).start()
+
+    try:
+        while not stop.is_set():
+            sample = snapshot_system(tree, accelerator.value)
+            collector.add_sample(sample.rss_bytes, sample.cpu_percent, sample.num_threads,
+                                 vram_bytes=sample.vram_bytes)
+            stop.wait(interval)
+    finally:
+        accelerator.stop()
 
 
 def results_file_path(results_directory, example, machine):
