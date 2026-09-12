@@ -136,6 +136,21 @@ def runtime_label(serve):
     return f"{RUNTIME}, adapters served" if serve else RUNTIME
 
 
+def clear_stale_stop_request():
+    stop_file = Path.cwd() / ".stop"
+
+    if not stop_file.exists():
+        return None
+
+    stop_file.unlink()
+
+    return (
+        f"removed a stale {stop_file}; the controller polls for that file every second "
+        f"and stops as soon as it sees one, so a run that was killed during shutdown "
+        f"makes every later run in this directory stop about a second after starting"
+    )
+
+
 def resolve_workflow_input(raw, audio_path):
     placeholder = "@audio"
     workflow_input = json.loads(raw)
@@ -205,6 +220,11 @@ async def await_ready(manager, launch, timeout):
 
 
 async def run(arguments):
+    stale_stop_request = clear_stale_stop_request()
+
+    if stale_stop_request is not None:
+        emit("runtime", "cleared_stop_request", detail=stale_stop_request)
+
     workflow_input = resolve_workflow_input(arguments.workflow_input, arguments.audio)
     launch_t = time.time()
 
