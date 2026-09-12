@@ -1,0 +1,47 @@
+{
+  "example": "speaker-diarization-vibevoice",
+  "machine": "dgx-spark",
+  "conditions": {
+    "runtime": "model-compose + pytorch 2.14.0+cu130",
+    "build": "microsoft/VibeVoice-ASR",
+    "precision": "bfloat16",
+    "quantization": "none",
+    "quantization_backend": null,
+    "quantization_skip_modules": [],
+    "numerics": "bfloat16",
+    "batch": 1,
+    "audio_duration_seconds": 1049.3547,
+    "acoustic_tokenizer_chunk_size": 1440000
+  },
+  "cold_start_seconds": 94.7601,
+  "real_time_factor": 0.9758,
+  "valid": true,
+  "errors": [],
+  "ttfo_seconds": 1023.9298,
+  "e2e_seconds": 1023.9299,
+  "rss": {
+    "ready_mb": 1189.6,
+    "peak_bytes": 3623911424,
+    "peak_mb": 3456.0,
+    "mean_mb": 3427.6,
+    "p95_mb": 3435.7,
+    "final_mb": 3036.3
+  },
+  "cpu": {
+    "peak_percent": 2505.1,
+    "mean_percent": 116.2,
+    "p95_percent": 125.4
+  },
+  "threads": {
+    "peak": 130,
+    "final": 128
+  },
+  "vram": {
+    "peak_bytes": 24931991552,
+    "peak_mb": 23777.0,
+    "mean_mb": 23681.4,
+    "p95_mb": 23777.0
+  },
+  "backlog_max": {},
+  "sample_count": 8868
+}
