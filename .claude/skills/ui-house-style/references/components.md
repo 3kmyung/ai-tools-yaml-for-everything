@@ -142,6 +142,24 @@ appearance and disappearance is `layout.md`'s footer self-hiding mechanism and i
 repeated here — a status widget only ever sets the log's `hidden` attribute and content,
 never its visibility.
 
+### Punctuation is not layout
+
+| Ban | Replacement | Reason |
+|---|---|---|
+| Joining fields into one string with `·`, `—`, `–`, or `: ` | One element per field, spaced with `gap` | A separator character is a layout decision made in the wrong language. It cannot be given its own colour, cannot wrap, cannot be hidden at a narrow width, and cannot be skipped by a screen reader |
+| A status message built from clauses | One short sentence | The log is a strip that truncates with an ellipsis; the clause after the dash is the part the user never sees |
+
+A time range keeps its `–`, because there the dash is the word "to" rather than a
+separator between fields. Everything else that reads as "label, separator, value" is
+elements:
+
+```
+✗ label.textContent = speaker + " · " + start + "–" + end + " — " + text;
+→ label.append(metaElement, textElement);   // .item-meta, .item-text, gap between them
+Why: the first version cannot make the metadata quieter than the text, cannot keep the
+timestamps from being truncated before the words are, and reads the separators aloud.
+```
+
 ## Thumbnail and swatch — `.thumbnail`, `.thumbnail-frame`, `.color-picker-swatch`
 
 `.thumbnail-frame` is the positioning wrapper; the scrim on its `::after` is the one
