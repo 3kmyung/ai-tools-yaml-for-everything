@@ -21,8 +21,10 @@ only starts its own clock once that event has already arrived.
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
 import time
+import wave
 from pathlib import Path
 
 import psutil
@@ -89,13 +91,24 @@ def emit(stage, event, t=None, **detail):
 
 
 def audio_duration_seconds(path):
-    output = subprocess.run(
-        ["ffprobe", "-v", "error", "-show_entries", "format=duration",
-         "-of", "csv=p=0", str(path)],
-        capture_output=True, text=True, check=True,
-    )
+    if shutil.which("ffprobe") is not None:
+        output = subprocess.run(
+            ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+             "-of", "csv=p=0", str(path)],
+            capture_output=True, text=True, check=True,
+        )
 
-    return round(float(output.stdout.strip()), 4)
+        return round(float(output.stdout.strip()), 4)
+
+    if path.suffix.lower() != ".wav":
+        raise FileNotFoundError(
+            f"ffprobe is not installed and {path.name} is not a WAV file, so its "
+            f"duration cannot be read; every real-time factor in the table divides "
+            f"by this number"
+        )
+
+    with wave.open(str(path), "rb") as handle:
+        return round(handle.getnframes() / handle.getframerate(), 4)
 
 
 def snapshot_system():
