@@ -1,8 +1,0 @@
-from typing import Type, Union, Literal, Optional, Dict, List, Tuple, Set, Annotated, Any
-from pydantic import BaseModel, Field
-from .common import CommonActionConfig
-
-class AgentActionConfig(CommonActionConfig):
-    prompt: Optional[str] = Field(default=None, description="Prompt for this invocation, applied as a user message.")
-    max_iteration_count: Optional[int] = Field(default=None, description="Maximum ReAct loop iterations. Overrides component-level setting.")
-    streaming: Union[bool, str] = Field(default=False, description="Whether output is emitted incrementally as it is produced.")
