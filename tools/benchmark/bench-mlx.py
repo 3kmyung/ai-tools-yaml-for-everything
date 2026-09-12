@@ -38,7 +38,7 @@ import threading
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from benchmarks.common.metrics import MetricsCollector
 from benchmarks.common.harness import (
     add_condition_arguments,
