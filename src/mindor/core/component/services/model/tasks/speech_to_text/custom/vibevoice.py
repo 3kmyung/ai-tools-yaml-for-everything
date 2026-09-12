@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 from typing import Dict, Optional, List, Iterator, Tuple, Union, Any
 from collections.abc import AsyncIterator
-from mindor.dsl.schema.component import ModelComponentConfig, VibeVoiceSpeechToTextModelComponentConfig, ModelPrecision, ModelQuantizationType
+from mindor.dsl.schema.component import ModelComponentConfig, VibeVoiceSpeechToTextModelComponentConfig, ModelPrecision
 from mindor.dsl.schema.action import ModelActionConfig, VibeVoiceSpeechToTextModelActionConfig
 from mindor.core.foundation.cancellation import CancellationToken
 from mindor.core.foundation.streaming.audio import AudioBufferStreamer
@@ -314,23 +314,14 @@ class VibeVoiceSpeechToTextTaskService(ModelTaskService):
         processor = VibeVoiceASRProcessor.from_pretrained(model_path)
         streaming_info = self._load_streaming_info(model_path)
         dtype = self._resolve_torch_dtype(device)
-        quantization = self._resolve_quantization_config(device, dtype)
 
-        arguments = {
-            "torch_dtype": dtype,
-            "attn_implementation": self.config.attn_implementation,
-        }
+        model = VibeVoiceASRForConditionalGeneration.from_pretrained(
+            model_path,
+            torch_dtype=dtype,
+            attn_implementation=self.config.attn_implementation,
+        ).to(device).eval()
 
-        if quantization is not None:
-            arguments["quantization_config"] = quantization
-            arguments["device_map"] = { "": device.index if device.index is not None else 0 }
-
-        model = VibeVoiceASRForConditionalGeneration.from_pretrained(model_path, **arguments)
-
-        if quantization is None:
-            model = model.to(device)
-
-        return model.eval(), processor, streaming_info, device
+        return model, processor, streaming_info, device
 
     def _load_streaming_info(self, model_path: str) -> Optional[Dict[str, float]]:
         # Streaming checkpoints ship chunk/lookahead sizes in
@@ -357,44 +348,6 @@ class VibeVoiceSpeechToTextTaskService(ModelTaskService):
             "chunk_duration":   config["chunk_frames"] * frame_seconds,
             "text_audio_delay": config["lookahead_frames"] * frame_seconds,
         }
-
-    def _resolve_quantization_config(self, device: torch.device, dtype: torch.dtype) -> Optional[Any]:
-        import torch
-
-        quantization = self.config.quantization
-
-        if quantization is None:
-            return None
-
-        if device.type != "cuda":
-            raise ValueError(
-                f"quantization is configured but the model is loading on '{device.type}'; "
-                f"bitsandbytes supports CUDA only"
-            )
-
-        if quantization.type == ModelQuantizationType.INT4:
-            raise ValueError(
-                "quantization type 'int4' has no bitsandbytes equivalent; "
-                "use 'nf4' for normal-float 4-bit or 'fp4' for plain float 4-bit"
-            )
-
-        from transformers import BitsAndBytesConfig
-
-        if quantization.type == ModelQuantizationType.INT8:
-            return BitsAndBytesConfig(
-                load_in_8bit=True,
-                llm_int8_skip_modules=quantization.skip_modules,
-            )
-
-        compute_dtype = getattr(torch, quantization.compute_dtype) if quantization.compute_dtype else dtype
-
-        return BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_quant_type=quantization.type.value,
-            bnb_4bit_compute_dtype=compute_dtype,
-            bnb_4bit_use_double_quant=quantization.double_quant,
-            llm_int8_skip_modules=quantization.skip_modules,
-        )
 
     def _resolve_torch_dtype(self, device: torch.device) -> torch.dtype:
         import torch

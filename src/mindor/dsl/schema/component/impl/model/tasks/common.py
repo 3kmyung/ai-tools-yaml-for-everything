@@ -172,7 +172,6 @@ class ModelQuantizationConfig(BaseModel):
     type: ModelQuantizationType = Field(..., description="Quantization scheme applied to model weights.")
     compute_dtype: Optional[str] = Field(default=None, description="Compute dtype used with 4-bit quantization (e.g., float16, bfloat16).")
     double_quant: bool = Field(default=True, description="Whether to apply nested quantization for 4-bit weights.")
-    skip_modules: Optional[List[str]] = Field(default=None, description="Module names left at full precision; required for submodules whose output is not a token distribution, such as an audio tokenizer.")
 
 class PeftAdapterConfig(BaseModel):
     type: PeftAdapterType = Field(..., description="Type of PEFT adapter to load.")
