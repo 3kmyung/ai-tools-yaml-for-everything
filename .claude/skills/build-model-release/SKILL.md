@@ -1,11 +1,10 @@
 ---
-name: model-showcase
-description: Use when building a model-compose showcase example that introduces one model — researches the model, maps it onto a model-compose task, gates on which demo angle to build, then generates the compose file, the web UI, the fixtures, and the three READMEs.
+description: Use when building a model-compose release that introduces one model — researches the model, maps it onto a model-compose task, gates on which demo angle to build, then generates the compose file, the web UI, the fixtures, and the three READMEs.
 ---
 
-# model-showcase
+# model-release
 
-Six steps turn a model name into a runnable `examples/showcase/<verb-object>/` example.
+Six steps turn a model name into a runnable `releases/<task-model>/` example.
 Human judgement sits at exactly two of them; the rest is mechanical and this skill's
 prose is what makes it repeatable.
 
@@ -16,7 +15,7 @@ prose is what makes it repeatable.
 | 1. Research | automatic | variants, sizes, licence, I/O mode, hardware, the distinguishing mechanism — `references/research.md` |
 | 2. Map | automatic | which of the model tasks, which driver, which existing example is the base — `references/compose.md` |
 | 3. **Demo angle** | **human** | the killer property, three screens that would show it, pick one |
-| 4. Generate | automatic | compose, `ui/` via `ui-house-style`, fixture, READMEs, index entry — `references/compose.md`, `references/readme.md` |
+| 4. Generate | automatic | compose, `ui/` via `style-web-interface`, fixture, READMEs, index entry — `references/compose.md`, `references/readme.md` |
 | 5. Fast verify | automatic | `ui-check.mjs`, screenshots, self-critique — `references/verify.md` |
 | 6. **Real run** | **human** | `model-compose up` once — `references/verify.md` |
 
@@ -38,12 +37,12 @@ prose is what makes it repeatable.
 | `references/readme.md` | doing step 4 — the three READMEs and the `examples/README.md` index entry |
 | `references/verify.md` | doing step 5 or step 6 — the fast loop, the fixture lifecycle, the Chrome rule |
 
-Step 4's UI work is `ui-house-style`'s job, not this skill's: read that skill's own
+Step 4's UI work is `style-web-interface`'s job, not this skill's: read that skill's own
 `SKILL.md` when laying down `ui/`.
 
 ## The generated example is never hand-patched
 
 When a screenshot looks wrong, a check fails, or step 6 surfaces a schema this skill
-assumed wrong: fix the skill's prose, `ui-house-style`, or the fixture, then regenerate
+assumed wrong: fix the skill's prose, `style-web-interface`, or the fixture, then regenerate
 the example whole. Hand-patching measures the patch, not the skill, and the next model
 repeats the same mistake. Nothing under `examples/showcase/<name>/` is a hand-edit target.
