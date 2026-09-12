@@ -1,6 +1,6 @@
 """Convert one AMI meeting's manual word annotations into MeetEval SegLST.
 
-    python ami-reference.py \\
+    python ami_reference.py \\
         --annotations ami_public_manual_1.6.2/words \\
         --meeting ES2004a \\
         --output ES2004a.reference.json

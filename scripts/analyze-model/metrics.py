@@ -25,6 +25,40 @@ class SystemSample:
     rss_bytes: int
     cpu_percent: float
     num_threads: int
+    vram_bytes: int = 0
+
+
+def _torch_vram_bytes() -> int:
+    try:
+        import torch
+    except ImportError:
+        return 0
+
+    if torch.cuda.is_available():
+        return torch.cuda.max_memory_allocated()
+
+    if torch.backends.mps.is_available():
+        return torch.mps.current_allocated_memory()
+
+    return 0
+
+
+def _mlx_vram_bytes() -> int:
+    try:
+        import mlx.core
+    except ImportError:
+        return 0
+
+    for owner in (mlx.core, getattr(mlx.core, "metal", None)):
+        reader = getattr(owner, "get_peak_memory", None)
+        if reader is not None:
+            return reader()
+
+    return 0
+
+
+def sample_vram_bytes() -> int:
+    return max(_torch_vram_bytes(), _mlx_vram_bytes())
 
 
 @dataclass
@@ -74,12 +108,13 @@ class MetricsCollector:
                 self.backlog_max[stage] = depth
 
     def add_sample(self, rss_bytes: int, cpu_percent: float,
-                   num_threads: int) -> None:
+                   num_threads: int, vram_bytes: int = 0) -> None:
         self.samples.append(SystemSample(
             t=time.time(),
             rss_bytes=rss_bytes,
             cpu_percent=cpu_percent,
             num_threads=num_threads,
+            vram_bytes=vram_bytes,
         ))
 
     def is_valid(self) -> tuple[bool, list[str]]:
@@ -112,6 +147,7 @@ class MetricsCollector:
         rss_series = [s.rss_bytes for s in self.samples]
         cpu_series = [s.cpu_percent for s in self.samples]
         thread_series = [s.num_threads for s in self.samples]
+        vram_series = [s.vram_bytes for s in self.samples]
 
         rss = {
             "ready_mb": round(self.ready_sample.rss_bytes / 1024 / 1024, 1) if self.ready_sample else 0.0,
@@ -130,6 +166,12 @@ class MetricsCollector:
             "peak": max(thread_series, default=0),
             "final": thread_series[-1] if thread_series else 0,
         }
+        vram = {
+            "peak_bytes": max(vram_series, default=0),
+            "peak_mb": round(max(vram_series, default=0) / 1024 / 1024, 1),
+            "mean_mb": round(sum(vram_series) / len(vram_series) / 1024 / 1024, 1) if vram_series else 0.0,
+            "p95_mb": round(self._percentile(vram_series, 0.95) / 1024 / 1024, 1),
+        }
 
         return {
             "ttfo_seconds": ttfo,
@@ -137,6 +179,7 @@ class MetricsCollector:
             "rss": rss,
             "cpu": cpu,
             "threads": threads,
+            "vram": vram,
             "backlog_max": dict(self.backlog_max),
             "sample_count": len(self.samples),
         }

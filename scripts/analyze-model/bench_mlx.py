@@ -1,6 +1,6 @@
 """Measure one machine's row through MLX, for a machine with no PyTorch build.
 
-    python bench-mlx.py \\
+    python bench_mlx.py \\
         --model mlx-community/VibeVoice-ASR-4bit \\
         --max-tokens 8192 \\
         --context "Microsoft,VibeVoice" \\
@@ -14,8 +14,8 @@
         --batch 1 \\
         --acoustic-tokenizer-chunk-size 1440000
 
-Writes the same result shape as `bench-hw.py`, through the same
-`benchmarks/common/harness.py`, so both land in one table. What differs is
+Writes the same result shape as `bench_hw.py`, through the same
+`scripts/analyze-model/harness.py`, so both land in one table. What differs is
 recorded rather than hidden: `conditions.runtime` says `mlx-audio` and
 `conditions.build` names the converted repository, because the two runners
 execute two implementations of one architecture. A gap between such rows is
@@ -23,7 +23,7 @@ not by itself a gap between the machines.
 
 `model-compose` has no MLX driver, so this runner bypasses it entirely and
 calls `mlx_audio.stt` directly. Cold start therefore covers a model load
-alone, where `bench-hw.py`'s also covers bringing a compose stack up — the two
+alone, where `bench_hw.py`'s also covers bringing a compose stack up — the two
 cold-start figures are the least comparable column in the table.
 
 Time to first output comes from `stream_transcribe`, which yields text as it
@@ -38,9 +38,8 @@ import threading
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from benchmarks.common.metrics import MetricsCollector
-from benchmarks.common.harness import (
+from metrics import MetricsCollector
+from harness import (
     add_condition_arguments,
     audio_duration_seconds,
     build_result,
