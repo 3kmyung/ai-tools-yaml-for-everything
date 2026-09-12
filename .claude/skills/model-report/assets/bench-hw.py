@@ -39,6 +39,12 @@ component in the example's own `model-compose.yml`; the arguments here only
 record what that component was configured to do, so a mismatch between the two
 is invisible to this script and has to be checked by reading the compose file.
 
+On a machine that is already running something, pass `--controller-port` and
+`--webui-port` rather than editing the example: the compose file's ports are
+part of what the example documents, and a benchmark has no business changing
+them on disk. `--ready-timeout` bounds the wait for the controller, so a port
+already in use fails with that sentence instead of spinning forever.
+
 A component whose `runtime` is `virtualenv` or `docker` loads its model in a
 separate process. `sample_vram_bytes()` reads the accelerator context of
 whichever process calls it, so `vram_bytes` on such a run reports this
@@ -80,20 +86,50 @@ def parse_arguments(argv=None):
     parser.add_argument("--compose-file", required=True, type=Path)
     parser.add_argument("--workflow-id", required=True)
     parser.add_argument("--workflow-input", required=True)
+    parser.add_argument("--controller-port", type=int, default=None)
+    parser.add_argument("--webui-port", type=int, default=None)
+    parser.add_argument("--ready-timeout", type=float, default=1200.0)
     add_condition_arguments(parser)
 
     return validate_condition_arguments(parser, parser.parse_args(argv))
+
+
+def override_ports(config, controller_port, webui_port):
+    if controller_port is not None:
+        for adapter in config.controller.adapters:
+            adapter.port = controller_port
+
+    if webui_port is not None and config.controller.webui is not None:
+        config.controller.webui.port = webui_port
+
+    return config
+
+
+async def await_ready(manager, launch, timeout):
+    deadline = time.time() + timeout
+
+    while not manager.controller.started:
+        if launch.done() and launch.exception() is not None:
+            raise launch.exception()
+
+        if time.time() > deadline:
+            raise TimeoutError(
+                f"controller did not report started within {timeout:g}s; "
+                f"a port already in use is the usual cause"
+            )
+
+        await asyncio.sleep(0.05)
 
 
 async def run(arguments):
     launch_t = time.time()
 
     config = load_compose_config(str(arguments.compose_file.parent), [arguments.compose_file], env={})
+    config = override_ports(config, arguments.controller_port, arguments.webui_port)
     manager = ComposeManager(config, daemon=True)
     launch = asyncio.create_task(manager.launch_services(detach=False, verbose=False))
 
-    while not manager.controller.started:
-        await asyncio.sleep(0.05)
+    await await_ready(manager, launch, arguments.ready_timeout)
 
     ready_t = time.time()
     cold_start_seconds = round(ready_t - launch_t, 4)
