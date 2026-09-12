@@ -1,2 +1,8 @@
 .venv
-**/results
+
+# The framework comparisons under llm-tts-streaming and stt-embed-streaming write
+# throwaway runs here; a showcase example's results are the report's evidence and are
+# committed, so the rule names the directories it means rather than every path called
+# "results".
+llm-tts-streaming/**/results
+stt-embed-streaming/**/results
