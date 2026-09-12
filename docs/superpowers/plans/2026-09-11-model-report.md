@@ -50,9 +50,11 @@ The machine used for Plan 1 is an RTX 4050 laptop with 6141 MiB of video memory 
 | `references/benchmark.md` | create | what is measured where, the precision trap, the delegation |
 | `references/report.md` | create | the report's six sections and what each must carry |
 | `references/social.md` | create | the X thread's shape and its one prohibition |
-| `assets/bench-hw.py` | create | the hardware axis, extending the existing collector |
+| `assets/bench-hw.py` | create | one machine's row through `model-compose` and PyTorch |
+| `assets/bench-mlx.py` | create | one machine's row through MLX, for a machine with no PyTorch build |
 | `assets/capture.mjs` | create | screenshot and screencast for the demo media |
-| `benchmarks/common/metrics.py` | modify | `SystemSample` gains `vram_bytes` |
+| `benchmarks/common/metrics.py` | modify | `SystemSample` gains `vram_bytes`, read from CUDA, MPS or MLX |
+| `benchmarks/common/harness.py` | create | the result shape, resource sampling and condition arguments both runners share |
 
 ---
 
@@ -207,20 +209,42 @@ Then replace the fixture with real output and re-run the fast loop at all three 
 
 **Requires every machine below.**
 
-Run `bench-hw.py` against the same audio on each machine, and collect `benchmarks/transcribe-long-meeting/results/*.json`.
+One detailed table holds every machine, with `runtime`, `build` and `numerics` as columns so that each row states what produced it. Collect `benchmarks/transcribe-long-meeting/results/*.json`.
 
-| Machine | Reached by | Memory | Numerics |
-|---|---|---|---|
-| RTX 4090 ×2 | `ssh device-rtx-4090` | 24564 MiB each | `float16` — the matched-conditions baseline |
-| DGX Spark, GB10, aarch64 | `ssh device-dgx-spark` | 119 GB unified | `float16` |
-| MacBook, Apple M1 | `ssh device-macbook-m1` once remote login is enabled | 16 GB unified | too small for `float16`; quantized, backbone only |
-| RTX 4050 Laptop | local | 6141 MiB | too small for `float16`; quantized, backbone only |
+| Machine | Reached by | Memory | Runner | Runtime | Build | Numerics |
+|---|---|---|---|---|---|---|
+| RTX 4090 ×2 | `ssh device-rtx-4090` | 24564 MiB each | `bench-hw.py` | `model-compose + pytorch` | `microsoft/VibeVoice-ASR` | `float16` — the baseline |
+| DGX Spark, GB10, aarch64 | `ssh device-dgx-spark` | 119 GB unified | `bench-hw.py` | `model-compose + pytorch` | `microsoft/VibeVoice-ASR` | `float16` |
+| MacBook, Apple M1 | `ssh device-macbook-m1` once remote login is enabled | 16 GB unified | `bench-mlx.py` | `mlx-audio` | `mlx-community/VibeVoice-ASR-4bit` | `int4/mlx` |
 
-The two large machines run unquantized and carry the accuracy column. The two small ones carry speed and memory only.
+The Mac row needs one value this plan cannot supply: the modules the MLX conversion left at full precision, which are a property of that published build. Read them from its own config and pass them as `--quantization-skip-modules`, or the row is labelled `scope unstated` — which is accurate, and worse than the truth.
 
-Two tables come out of this, and the second only exists if the first justifies it: matched conditions with `float16` forced, and real-world conditions with `precision: auto`. Every figure carries its `conditions.numerics`, batch setting and sample length, and a row whose numerics differ from the baseline carries speed and memory figures only.
+The accuracy column belongs to the two baseline rows only. Cold start is the least comparable column in the table, because `bench-hw.py` brings a compose stack up while `bench-mlx.py` loads a model; say so under the table rather than letting a reader rank the machines by it.
 
-The two small machines are measured quantized rather than left blank. Whether either actually runs is itself the finding — record the failure and its message when it does not, rather than dropping the row.
+Two tables come out of the PyTorch rows, and the second only exists if the first justifies it: matched conditions with `float16` forced, and real-world conditions with `precision: auto`. Every figure carries its `conditions.numerics`, batch setting and sample length.
+
+### The machine that is not in the table
+
+A 6141 MiB RTX 4050 Laptop was considered and dropped. The arithmetic belongs in the report's limits section rather than in the results table, because it is checkable without running anything:
+
+| Module | `bfloat16` | Share |
+|---|---|---|
+| `model.language_model` | 14.14 GB | 81.5% |
+| `model.acoustic_tokenizer` | 1.37 GB | 7.9% |
+| `lm_head` | 1.09 GB | 6.3% |
+| `model.semantic_tokenizer` | 0.69 GB | 4.0% |
+| `model.acoustic_connector`, `model.semantic_connector` | 0.06 GB | 0.4% |
+| Total | 17.35 GB | |
+
+Quantizing the backbone to `nf4` with double quantization leaves 3.65 GB, and the modules that must stay at full precision add 3.21 GB — 6.86 GB of weights before a single activation, against 6.00 GB of usable video memory. Quantizing `lm_head` as well still lands at 6.05 GB. The only configuration that fits offloads the skipped modules to system memory, which measures the offload rather than the machine.
+
+No published build closes that gap on this machine: `mlx-community`'s conversions are Metal-only, and no GGUF port of this architecture exists. The threshold for a 6 GB discrete card is a conversion nobody has published, not a setting nobody has tried.
+
+The 16 GB M1 is in the table for the opposite reason. `mlx-audio` has ported this architecture and `mlx-community` publishes converted builds — 17.35 GB at `bf16`, 9.52 GB at 8-bit, 5.71 GB at 4-bit — so the machine has room with margin. What it does not share with the baseline rows is the inference stack, and that is what the `runtime` and `build` columns exist to say.
+
+The key-value cache rules out neither machine. The Qwen2 decoder is 28 layers, hidden size 3584, 4 key-value heads, head dimension 128 — 57.3 KB per token, so a ten-minute sample at 7.5 Hz costs well under a gigabyte.
+
+Every figure above is read from the checkpoint's own weight index and `config.json`, not estimated.
 
 ---
 
