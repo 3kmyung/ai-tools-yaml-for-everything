@@ -217,7 +217,15 @@ One detailed table holds every machine, with `runtime`, `build` and `numerics` a
 | DGX Spark, GB10, aarch64 | `ssh device-dgx-spark` | 119 GB unified | `bench-hw.py` | `model-compose + pytorch` | `microsoft/VibeVoice-ASR` | `float16` |
 | MacBook, Apple M1 | `ssh device-macbook-m1` once remote login is enabled | 16 GB unified | `bench-mlx.py` | `mlx-audio` | `mlx-community/VibeVoice-ASR-4bit` | `int4/mlx` |
 
-The Mac row needs one value this plan cannot supply: the modules the MLX conversion left at full precision, which are a property of that published build. Read them from its own config and pass them as `--quantization-skip-modules`, or the row is labelled `scope unstated` — which is accurate, and worse than the truth.
+The Mac row's `--quantization-skip-modules` is a property of the published conversion, not a choice made here. `mlx-community/VibeVoice-ASR-4bit`'s `config.json` carries only global settings (`group_size` 64, `bits` 4, `mode` affine), so the split is read from its weight index instead: a quantized tensor carries `.scales` alongside `.weight`, and one left at source dtype does not.
+
+| Module | In the 4-bit conversion |
+|---|---|
+| `language_model.model`, `language_model.lm_head` | quantized |
+| `acoustic_tokenizer.encoder`, `semantic_tokenizer.encoder` | source dtype |
+| `acoustic_connector.*`, `semantic_connector.*` | source dtype |
+
+So the Mac row passes `--quantization-skip-modules acoustic_tokenizer,semantic_tokenizer,acoustic_connector,semantic_connector`. Two details worth carrying into the report: the conversion quantizes `lm_head`, and it ships the tokenizers' encoders without their decoders, which is why 17.35 GB becomes 5.71 GB rather than the larger figure a backbone-only conversion would give.
 
 The accuracy column belongs to the two baseline rows only. Cold start is the least comparable column in the table, because `bench-hw.py` brings a compose stack up while `bench-mlx.py` loads a model; say so under the table rather than letting a reader rank the machines by it.
 
