@@ -157,12 +157,8 @@ def resolve_workflow_input(raw, audio_path):
 
 
 def arm_force_exit(timeout, code, message):
-    finished = threading.Event()
-
     def watchdog():
-        if finished.wait(timeout):
-            return
-
+        time.sleep(timeout)
         print(message, flush=True)
         sys.stdout.flush()
         sys.stderr.flush()
@@ -170,17 +166,8 @@ def arm_force_exit(timeout, code, message):
 
     threading.Thread(target=watchdog, daemon=True).start()
 
-    return finished
 
-
-async def shutdown_or_die(manager, launch, timeout, valid):
-    finished = arm_force_exit(
-        timeout * 2,
-        0 if valid else 1,
-        f"shutdown wedged past {timeout * 2:g}s and was not interruptible; "
-        f"exiting hard so no component subprocess keeps this machine's accelerator",
-    )
-
+async def shutdown_or_die(manager, launch, timeout):
     try:
         await asyncio.wait_for(manager.terminate_services(verbose=False), timeout)
         shutdown_error = None
@@ -197,8 +184,6 @@ async def shutdown_or_die(manager, launch, timeout, valid):
         await launch
     except (asyncio.CancelledError, Exception):
         pass
-
-    finished.set()
 
     return shutdown_error
 
@@ -301,20 +286,26 @@ async def run(arguments):
     )
     write_result(arguments, result)
 
-    shutdown_error = await shutdown_or_die(manager, launch, arguments.shutdown_timeout, valid)
+    arm_force_exit(
+        arguments.shutdown_timeout * 2,
+        0 if valid else 1,
+        f"shutdown did not reach process exit within {arguments.shutdown_timeout * 2:g}s; "
+        f"exiting hard so no component subprocess keeps this machine's accelerator",
+    )
+
+    shutdown_error = await shutdown_or_die(manager, launch, arguments.shutdown_timeout)
 
     if shutdown_error is not None:
         result["errors"] = [ *errors, shutdown_error ]
         write_result(arguments, result)
 
-    return 0 if valid and shutdown_error is None else 1
+    sys.stdout.flush()
+    sys.stderr.flush()
+    os._exit(0 if valid and shutdown_error is None else 1)
 
 
 def main():
-    code = asyncio.run(run(parse_arguments()))
-    sys.stdout.flush()
-    sys.stderr.flush()
-    os._exit(code)
+    asyncio.run(run(parse_arguments()))
 
 
 if __name__ == "__main__":
