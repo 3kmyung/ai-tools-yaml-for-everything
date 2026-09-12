@@ -24,7 +24,7 @@
 
 ## What this plan does not contain
 
-Plan 1's Task 14 — the first real run of `examples/showcase/speaker-diarization-vibevoice` — was deferred into this plan rather than completed in its own, because it needs the same machine and the same audio as the benchmark runs. It is Task 5 here.
+Plan 1's Task 14 — the first real run of `releases/speaker-diarization-vibevoice` — was deferred into this plan rather than completed in its own, because it needs the same machine and the same audio as the benchmark runs. It is Task 5 here.
 
 Three questions ride on it and are unresolved until it happens: the workflow's actual output schema, the checkpoint's parameter count, and whether `acoustic_tokenizer_chunk_size` changes the transcription.
 
@@ -185,7 +185,7 @@ Its one prohibition: when the research step recorded a usage-scope restriction, 
 **Requires the hardware and the audio.**
 
 **Files:**
-- Modify: `examples/showcase/speaker-diarization-vibevoice/ui/fixture.json` and its adapter
+- Modify: `releases/speaker-diarization-vibevoice/ui/fixture.json` and its adapter
 - Modify: that example's three READMEs, wherever a figure is marked as needing verification
 - Modify: `examples/model-tasks/speech-to-text-vibevoice/README.md` if the schema disagreement resolves against it
 
@@ -209,7 +209,7 @@ Then replace the fixture with real output and re-run the fast loop at all three 
 
 **Requires every machine below.**
 
-One detailed table holds every machine, with `runtime`, `build` and `numerics` as columns so that each row states what produced it. Collect `benchmarks/speaker-diarization-vibevoice/results/*.json`.
+One detailed table holds every machine, with `runtime`, `build` and `numerics` as columns so that each row states what produced it. Collect `releases/speaker-diarization-vibevoice/benchmarks/results/*.json`.
 
 | Machine | Reached by | Memory | Runner | Runtime | Build | Numerics |
 |---|---|---|---|---|---|---|
@@ -260,7 +260,7 @@ Every figure above is read from the checkpoint's own weight index and `config.js
 
 **Requires one machine and the AMI test set.**
 
-One machine, three precisions, scored by the external harnesses. Write `benchmarks/speaker-diarization-vibevoice/accuracy/{bfloat16,float16,float32}.json`.
+One machine, three precisions, scored by the external harnesses. Write `releases/speaker-diarization-vibevoice/benchmarks/accuracy/{bfloat16,float16,float32}.json`.
 
 The self-test comes first: if the WER lands far from the published 7.77% average, the setup is wrong before the model is. Check the normaliser and the microphone condition before believing any number.
 

@@ -179,7 +179,6 @@ HUGGINGFACE_TOKEN=your-token-here
 - [find-person-scenes](./showcase/find-person-scenes/) — 通过人脸嵌入定位视频中目标人物出现的场景
 - [vibevoice-realtime-tts](./showcase/vibevoice-realtime-tts/) — 基于 Microsoft VibeVoice 的实时 WebSocket TTS
 - [echo-server](./showcase/echo-server/) — 最小 HTTP 回显服务器
-- [speaker-diarization-vibevoice](./showcase/speaker-diarization-vibevoice/) — VibeVoice-ASR 一次解码给出说话人、文本与时间戳
 
 ### Media Processing
 
