@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Transcribe a Long Meeting</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" />
+  <link rel="stylesheet" href="./styles/base.css" />
+  <link rel="stylesheet" href="./styles/components.css" />
+  <link rel="stylesheet" href="./styles/layout.css" />
+</head>
+<body>
+  <header>
+    <button id="back-to-segments" class="action-cancel action-back" type="button">Back</button>
+    <div id="settings">
+      <span class="setting">
+        <span id="hotwords-label">Hotwords</span>
+        <input type="text" id="hotwords" aria-labelledby="hotwords-label" placeholder="Microsoft, VibeVoice" />
+      </span>
+      <span id="warning" class="caption-warning" hidden></span>
+    </div>
+    <button id="transcribe" class="action-primary" type="button">Transcribe</button>
+  </header>
+  <main>
+    <section id="segments">
+      <div id="segment-scroller">
+        <p id="segments-hint">Segments will appear here once a file is transcribed.</p>
+        <ol></ol>
+      </div>
+    </section>
+    <div id="workspace">
+      <p id="hint">No transcription yet.</p>
+      <section id="dropzone"></section>
+      <section id="timeline" hidden></section>
+      <section id="detail" hidden></section>
+    </div>
+  </main>
+  <footer>
+    <div id="log"></div>
+    <button id="transcribe-compact" class="action-primary" type="button">Transcribe</button>
+  </footer>
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+{
+  "example": "speaker-diarization-vibevoice",
+  "machine": "rtx-4090-smoke",
+  "conditions": {
+    "runtime": "model-compose + pytorch",
+    "build": "microsoft/VibeVoice-ASR",
+    "precision": "bfloat16",
+    "quantization": "none",
+    "quantization_backend": null,
+    "quantization_skip_modules": [],
+    "numerics": "bfloat16",
+    "batch": 1,
+    "audio_duration_seconds": 60.0,
+    "acoustic_tokenizer_chunk_size": 1440000
+  },
+  "cold_start_seconds": 17.5181,
+  "real_time_factor": 0.1109,
+  "valid": true,
+  "errors": [],
+  "ttfo_seconds": 6.6568,
+  "e2e_seconds": 6.6568,
+  "rss": {
+    "ready_mb": 1126.0,
+    "peak_bytes": 2617602048,
+    "peak_mb": 2496.3,
+    "mean_mb": 2417.9,
+    "p95_mb": 2475.1,
+    "final_mb": 2475.1
+  },
+  "cpu": {
+    "peak_percent": 177.8,
+    "mean_percent": 106.9,
+    "p95_percent": 113.7
+  },
+  "threads": {
+    "peak": 156,
+    "final": 154
+  },
+  "vram": {
+    "peak_bytes": 20235419648,
+    "peak_mb": 19298.0,
+    "mean_mb": 15780.8,
+    "p95_mb": 19298.0
+  },
+  "backlog_max": {},
+  "sample_count": 55
+}
