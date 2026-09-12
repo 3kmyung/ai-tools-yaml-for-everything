@@ -1,0 +1,52 @@
+{
+  "example": "transcribe-long-meeting",
+  "machine": "macbook-m1",
+  "conditions": {
+    "runtime": "mlx-audio",
+    "build": "mlx-community/VibeVoice-ASR-4bit",
+    "precision": "bfloat16",
+    "quantization": "int4",
+    "quantization_backend": "mlx",
+    "quantization_skip_modules": [
+      "acoustic_tokenizer",
+      "semantic_tokenizer",
+      "acoustic_connector",
+      "semantic_connector"
+    ],
+    "numerics": "int4/mlx, all but acoustic_tokenizer and semantic_tokenizer and acoustic_connector and semantic_connector, compute bfloat16",
+    "batch": 1,
+    "audio_duration_seconds": 1049.3547,
+    "acoustic_tokenizer_chunk_size": 1440000
+  },
+  "cold_start_seconds": 4.6007,
+  "real_time_factor": 1.081,
+  "valid": true,
+  "errors": [],
+  "ttfo_seconds": 225.3553,
+  "e2e_seconds": 1134.3342,
+  "rss": {
+    "ready_mb": 5663.8,
+    "peak_bytes": 6246694912,
+    "peak_mb": 5957.3,
+    "mean_mb": 214.5,
+    "p95_mb": 215.7,
+    "final_mb": 215.8
+  },
+  "cpu": {
+    "peak_percent": 112.1,
+    "mean_percent": 38.0,
+    "p95_percent": 56.0
+  },
+  "threads": {
+    "peak": 29,
+    "final": 29
+  },
+  "vram": {
+    "peak_bytes": 14525367772,
+    "peak_mb": 13852.5,
+    "mean_mb": 13823.0,
+    "p95_mb": 13852.5
+  },
+  "backlog_max": {},
+  "sample_count": 9641
+}
