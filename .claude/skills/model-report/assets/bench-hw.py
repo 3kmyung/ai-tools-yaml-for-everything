@@ -73,10 +73,12 @@ wait for the controller, so a port already in use under `--serve` fails with
 that sentence instead of spinning forever.
 
 A component whose `runtime` is `virtualenv` or `docker` loads its model in a
-separate process. `sample_vram_bytes()` reads the accelerator context of
-whichever process calls it, so `vram_bytes` on such a run reports this
-orchestrator process's own allocation, not the component subprocess's — expect
-zero and read peak video memory from the component's own process instead.
+separate process, and so runs a different PyTorch than this one. Both facts are
+handled rather than assumed away: `benchmarks/common/harness.py` attributes
+`nvidia-smi`'s per-process video memory to this runner's process tree, and
+`conditions.runtime` reports the version read from the component's own
+interpreter — not the orchestrator's, which on a machine with a system PyTorch
+is a different build entirely.
 """
 from __future__ import annotations
 
@@ -84,6 +86,7 @@ import argparse
 import asyncio
 import json
 import os
+import subprocess
 import sys
 import threading
 import time
@@ -105,9 +108,6 @@ from benchmarks.common.harness import (
 
 from mindor.core.compose.manager import ComposeManager
 from mindor.dsl.loader import load_compose_config
-
-RUNTIME = "model-compose + pytorch"
-
 
 def parse_arguments(argv=None):
     parser = argparse.ArgumentParser()
@@ -142,8 +142,44 @@ def apply_serving(config, serve, controller_port, webui_port):
     return config
 
 
-def runtime_label(serve):
-    return f"{RUNTIME}, adapters served" if serve else RUNTIME
+def component_python_paths(config):
+    for component in config.components:
+        runtime = getattr(component, "runtime", None)
+        path = getattr(runtime, "path", None)
+
+        if path is None:
+            continue
+
+        for candidate in (Path(path) / "bin" / "python", Path(path) / "Scripts" / "python.exe"):
+            if candidate.exists():
+                yield candidate
+
+
+def torch_build(config):
+    for python in component_python_paths(config):
+        try:
+            output = subprocess.run(
+                [str(python), "-c", "import torch; print(torch.__version__)"],
+                capture_output=True, text=True, timeout=60,
+            )
+        except (subprocess.SubprocessError, OSError):
+            continue
+
+        if output.returncode == 0 and output.stdout.strip():
+            return f"pytorch {output.stdout.strip()}"
+
+    try:
+        import torch
+    except ImportError:
+        return "pytorch version unread"
+
+    return f"pytorch {torch.__version__}"
+
+
+def runtime_label(config, serve):
+    label = f"model-compose + {torch_build(config)}"
+
+    return f"{label}, adapters served" if serve else label
 
 
 def clear_stale_stop_request():
@@ -303,7 +339,7 @@ async def run(arguments):
     result = build_result(
         example=arguments.example,
         machine=arguments.machine,
-        runtime=runtime_label(arguments.serve),
+        runtime=runtime_label(config, arguments.serve),
         build=arguments.build,
         precision=arguments.precision,
         quantization=arguments.quantization,
