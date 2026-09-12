@@ -111,6 +111,64 @@ publish at all: if precision moves `tcpWER` by a rounding error, the appendix
 side-by-side is fine as a body figure too; if it moves the score materially, only the
 matched table belongs in the body and the report says so.
 
+## Quantization, when a machine cannot hold the weights
+
+A machine too small for the checkpoint is measured quantized rather than left blank, so
+long as every such row says so. `assets/bench-hw.py` takes `--quantization`,
+`--quantization-backend`, and `--quantization-skip-modules`, and renders them into
+`conditions.numerics`, which is the label the report table carries verbatim.
+
+Which toolchain is available is decided by the backend and by whether anyone has ported
+the architecture, not by preference:
+
+| Toolchain | CUDA | MPS | Arbitrary architecture | Applied |
+|---|---|---|---|---|
+| bitsandbytes | yes | no | yes — swaps `nn.Linear` | at load |
+| optimum-quanto | yes | partial | yes — swaps `nn.Linear` | at load |
+| torchao | yes | partial | yes — swaps `nn.Linear` | at load |
+| GPTQ, AWQ | yes | no | no — per-architecture support | ahead of time, with calibration |
+| MLX, GGUF | — | yes | no — needs a port | ahead of time, by conversion |
+
+```
+✗ Reaching for MLX or GGUF on the MacBook because the checkpoint does not fit.
+→ Check first whether the architecture has been ported. For a model loaded through
+  `trust_remote_code`, it has not been, and the only available route is a loader that
+  swaps linear layers without reading the architecture.
+Why: MLX and GGUF quantize a model someone implemented in their own runtime. A custom
+architecture is not in either runtime, and porting one is not what this skill is for.
+```
+
+A speech model is not a language model wearing a hat. Quantizing its audio tokenizer
+degrades waveform reconstruction rather than token choice, which does not show up as a
+slightly worse score — it shows up as output that is wrong in a way the metric was never
+designed to catch.
+
+```
+✗ Quantizing a speech model whole, the way a text-only language model is quantized.
+→ Quantize the language backbone and list the tokenizer modules in
+  `--quantization-skip-modules`, matching whatever the loader was actually told to skip.
+Why: the argument records what the compose file did; it does not cause it. A run whose
+recorded skip list disagrees with the component's own configuration reports a condition
+that never happened.
+```
+
+Two rows at different `conditions.numerics` are comparable on speed and memory and are
+**not** comparable on accuracy:
+
+| Axis | Across precisions or quantizations |
+|---|---|
+| Cold start, TTFO, E2E, RTF, peak memory | comparable |
+| WER, CER, cpWER, tcpWER | not comparable |
+
+```
+✗ A three-machine table where one row is nf4 and the rest are bfloat16, with one shared
+  accuracy column.
+→ Keep the accuracy column on the matched-precision rows only, and state under the table
+  that the quantized row carries speed and memory figures alone.
+Why: a reader comparing a quantized row's word-error rate against an unquantized row's
+attributes the difference to the machine. The machine had nothing to do with it.
+```
+
 ## Accuracy: delegated, not reimplemented
 
 Two open harnesses cover the whole job. Building a scorer in this repository would
