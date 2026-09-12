@@ -3,7 +3,7 @@
     python bench-hw.py \\
         --compose-file examples/showcase/transcribe-long-meeting/model-compose.yml \\
         --workflow-id transcribe-meeting \\
-        --workflow-input '{"audio": "meeting.wav", "context_info": "Microsoft,VibeVoice"}' \\
+        --workflow-input '{"audio": "@audio", "context_info": "Microsoft,VibeVoice"}' \\
         --audio meeting.wav \\
         --example transcribe-long-meeting \\
         --machine rtx-4090 \\
@@ -38,6 +38,11 @@ Neither does it apply precision or quantization. Both are decided by the
 component in the example's own `model-compose.yml`; the arguments here only
 record what that component was configured to do, so a mismatch between the two
 is invisible to this script and has to be checked by reading the compose file.
+
+`--workflow-input` names the audio with `@audio`, the same placeholder the
+examples use over HTTP, and the runner substitutes the bytes of `--audio` for
+it. A file path will not do: `${input.audio as audio}` accepts bytes or a
+stream, and a path arrives as a string.
 
 On a machine that is already running something, pass `--controller-port` and
 `--webui-port` rather than editing the example: the compose file's ports are
@@ -105,6 +110,26 @@ def override_ports(config, controller_port, webui_port):
     return config
 
 
+def resolve_workflow_input(raw, audio_path):
+    placeholder = "@audio"
+    workflow_input = json.loads(raw)
+    keys = [ key for key, value in workflow_input.items() if value == placeholder ]
+
+    if not keys:
+        raise ValueError(
+            f"--workflow-input carries no {placeholder!r} value; an audio workflow "
+            f"expects one, since a file path reaches the renderer as a string and "
+            f"`as audio` accepts only bytes"
+        )
+
+    audio_bytes = audio_path.read_bytes()
+
+    for key in keys:
+        workflow_input[key] = audio_bytes
+
+    return workflow_input
+
+
 async def await_ready(manager, launch, timeout):
     deadline = time.time() + timeout
 
@@ -146,7 +171,7 @@ async def run(arguments):
     try:
         state = await manager.run_workflow(
             arguments.workflow_id,
-            json.loads(arguments.workflow_input),
+            resolve_workflow_input(arguments.workflow_input, arguments.audio),
             output_path=None,
             verbose=False,
         )
