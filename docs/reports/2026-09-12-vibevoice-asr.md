@@ -212,3 +212,4 @@ unchecked field and a checked, clean field read identically otherwise.
 | Open ASR Leaderboard | https://arxiv.org/abs/2510.06961 |
 | MeetEval | https://github.com/fgnt/meeteval |
 | AMI corpus | https://groups.inf.ed.ac.uk/ami/corpus/ |
+| X thread drafted from this report | `docs/reports/2026-09-12-vibevoice-asr.social.md` |
