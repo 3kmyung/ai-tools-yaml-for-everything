@@ -10,7 +10,7 @@ interpretation, and section 5's verbatim usage-scope quote.
 | 1. One-line definition | what this model is |
 | 2. What is different | one or two architectural points, with a diagram |
 | 3. What was built | demo description, plus a screenshot or video |
-| 4. Performance | the three-machine table with conditions, the accuracy figures, and the interpretation that connects them |
+| 4. Performance | the detailed per-machine table with conditions, the accuracy figures, and the interpretation that connects them |
 | 5. Limits | what it cannot do, what to watch for, licence and usage-scope constraints |
 | 6. Links | the GitHub example path, the model card, the paper |
 
@@ -24,23 +24,42 @@ Why: a bare table goes unread. The sentence is what carries the result to a read
 will not do the division themselves.
 ```
 
-The numerics belong in the table, not under it. Section 4's hardware table carries
-`conditions.numerics` as its own column, immediately after the machine:
+Section 4 carries one detailed table with every machine in it. What separates the rows
+is not left to prose: `conditions.runtime`, `conditions.build` and `conditions.numerics`
+are three columns, and they come immediately after the machine so that the reader meets
+them before the numbers.
 
-| Machine | Numerics | Cold start | TTFO | E2E | RTF | Peak video memory |
-|---|---|---|---|---|---|---|
-| RTX 4090 | `bfloat16` | | | | | |
-| DGX Spark | `bfloat16` | | | | | |
-| RTX 4050 Laptop | `nf4/bitsandbytes, all but acoustic_tokenizer and semantic_tokenizer, compute float16` | | | | | |
+| Machine | Runtime | Build | Numerics | Cold start | TTFO | E2E | RTF | Peak video memory |
+|---|---|---|---|---|---|---|---|---|
+| RTX 4090 | `model-compose + pytorch` | `microsoft/VibeVoice-ASR` | `float16` | | | | | |
+| DGX Spark | `model-compose + pytorch` | `microsoft/VibeVoice-ASR` | `float16` | | | | | |
+| MacBook M1 | `mlx-audio` | `mlx-community/VibeVoice-ASR-4bit` | `int4/mlx, all but …, compute bfloat16` | | | | | |
 
 ```
-✗ Putting the quantized row's numerics in a footnote, or writing "4bit" where the label
-  says which backend and which modules were skipped.
-→ Carry `conditions.numerics` verbatim in its own column, and give any row whose
-  numerics differ from the rest no accuracy figure at all.
-Why: a footnote is read after the comparison has already been made. Two rows differing in
-arithmetic look like two rows differing in hardware unless the difference sits in the
-reader's eye at the same moment the numbers do.
+✗ Putting a row's runtime, build or numerics in a footnote, or writing "4bit" where the
+  label says which backend and which modules stayed at full precision.
+→ Carry all three verbatim as columns, and give no accuracy figure to any row whose
+  numerics or runtime differ from the baseline's.
+Why: a footnote is read after the comparison has already been made. A row differing in
+arithmetic or in inference stack looks like a row differing in hardware unless the
+difference sits in the reader's eye at the same moment the numbers do.
+```
+
+Rows split across runtimes make three of the columns mean different things, and section 4
+says so once rather than leaving each reader to work it out:
+
+| Column | Across runtimes |
+|---|---|
+| Cold start | not comparable — one runner loads a model, another brings a stack up |
+| TTFO, E2E, RTF | comparable as delivered performance, not as a hardware ranking |
+| Accuracy | not comparable — a different implementation, not the same one running slower |
+
+```
+✗ "The Mac is 6× slower than the 4090."
+→ "The Mac, running a 4-bit MLX conversion, is 6× slower than the 4090 running the
+  PyTorch checkpoint at float16 — a gap that is part hardware and part build, which this
+  table cannot separate."
+Why: the first sentence attributes to the machine a difference the table never isolated.
 ```
 
 Section 4 states each accuracy figure with the harness that produced it and the

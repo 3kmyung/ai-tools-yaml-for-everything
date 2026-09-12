@@ -32,13 +32,24 @@ def sample_vram_bytes() -> int:
     try:
         import torch
     except ImportError:
+        torch = None
+
+    if torch is not None:
+        if torch.cuda.is_available():
+            return torch.cuda.max_memory_allocated()
+
+        if torch.backends.mps.is_available():
+            return torch.mps.current_allocated_memory()
+
+    try:
+        import mlx.core
+    except ImportError:
         return 0
 
-    if torch.cuda.is_available():
-        return torch.cuda.max_memory_allocated()
-
-    if torch.backends.mps.is_available():
-        return torch.mps.current_allocated_memory()
+    for owner in (mlx.core, getattr(mlx.core, "metal", None)):
+        reader = getattr(owner, "get_peak_memory", None)
+        if reader is not None:
+            return reader()
 
     return 0
 
