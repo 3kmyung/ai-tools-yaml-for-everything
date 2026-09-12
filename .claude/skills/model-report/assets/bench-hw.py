@@ -27,6 +27,14 @@ A quantized run states its own quantization instead:
 Drives the example's own `model-compose.yml` through an in-process
 `ComposeManager`, the same mechanism
 `benchmarks/stt-embed-streaming/model-compose/pipeline.py` already uses.
+
+That mechanism races. `launch_services(detach=False)` is written to run until
+the controller stops, and in a native runtime its final wait returns at once,
+so the controller starts tearing down while this process is still polling
+`controller.started`. Winning the race means submitting the workflow as the
+very first thing after `started` goes true: the audio is read before launch and
+`run_workflow` is scheduled before the collector and the sampler thread exist.
+Losing it looks like `ShutdownError: Service is shutting down`.
 `benchmarks/common/harness.py` holds everything this shares with the runners
 for machines that have no PyTorch build of the checkpoint, including the event
 contract and the result shape.
@@ -163,6 +171,7 @@ async def await_ready(manager, launch, timeout):
 
 
 async def run(arguments):
+    workflow_input = resolve_workflow_input(arguments.workflow_input, arguments.audio)
     launch_t = time.time()
 
     config = load_compose_config(str(arguments.compose_file.parent), [arguments.compose_file], env={})
@@ -171,6 +180,13 @@ async def run(arguments):
     launch = asyncio.create_task(manager.launch_services(detach=False, verbose=False))
 
     await await_ready(manager, launch, arguments.ready_timeout)
+
+    workflow = asyncio.create_task(manager.run_workflow(
+        arguments.workflow_id,
+        workflow_input,
+        output_path=None,
+        verbose=False,
+    ))
 
     ready_t = time.time()
     cold_start_seconds = round(ready_t - launch_t, 4)
@@ -185,12 +201,7 @@ async def run(arguments):
     sampler.start()
 
     try:
-        state = await manager.run_workflow(
-            arguments.workflow_id,
-            resolve_workflow_input(arguments.workflow_input, arguments.audio),
-            output_path=None,
-            verbose=False,
-        )
+        state = await workflow
 
         if state.error:
             collector.ingest(emit("runtime", "error", detail=str(state.error)))
