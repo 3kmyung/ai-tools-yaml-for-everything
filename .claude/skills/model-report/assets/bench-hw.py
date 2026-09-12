@@ -61,6 +61,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 import sys
 import threading
 import time
@@ -94,6 +95,7 @@ def parse_arguments(argv=None):
     parser.add_argument("--controller-port", type=int, default=None)
     parser.add_argument("--webui-port", type=int, default=None)
     parser.add_argument("--ready-timeout", type=float, default=1200.0)
+    parser.add_argument("--shutdown-timeout", type=float, default=120.0)
     add_condition_arguments(parser)
 
     return validate_condition_arguments(parser, parser.parse_args(argv))
@@ -128,6 +130,20 @@ def resolve_workflow_input(raw, audio_path):
         workflow_input[key] = audio_bytes
 
     return workflow_input
+
+
+async def terminate_bounded(manager, timeout):
+    try:
+        await asyncio.wait_for(manager.terminate_services(verbose=False), timeout)
+    except asyncio.TimeoutError:
+        return (
+            f"shutdown did not finish within {timeout:g}s; a component subprocess may "
+            f"still hold this machine's accelerator memory"
+        )
+    except Exception as error:
+        return f"shutdown raised {error.__class__.__name__}: {error}"
+
+    return None
 
 
 async def await_ready(manager, launch, timeout):
@@ -194,7 +210,7 @@ async def run(arguments):
         stop_sampling.set()
         sampler.join(timeout=2)
 
-        await manager.terminate_services(verbose=False)
+        shutdown_error = await terminate_bounded(manager, arguments.shutdown_timeout)
         launch.cancel()
         try:
             await launch
@@ -203,6 +219,9 @@ async def run(arguments):
 
     valid, errors = collector.is_valid()
     summary = collector.summary() if valid else {}
+
+    if shutdown_error is not None:
+        errors = [ *errors, shutdown_error ]
 
     result = build_result(
         example=arguments.example,
@@ -223,11 +242,14 @@ async def run(arguments):
     )
     write_result(arguments, result)
 
-    return 0 if valid else 1
+    return 0 if valid and shutdown_error is None else 1
 
 
 def main():
-    return asyncio.run(run(parse_arguments()))
+    code = asyncio.run(run(parse_arguments()))
+    sys.stdout.flush()
+    sys.stderr.flush()
+    os._exit(code)
 
 
 if __name__ == "__main__":
