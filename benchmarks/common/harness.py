@@ -238,6 +238,25 @@ def sample_resources(collector, stop, interval=0.1, accelerator_interval=1.0):
         accelerator.stop()
 
 
+def write_transcript(path, transcript):
+    if path is None:
+        return None
+
+    if transcript is None:
+        return (
+            f"--transcript-path was given but the run produced no output to write to "
+            f"{path}; the accuracy step has no hypothesis to score"
+        )
+
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(transcript, indent=2, default=str))
+    except (OSError, TypeError, ValueError) as error:
+        return f"could not write {path}: {error.__class__.__name__}: {error}"
+
+    return None
+
+
 def results_file_path(results_directory, example, machine):
     base = results_directory if results_directory is not None else Path("benchmarks") / example / "results"
 
