@@ -1,6 +1,6 @@
 """Measure one machine's row through `model-compose` and PyTorch.
 
-    python bench-hw.py \\
+    python bench_hw.py \\
         --compose-file releases/speaker-diarization-vibevoice/model-compose.yml \\
         --workflow-id transcribe-meeting \\
         --workflow-input '{"audio": "@audio", "context_info": "Microsoft,VibeVoice"}' \\
@@ -15,7 +15,7 @@
 
 A quantized run states its own quantization instead:
 
-    python bench-hw.py \\
+    python bench_hw.py \\
         ... \\
         --machine rtx-4050-laptop \\
         --precision float16 \\
@@ -41,7 +41,7 @@ the workflow is invoked in process, not over HTTP.
 off ports another process holds. Cold start then includes bringing the servers
 up, which is why `conditions.runtime` says so.
 
-`benchmarks/common/harness.py` holds everything this shares with the runners
+`scripts/analyze-model/harness.py` holds everything this shares with the runners
 for machines that have no PyTorch build of the checkpoint, including the event
 contract and the result shape.
 
@@ -77,7 +77,7 @@ that sentence instead of spinning forever.
 
 A component whose `runtime` is `virtualenv` or `docker` loads its model in a
 separate process, and so runs a different PyTorch than this one. Both facts are
-handled rather than assumed away: `benchmarks/common/harness.py` attributes
+handled rather than assumed away: `scripts/analyze-model/harness.py` attributes
 `nvidia-smi`'s per-process video memory to this runner's process tree, and
 `conditions.runtime` reports the version read from the component's own
 interpreter — not the orchestrator's, which on a machine with a system PyTorch
@@ -95,9 +95,8 @@ import threading
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from benchmarks.common.metrics import MetricsCollector
-from benchmarks.common.harness import (
+from metrics import MetricsCollector
+from harness import (
     add_condition_arguments,
     audio_duration_seconds,
     build_result,

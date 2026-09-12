@@ -1,6 +1,6 @@
 """Score one saved transcript against a SegLST reference, through MeetEval.
 
-    python score-accuracy.py \\
+    python score_accuracy.py \\
         --reference ES2004a.reference.json \\
         --hypothesis ES2004a.hypothesis.json \\
         --session ES2004a \\

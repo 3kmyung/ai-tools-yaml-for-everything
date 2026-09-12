@@ -1,7 +1,7 @@
 # benchmark.md
 
 Read this before running or describing any measurement — before touching
-`tools/benchmark/bench-hw.py`, before invoking either external accuracy harness, and before
+`scripts/analyze-model/bench_hw.py`, before invoking either external accuracy harness, and before
 writing a single number into `report.md`.
 
 ## Why accuracy is measured once and hardware once per machine
@@ -47,7 +47,7 @@ creates lives inside that clone:
 │   ├── logs/
 │   └── .venv/             the run's own interpreter and packages
 ├── examples/<name>/
-└── tools/benchmark/
+└── scripts/analyze-model/
 ```
 
 Measured output is the exception and does not live there: results, accuracy and
@@ -82,7 +82,7 @@ felt unnecessary.
 
 ## Reusing the existing harness
 
-`benchmarks/common/metrics.py` already provides `MetricsCollector` and `SystemSample`
+`scripts/analyze-model/metrics.py` already provides `MetricsCollector` and `SystemSample`
 against a three-event JSONL contract that `benchmarks/llm-tts-streaming` and
 `benchmarks/stt-embed-streaming` already emit to compare model-compose against LangGraph,
 LangChain, and LlamaIndex:
@@ -113,11 +113,11 @@ there is indistinguishable from "this machine has no accelerator" — which is p
 the difference a cross-machine table exists to show.
 
 ```
-✗ Trusting `vram_bytes` from `tools/benchmark/bench-hw.py` when the component's `runtime` is
+✗ Trusting `vram_bytes` from `scripts/analyze-model/bench_hw.py` when the component's `runtime` is
   `virtualenv` or `docker`.
 → Read peak video memory from the component's own subprocess for those runtimes; treat
-  `bench-hw.py`'s own reading as a confirmed zero, not a missing one.
-Why: a CUDA context is per-process. `bench-hw.py` runs the orchestrator in its own
+  `bench_hw.py`'s own reading as a confirmed zero, not a missing one.
+Why: a CUDA context is per-process. `bench_hw.py` runs the orchestrator in its own
 process and calls `torch.cuda.max_memory_allocated()` there; a component with `runtime:
 type: virtualenv` (VibeVoice's transcriber, for one) loads its model in a separate
 interpreter whose CUDA allocations that call cannot see.
@@ -189,7 +189,7 @@ exists, the machine leaves the table and its arithmetic goes to the report's lim
 section, where "this does not fit in N gigabytes" is a checkable claim that needs no run
 at all.
 
-When the row does survive, `tools/benchmark/bench-hw.py` takes `--quantization`,
+When the row does survive, `scripts/analyze-model/bench_hw.py` takes `--quantization`,
 `--quantization-backend`, and `--quantization-skip-modules`, and renders them into
 `conditions.numerics`, which is the label the report table carries verbatim.
 

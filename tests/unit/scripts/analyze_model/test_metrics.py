@@ -1,4 +1,4 @@
-"""Unit tests for ``benchmarks.common.metrics``."""
+"""Unit tests for ``metrics``."""
 
 import subprocess
 import sys
@@ -6,7 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from benchmarks.common.metrics import MetricsCollector, SystemSample, sample_vram_bytes
+SCRIPTS_DIRECTORY = Path(__file__).resolve().parents[4] / "scripts" / "analyze-model"
+
+from metrics import MetricsCollector, SystemSample, sample_vram_bytes
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[4]
@@ -63,8 +65,8 @@ class TestModuleImportWithoutTorch:
         result = subprocess.run(
             [sys.executable, "-c",
              "import sys; sys.modules['torch'] = None; "
-             "import benchmarks.common.metrics"],
-            cwd=REPOSITORY_ROOT,
+             "import metrics"],
+            cwd=SCRIPTS_DIRECTORY,
             capture_output=True,
         )
         assert result.returncode == 0, result.stderr.decode("utf-8", errors="replace")
