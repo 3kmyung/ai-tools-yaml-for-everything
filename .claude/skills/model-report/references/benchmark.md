@@ -272,22 +272,26 @@ transcriber.
 
 ## The published numbers are the harness's own self-test
 
-VibeVoice-ASR's 7.77% average WER, 17.20% on AMI, and RTFx 51.80 come from the Open ASR
-Leaderboard. A local run landing far from those means the local setup is wrong, not that
-the model changed. Two conditions have to match before any comparison means anything:
+The `microsoft/VibeVoice-ASR-HF` model card publishes an Open ASR Leaderboard table:
+`ami_test` 17.20%, average 7.77%, RTFx 51.80. Those are the reference figures, and a
+local run landing far from them means the local setup is wrong rather than the model.
 
-| Condition | Why it matters |
+Three things about that comparison, none of which the table states and all of which
+change what the gap means:
+
+| What the published figure does not say | Consequence |
 |---|---|
-| The leaderboard's own normaliser | a different text normaliser changes the score independent of the model |
-| AMI's microphone condition | 17.20% is IHM (individual headset microphones); scoring SDM (single distant microphone) against it compares two different recording setups, not a regression |
+| Which microphone condition `ami_test` is | The row is labelled `ami_test` and nothing more. A headset mix and a single distant microphone are two different problems; if the local run picks one, the report says which and does not claim the published figure used the same |
+| That it is long-form | The leaderboard scores pre-segmented utterances. A run on a whole meeting is measuring something harder, so a slightly worse number is not a regression |
+| Anything about speakers or timing | The published figure is WER. cpWER and tcpWER on a full meeting have no published counterpart at all |
 
 ```
-✗ Comparing a local WER against 17.20% before checking the normaliser and the microphone
-  condition.
-→ Confirm the normaliser matches the leaderboard's own, and confirm the local run used
-  AMI's IHM condition, before treating any gap as a finding about the model.
-Why: 17.20% is IHM. SDM against IHM is two different problems, not two different scores
-of the same one.
+✗ Writing "17.20% is IHM" — or any other condition the source does not state.
+→ Quote the row label the source uses, name the condition the local run actually used,
+  and leave the published one unstated because it is unstated.
+Why: this exact sentence was written into this file from memory and had to be removed
+after checking the card. A condition invented to make two numbers comparable makes them
+look comparable without making them so.
 ```
 
 No expectation about relative DGX Spark performance gets written down before it is

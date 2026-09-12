@@ -22,19 +22,31 @@ Three metrics, and the reason each is present:
              transcriber and with a published single-number leaderboard
 
 A local figure means nothing until it has been checked against the published
-one under matching conditions — the leaderboard's own normaliser, and AMI's
-IHM microphone condition rather than SDM.
+one under matching conditions. Both sides are therefore passed through
+`EnglishTextNormalizer`, the normaliser the Open ASR Leaderboard applies. The
+microphone condition cannot be matched the same way: the published table labels
+its row `ami_test` and names no condition, so the report states which recording
+the local run used and claims nothing about the published one.
+
+VibeVoice-ASR also emits non-speech events as segments of their own —
+`[Breathing]`, `[Music]`, `[Environmental Sounds]` — carrying no speaker. AMI's
+manual annotation does not transcribe those, so scoring them would count every
+one as an inserted word against a reference that never asked for them. They are
+dropped, and the count is written into the result: a normalisation that changes
+the score is not allowed to be invisible.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 from meeteval.io.seglst import SegLST
-from meeteval.wer import cpwer, tcpwer, wer
+from meeteval.wer import cpwer, siso_word_error_rate, tcpwer
 
 COLLAR_SECONDS = 5.0
+NON_SPEECH_TAG = re.compile(r"^\s*[\[\(][^\]\)]*[\]\)]\s*$")
 
 
 def parse_arguments(argv=None):
@@ -67,6 +79,7 @@ def segments_of(payload):
 
 def to_seglst(payload, session):
     segments = []
+    non_speech = 0
 
     for index, segment in enumerate(segments_of(payload)):
         text = segment.get("text")
@@ -81,6 +94,10 @@ def to_seglst(payload, session):
                 f"flatter the score"
             )
 
+        if NON_SPEECH_TAG.match(str(text)):
+            non_speech += 1
+            continue
+
         segments.append({
             "session_id": session,
             "speaker": str(speaker) if speaker is not None else "unknown",
@@ -92,34 +109,68 @@ def to_seglst(payload, session):
     if not segments:
         raise ValueError("the hypothesis holds no segments")
 
-    return SegLST(segments)
+    return SegLST(segments), non_speech
 
 
-def collapse_speakers(seglst, speaker):
-    return SegLST([ { **segment, "speaker": speaker } for segment in seglst ])
+def normalise(seglst, normaliser):
+    kept = []
+
+    for segment in seglst:
+        words = normaliser(segment["words"]).strip()
+
+        if words:
+            kept.append({ **segment, "words": words })
+
+    return SegLST(kept)
+
+
+def english_normaliser():
+    from transformers.models.whisper.english_normalizer import EnglishTextNormalizer
+
+    return EnglishTextNormalizer({})
+
+
+def collapse_to_one_line(seglst, session):
+    ordered = sorted(seglst, key=lambda segment: segment["start_time"])
+
+    return SegLST([ {
+        "session_id": session,
+        "speaker": "all",
+        "start_time": min(segment["start_time"] for segment in ordered),
+        "end_time": max(segment["end_time"] for segment in ordered),
+        "words": " ".join(segment["words"] for segment in ordered),
+    } ])
 
 
 def main():
     arguments = parse_arguments()
 
-    reference = SegLST.load(str(arguments.reference))
-    hypothesis = to_seglst(json.loads(arguments.hypothesis.read_text()), arguments.session)
+    normaliser = english_normaliser()
+
+    reference = normalise(SegLST.load(str(arguments.reference)), normaliser)
+    hypothesis, non_speech = to_seglst(json.loads(arguments.hypothesis.read_text()), arguments.session)
+    hypothesis = normalise(hypothesis, normaliser)
 
     timed = tcpwer(reference, hypothesis, collar=arguments.collar)
     permuted = cpwer(reference, hypothesis)
-    plain = wer(collapse_speakers(reference, "all"), collapse_speakers(hypothesis, "all"))
+    plain = siso_word_error_rate(
+        collapse_to_one_line(reference, arguments.session),
+        collapse_to_one_line(hypothesis, arguments.session),
+    )
 
     result = {
         "session": arguments.session,
         "reference": str(arguments.reference),
         "hypothesis": str(arguments.hypothesis),
         "scorer": "meeteval",
+        "normaliser": "transformers EnglishTextNormalizer",
         "collar_seconds": arguments.collar,
         "reference_words": len(reference),
         "hypothesis_segments": len(hypothesis),
+        "non_speech_segments_dropped": non_speech,
         "tcpwer": timed[arguments.session].error_rate,
         "cpwer": permuted[arguments.session].error_rate,
-        "wer": plain[arguments.session].error_rate,
+        "wer": plain.error_rate,
     }
 
     arguments.output.parent.mkdir(parents=True, exist_ok=True)

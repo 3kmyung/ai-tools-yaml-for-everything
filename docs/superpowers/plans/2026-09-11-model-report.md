@@ -36,7 +36,7 @@ Tasks 1 through 4 need neither. Tasks 5 through 8 need both, and the machine thi
 |---|---|
 | A machine with roughly 18 GB of accelerator memory | the checkpoint is 8,674,021,857 parameters; bfloat16 needs about 17.3 GB |
 | A multi-speaker recording of at least ten minutes | a short or single-voiced clip settles none of the three open questions |
-| AMI test set, IHM condition | the accuracy run's reference data, and the self-test against the published 17.20% |
+| AMI test set | the accuracy run's reference data, and the self-test against the published 17.20% |
 
 The machine used for Plan 1 is an RTX 4050 laptop with 6141 MiB of video memory and 15.3 GB of system memory. It cannot run Task 5.
 
@@ -115,7 +115,7 @@ What `benchmark.md` must carry, none of which is negotiable because each was arg
 | The delegation to Open ASR Leaderboard and `chime-utils` | building a scorer here produces numbers comparable to nothing |
 | Which metric belongs to which task | tcpWER for multi-speaker long-form, and why WER alone scores half of this model's output |
 | The published figures as a self-test | a local run far from 7.77% average or 17.20% on AMI means the setup is wrong, not the model |
-| The two conditions that must match first | the leaderboard's normaliser, and AMI's microphone condition — 17.20% is IHM |
+| What the published figure does not state | its microphone condition, that it is short-form, and anything about speakers or timing |
 | The hardware axis's metrics | cold start, TTFO, E2E, RTF, peak video memory, peak resident set, each with its definition |
 | That resident set overlaps video memory on unified-memory machines | otherwise the annotation is missing and the table lies |
 
