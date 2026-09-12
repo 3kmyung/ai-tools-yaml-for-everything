@@ -1,0 +1,47 @@
+{
+  "example": "transcribe-long-meeting",
+  "machine": "rtx-4090",
+  "conditions": {
+    "runtime": "model-compose + pytorch 2.11.0+cu128",
+    "build": "microsoft/VibeVoice-ASR",
+    "precision": "bfloat16",
+    "quantization": "none",
+    "quantization_backend": null,
+    "quantization_skip_modules": [],
+    "numerics": "bfloat16",
+    "batch": 1,
+    "audio_duration_seconds": 1049.3547,
+    "acoustic_tokenizer_chunk_size": 1440000
+  },
+  "cold_start_seconds": 17.4984,
+  "real_time_factor": 0.2225,
+  "valid": true,
+  "errors": [],
+  "ttfo_seconds": 233.5324,
+  "e2e_seconds": 233.5324,
+  "rss": {
+    "ready_mb": 1157.3,
+    "peak_bytes": 3212976128,
+    "peak_mb": 3064.1,
+    "mean_mb": 3022.2,
+    "p95_mb": 3042.7,
+    "final_mb": 3043.3
+  },
+  "cpu": {
+    "peak_percent": 2553.4,
+    "mean_percent": 107.8,
+    "p95_percent": 113.5
+  },
+  "threads": {
+    "peak": 157,
+    "final": 155
+  },
+  "vram": {
+    "peak_bytes": 23209181184,
+    "peak_mb": 22134.0,
+    "mean_mb": 20475.6,
+    "p95_mb": 20604.0
+  },
+  "backlog_max": {},
+  "sample_count": 2182
+}
