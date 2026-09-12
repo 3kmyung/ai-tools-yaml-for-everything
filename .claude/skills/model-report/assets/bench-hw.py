@@ -45,6 +45,12 @@ up, which is why `conditions.runtime` says so.
 for machines that have no PyTorch build of the checkpoint, including the event
 contract and the result shape.
 
+A workflow whose output is declared `as stream` is drained chunk by chunk, and
+time to first output is the first chunk. A workflow whose output is a plain
+value — `as json`, for one — has no first chunk to wait for, so time to first
+output equals end to end by construction. Read those two columns as equal on
+such a row rather than as a pipeline that produced everything instantly.
+
 This script does not score transcription. Accuracy is delegated to the Open
 ASR Leaderboard and `chime-utils`; see `references/benchmark.md`.
 
@@ -262,7 +268,7 @@ async def run(arguments):
         if state.error:
             collector.ingest(emit("runtime", "error", detail=str(state.error)))
             run_error = str(state.error)
-        else:
+        elif hasattr(state.output, "__aiter__"):
             first = True
             count = 0
 
@@ -274,6 +280,9 @@ async def run(arguments):
                     first = False
 
             collector.ingest(emit("pipeline", "done", count=count))
+        else:
+            collector.ingest(emit("pipeline", "first_output"))
+            collector.ingest(emit("pipeline", "done", count=1))
     except Exception as error:
         collector.ingest(emit("runtime", "error", detail=str(error)))
         run_error = f"{error.__class__.__name__}: {error}"
