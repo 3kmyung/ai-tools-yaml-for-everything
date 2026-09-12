@@ -215,7 +215,7 @@ One detailed table holds every machine, with `runtime`, `build` and `numerics` a
 |---|---|---|---|---|---|---|
 | RTX 4090 ×2 | `ssh device-rtx-4090` | 24564 MiB each | `bench-hw.py` | `model-compose + pytorch` | `microsoft/VibeVoice-ASR` | `float16` — the baseline |
 | DGX Spark, GB10, aarch64 | `ssh device-dgx-spark` | 119 GB unified | `bench-hw.py` | `model-compose + pytorch` | `microsoft/VibeVoice-ASR` | `float16` |
-| MacBook, Apple M1 | `ssh device-macbook-m1` once remote login is enabled | 16 GB unified | `bench-mlx.py` | `mlx-audio` | `mlx-community/VibeVoice-ASR-4bit` | `int4/mlx` |
+| MacBook, Apple M1 | `ssh device-apple-m1` | 16 GB unified | `bench-mlx.py` | `mlx-audio` | `mlx-community/VibeVoice-ASR-4bit` | `int4/mlx` |
 
 The Mac row's `--quantization-skip-modules` is a property of the published conversion, not a choice made here. `mlx-community/VibeVoice-ASR-4bit`'s `config.json` carries only global settings (`group_size` 64, `bits` 4, `mode` affine), so the split is read from its weight index instead: a quantized tensor carries `.scales` alongside `.weight`, and one left at source dtype does not.
 
