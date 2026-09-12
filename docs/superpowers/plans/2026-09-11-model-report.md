@@ -205,11 +205,20 @@ Then replace the fixture with real output and re-run the fast loop at all three 
 
 ## Task 6: The hardware runs
 
-**Requires all three machines.**
+**Requires every machine below.**
 
-Run `bench-hw.py` on the MacBook, the RTX 4090 and the DGX Spark against the same audio, and collect `benchmarks/transcribe-long-meeting/results/*.json`.
+Run `bench-hw.py` against the same audio on each machine, and collect `benchmarks/transcribe-long-meeting/results/*.json`.
 
-Two tables come out of this, and the second only exists if the first justifies it: matched conditions with `float16` forced, and real-world conditions with `precision: auto`. Every figure carries its precision, batch setting and sample length.
+| Machine | Reached by | Memory | Numerics |
+|---|---|---|---|
+| RTX 4090 ×2 | `ssh device-rtx-4090` | 24564 MiB each | `float16` — the matched-conditions baseline |
+| DGX Spark | `ssh device-dgx-spark` | to be read on first run | `float16` |
+| MacBook, Apple M1 | to be added to the tailnet | 16 GB unified | too small for `float16`; quantized, backbone only |
+| RTX 4050 Laptop | local | 6141 MiB | too small for `float16`; quantized, backbone only |
+
+Two tables come out of this, and the second only exists if the first justifies it: matched conditions with `float16` forced, and real-world conditions with `precision: auto`. Every figure carries its `conditions.numerics`, batch setting and sample length, and a row whose numerics differ from the baseline carries speed and memory figures only.
+
+The two small machines are measured quantized rather than left blank. Whether either actually runs is itself the finding — record the failure and its message when it does not, rather than dropping the row.
 
 ---
 
