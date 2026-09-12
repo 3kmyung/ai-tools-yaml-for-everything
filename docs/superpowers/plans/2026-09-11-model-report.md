@@ -212,9 +212,11 @@ Run `bench-hw.py` against the same audio on each machine, and collect `benchmark
 | Machine | Reached by | Memory | Numerics |
 |---|---|---|---|
 | RTX 4090 ×2 | `ssh device-rtx-4090` | 24564 MiB each | `float16` — the matched-conditions baseline |
-| DGX Spark | `ssh device-dgx-spark` | to be read on first run | `float16` |
-| MacBook, Apple M1 | to be added to the tailnet | 16 GB unified | too small for `float16`; quantized, backbone only |
+| DGX Spark, GB10, aarch64 | `ssh device-dgx-spark` | 119 GB unified | `float16` |
+| MacBook, Apple M1 | `ssh device-macbook-m1` once remote login is enabled | 16 GB unified | too small for `float16`; quantized, backbone only |
 | RTX 4050 Laptop | local | 6141 MiB | too small for `float16`; quantized, backbone only |
+
+The two large machines run unquantized and carry the accuracy column. The two small ones carry speed and memory only.
 
 Two tables come out of this, and the second only exists if the first justifies it: matched conditions with `float16` forced, and real-world conditions with `precision: auto`. Every figure carries its `conditions.numerics`, batch setting and sample length, and a row whose numerics differ from the baseline carries speed and memory figures only.
 
