@@ -90,7 +90,7 @@ google-chrome \
 ### 环境配置
 
 ```bash
-cd examples/media-processing/youtube-to-playlist-video
+cd releases/youtube-to-playlist-video
 ```
 
 `RENDER_CONCURRENCY` 决定同时渲染多少首曲目。保持小一点：响度归一化会把整首解码后的

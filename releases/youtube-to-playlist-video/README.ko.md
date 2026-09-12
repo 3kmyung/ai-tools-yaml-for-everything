@@ -98,7 +98,7 @@ google-chrome \
 ### 환경 구성
 
 ```bash
-cd examples/media-processing/youtube-to-playlist-video
+cd releases/youtube-to-playlist-video
 ```
 
 `RENDER_CONCURRENCY`가 동시에 렌더할 트랙 수를 정합니다. 작게 유지하세요:

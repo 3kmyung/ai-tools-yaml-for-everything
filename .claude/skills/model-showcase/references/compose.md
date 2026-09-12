@@ -61,14 +61,14 @@ workflows:
 Every example that already addresses a workflow by `id` uses this plural form anyway,
 even though each carries only one workflow —
 `examples/showcase/find-person-scenes/model-compose.yml:10` and
-`examples/media-processing/youtube-to-playlist-video/model-compose.yml:11` are both
+`releases/youtube-to-playlist-video/model-compose.yml:11` are both
 `workflows:` with a single-item list under it, never `workflow:` with a mapping under it.
 Match that convention for a new example too, regardless of how many workflows it has.
 
 ## Do not rewrite `ui/src/websocket-client.js`
 
 Copy it verbatim from
-`examples/media-processing/youtube-to-playlist-video/ui/src/websocket-client.js`. Its
+`releases/youtube-to-playlist-video/ui/src/websocket-client.js`. Its
 `stream_pull` backpressure, its post-reconnect task resubscription, and its binary chunk
 framing are the model-compose WebSocket protocol itself, not a design decision this skill
 gets to make per example. Regenerating that file from prose produces protocol bugs that a

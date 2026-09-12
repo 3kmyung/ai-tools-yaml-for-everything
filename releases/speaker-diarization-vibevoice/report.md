@@ -42,7 +42,7 @@ Read from the checkpoint's own weight index, not estimated. It matters for secti
 
 ## 3. What was built
 
-`examples/showcase/speaker-diarization-vibevoice` — a `model-compose.yml` that wires the
+`releases/speaker-diarization-vibevoice` — a `model-compose.yml` that wires the
 model to an HTTP endpoint and a web interface: drop an audio file, optionally supply
 hotwords, get a speaker-coloured segment list and a timeline.
 
@@ -205,11 +205,11 @@ unchecked field and a checked, clean field read identically otherwise.
 
 | What | Where |
 |---|---|
-| Example | `examples/showcase/speaker-diarization-vibevoice` |
+| Example | `releases/speaker-diarization-vibevoice` |
 | Model card | https://huggingface.co/microsoft/VibeVoice-ASR |
 | Leaderboard figures | https://huggingface.co/microsoft/VibeVoice-ASR-HF |
 | Technical report | https://arxiv.org/abs/2601.18184 |
 | Open ASR Leaderboard | https://arxiv.org/abs/2510.06961 |
 | MeetEval | https://github.com/fgnt/meeteval |
 | AMI corpus | https://groups.inf.ed.ac.uk/ami/corpus/ |
-| X thread drafted from this report | `docs/reports/2026-09-12-vibevoice-asr.social.md` |
+| X thread drafted from this report | `releases/speaker-diarization-vibevoice/social.md` |

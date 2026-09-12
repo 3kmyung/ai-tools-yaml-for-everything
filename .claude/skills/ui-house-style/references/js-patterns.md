@@ -1,7 +1,7 @@
 # js-patterns.md
 
 Read this before writing any `.js` module for the UI. The reference at
-`examples/media-processing/youtube-to-playlist-video/ui/src/` follows every rule below
+`releases/youtube-to-playlist-video/ui/src/` follows every rule below
 throughout; when in doubt, open the module that already does the thing you are about to
 write and match its shape rather than inventing a new one.
 

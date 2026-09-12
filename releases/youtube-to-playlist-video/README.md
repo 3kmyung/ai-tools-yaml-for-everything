@@ -105,7 +105,7 @@ across runs until you clear the profile or Google expires the cookies.
 ### Environment Configuration
 
 ```bash
-cd examples/media-processing/youtube-to-playlist-video
+cd releases/youtube-to-playlist-video
 ```
 
 `RENDER_CONCURRENCY` sets how many tracks render at once. Keep it small:

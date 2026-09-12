@@ -30,7 +30,7 @@ default already baked into `model-compose.yml`.
 ## How to run
 
 ```bash
-cd examples/showcase/speaker-diarization-vibevoice
+cd releases/speaker-diarization-vibevoice
 model-compose up
 ```
 

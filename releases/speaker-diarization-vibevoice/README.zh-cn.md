@@ -25,7 +25,7 @@
 ## 运行方法
 
 ```bash
-cd examples/showcase/speaker-diarization-vibevoice
+cd releases/speaker-diarization-vibevoice
 model-compose up
 ```
 

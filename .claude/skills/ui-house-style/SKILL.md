@@ -6,7 +6,7 @@ description: Use when writing any web UI for a model-compose example — supplie
 # ui-house-style
 
 The house style is extracted from
-`examples/media-processing/youtube-to-playlist-video/ui/`. That directory is the source
+`releases/youtube-to-playlist-video/ui/`. That directory is the source
 of truth; the rules here exist so a generated UI matches it without copying it file for
 file. Rules live in `references/`, read on demand — do not load all of them up front.
 
@@ -56,7 +56,7 @@ reference files against the reference UI the rules were extracted from — never
 generated example, whose own vocabulary and prose it has no way to judge:
 
 ```
-node .claude/skills/ui-house-style/check-rules.mjs examples/media-processing/youtube-to-playlist-video/ui
+node .claude/skills/ui-house-style/check-rules.mjs releases/youtube-to-playlist-video/ui
 ```
 
 Run it after editing any file in `references/`, before committing that edit.
