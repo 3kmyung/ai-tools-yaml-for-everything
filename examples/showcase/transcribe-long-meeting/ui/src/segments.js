@@ -1,5 +1,7 @@
 export const SPEAKER_HUES = [ 0, 70, 125, 170, 205, 249 ];
 
+const NON_SPEECH_TAG = /^\s*[\[(][^\])]*[\])]\s*$/;
+
 export function segmentsFromResponse(response) {
   return response.map((segment) => ({
     text: segment.text ?? segment.Content,
@@ -9,12 +11,26 @@ export function segmentsFromResponse(response) {
   }));
 }
 
+export function hasSpeaker(speakerId) {
+  return Number.isInteger(speakerId);
+}
+
+export function isSpokenSegment(segment) {
+  return !NON_SPEECH_TAG.test(segment.text || "");
+}
+
+export function firstSpokenIndex(segments) {
+  const index = segments.findIndex(isSpokenSegment);
+
+  return index === -1 ? (segments.length ? 0 : null) : index;
+}
+
 export function speakerHue(speakerId) {
-  return SPEAKER_HUES[speakerId % SPEAKER_HUES.length];
+  return hasSpeaker(speakerId) ? SPEAKER_HUES[speakerId % SPEAKER_HUES.length] : 0;
 }
 
 export function speakerName(speakerId) {
-  return "Speaker " + (speakerId + 1);
+  return hasSpeaker(speakerId) ? "Speaker " + (speakerId + 1) : "Unattributed";
 }
 
 export function formatTimestamp(seconds) {
@@ -23,6 +39,15 @@ export function formatTimestamp(seconds) {
   const remainingSeconds = wholeSeconds % 60;
 
   return minutes + ":" + String(remainingSeconds).padStart(2, "0");
+}
+
+export function buildSwatch(speakerId) {
+  const swatch = document.createElement("span");
+  swatch.className = hasSpeaker(speakerId) ? "category-swatch" : "category-swatch is-unattributed";
+  swatch.style.setProperty("--category-hue", speakerHue(speakerId) + "deg");
+  swatch.setAttribute("aria-hidden", "true");
+
+  return swatch;
 }
 
 function renderSegmentMeta(segment) {
@@ -66,10 +91,7 @@ export function renderSegmentList(listElement, segments, options) {
 
       select.addEventListener("click", () => onSelect(index));
 
-      const swatch = document.createElement("span");
-      swatch.className = "category-swatch";
-      swatch.style.setProperty("--category-hue", speakerHue(segment.speakerId) + "deg");
-      swatch.setAttribute("aria-hidden", "true");
+      const swatch = buildSwatch(segment.speakerId);
 
       const label = document.createElement("span");
       label.className = "item-label";
@@ -81,6 +103,38 @@ export function renderSegmentList(listElement, segments, options) {
       return item;
     })
   );
+}
+
+export function renderSegmentDetail(detailElement, segments, selectedIndex) {
+  const segment = selectedIndex === null ? null : segments[selectedIndex];
+
+  detailElement.hidden = segment === undefined || segment === null;
+
+  if (detailElement.hidden) {
+    detailElement.replaceChildren();
+
+    return;
+  }
+
+  const swatch = buildSwatch(segment.speakerId);
+
+  const speaker = document.createElement("span");
+  speaker.className = "item-speaker";
+  speaker.textContent = speakerName(segment.speakerId);
+
+  const range = document.createElement("span");
+  range.className = "item-range";
+  range.textContent = formatTimestamp(segment.startTime) + "–" + formatTimestamp(segment.endTime);
+
+  const meta = document.createElement("p");
+  meta.className = "detail-meta";
+  meta.append(swatch, speaker, range);
+
+  const text = document.createElement("p");
+  text.className = "detail-text";
+  text.textContent = segment.text;
+
+  detailElement.replaceChildren(meta, text);
 }
 
 export function markSelectedListItem(listElement, selectedIndex) {

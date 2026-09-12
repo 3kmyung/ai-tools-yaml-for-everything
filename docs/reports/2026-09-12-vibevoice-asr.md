@@ -46,11 +46,17 @@ Read from the checkpoint's own weight index, not estimated. It matters for secti
 model to an HTTP endpoint and a web interface: drop an audio file, optionally supply
 hotwords, get a speaker-coloured segment list and a timeline.
 
-*Screenshot pending.*
+![The transcription interface showing a speaker-coloured segment list, a timeline strip and the selected segment's text](media/transcribe-long-meeting.png)
+
+The sample data on screen is this report's own AMI run, not a hand-written fixture.
+That swap found two defects a written fixture had hidden: the model emits non-speech
+events as segments carrying no speaker, which rendered as `Speaker NaN`, and the
+interface had nowhere to read a segment's full text — the list truncates, and the
+pane beside it held only a timeline.
 
 A capture limitation worth stating rather than discovering: `position: fixed` content
 does not paint in a headless capture even when it is genuinely open on screen, so the
-media below is scripted around states that do capture — no open popover.
+media here is scripted around states that do capture — no open popover.
 
 ## 4. Performance
 
