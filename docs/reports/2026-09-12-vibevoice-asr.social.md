@@ -3,7 +3,7 @@
 Korean, X only. Post 1 carries the media. The GitHub link goes in a reply to post 1,
 posted after the thread, never in post 1 itself.
 
-## Post 1 — attach `media/transcribe-long-meeting.png`
+## Post 1 — attach `media/speaker-diarization-vibevoice.png`
 
 ```
 VibeVoice-ASR은 회의 녹음을 한 번에 받아적으면서 누가 말했는지와 시각까지 같이 뱉는
@@ -68,7 +68,7 @@ bf16으로 돌린 두 기기끼리의 차이가 0.22%p였는데, 양자화 손�
 
 ```
 예제와 측정값 전부:
-https://github.com/<owner>/<repository>/tree/main/examples/showcase/transcribe-long-meeting
+https://github.com/<owner>/<repository>/tree/main/examples/showcase/speaker-diarization-vibevoice
 ```
 
 ## What this thread does not say

@@ -1,5 +1,5 @@
 {
-  "example": "transcribe-long-meeting",
+  "example": "speaker-diarization-vibevoice",
   "machine": "dgx-spark",
   "conditions": {
     "runtime": "model-compose + pytorch 2.14.0+cu130",

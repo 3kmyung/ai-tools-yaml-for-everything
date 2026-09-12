@@ -1,4 +1,4 @@
-"""Unit tests for the `model-report` skill's `assets/bench-hw.py`.
+"""Unit tests for `tools/benchmark/bench-hw.py`.
 
 Exercises the event emission and the result-file shape without a model:
 `bench-hw.py` drives an in-process `ComposeManager` that needs real hardware
@@ -15,7 +15,7 @@ from pathlib import Path
 import pytest
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[4]
-BENCH_HW_PATH = REPOSITORY_ROOT / ".claude" / "skills" / "model-report" / "assets" / "bench-hw.py"
+BENCH_HW_PATH = REPOSITORY_ROOT / "tools" / "benchmark" / "bench-hw.py"
 
 
 def _load_bench_hw():
@@ -28,6 +28,12 @@ def _load_bench_hw():
 
 bench_hw = _load_bench_hw()
 
+import sys
+
+sys.path.insert(0, str(REPOSITORY_ROOT))
+from benchmarks.common import harness
+from benchmarks.common.metrics import sample_vram_bytes
+
 
 def _write_silent_wav(path, seconds):
     with wave.open(str(path), "wb") as wav_file:
@@ -39,14 +45,14 @@ def _write_silent_wav(path, seconds):
 
 class TestEmit:
     def test_emits_the_documented_runtime_ready_shape(self, capsys):
-        line = bench_hw.emit("runtime", "ready", t=12.5)
+        line = harness.emit("runtime", "ready", t=12.5)
         payload = json.loads(line)
 
         assert payload == {"t": 12.5, "stage": "runtime", "event": "ready"}
         assert capsys.readouterr().out.strip() == line
 
     def test_emits_pipeline_events_with_detail_nested(self):
-        line = bench_hw.emit("pipeline", "done", t=20.0, count=7)
+        line = harness.emit("pipeline", "done", t=20.0, count=7)
         payload = json.loads(line)
 
         assert payload["stage"] == "pipeline"
@@ -54,13 +60,13 @@ class TestEmit:
         assert payload["detail"] == {"count": 7}
 
     def test_omits_the_detail_key_when_there_is_none(self):
-        payload = json.loads(bench_hw.emit("pipeline", "first_output", t=1.0))
+        payload = json.loads(harness.emit("pipeline", "first_output", t=1.0))
 
         assert "detail" not in payload
 
     def test_defaults_the_timestamp_to_now_when_not_given(self):
         before = __import__("time").time()
-        payload = json.loads(bench_hw.emit("runtime", "ready"))
+        payload = json.loads(harness.emit("runtime", "ready"))
         after = __import__("time").time()
 
         assert before <= payload["t"] <= after
@@ -69,8 +75,8 @@ class TestEmit:
         collector = bench_hw.MetricsCollector()
         collector.input_start_t = 0.0
 
-        collector.ingest(bench_hw.emit("pipeline", "first_output", t=1.5))
-        collector.ingest(bench_hw.emit("pipeline", "done", t=3.5))
+        collector.ingest(harness.emit("pipeline", "first_output", t=1.5))
+        collector.ingest(harness.emit("pipeline", "done", t=3.5))
 
         assert collector.first_output_t == 1.5
         assert collector.done_t == 3.5
@@ -90,32 +96,47 @@ class TestBuildResult:
         }
 
     def test_identifies_the_example_and_the_machine(self):
-        result = bench_hw.build_result(
-            example="transcribe-long-meeting", machine="rtx-4090", precision="float16",
+        result = harness.build_result(
+            example="speaker-diarization-vibevoice", machine="rtx-4090",
+            runtime="model-compose + pytorch 2.11.0+cu128", build="microsoft/VibeVoice-ASR",
+            precision="float16", quantization="none", quantization_backend=None,
+            quantization_skip_modules=[],
             batch=1, audio_duration_seconds=40.0, acoustic_tokenizer_chunk_size=1440000,
             cold_start_seconds=12.0, summary=self._summary(), valid=True, errors=[],
         )
 
-        assert result["example"] == "transcribe-long-meeting"
+        assert result["example"] == "speaker-diarization-vibevoice"
         assert result["machine"] == "rtx-4090"
 
     def test_carries_every_condition_a_report_table_needs(self):
-        result = bench_hw.build_result(
-            example="transcribe-long-meeting", machine="rtx-4090", precision="float16",
+        result = harness.build_result(
+            example="speaker-diarization-vibevoice", machine="rtx-4090",
+            runtime="model-compose + pytorch 2.11.0+cu128", build="microsoft/VibeVoice-ASR",
+            precision="float16", quantization="none", quantization_backend=None,
+            quantization_skip_modules=[],
             batch=1, audio_duration_seconds=40.0, acoustic_tokenizer_chunk_size=1440000,
             cold_start_seconds=12.0, summary=self._summary(), valid=True, errors=[],
         )
 
         assert result["conditions"] == {
+            "runtime": "model-compose + pytorch 2.11.0+cu128",
+            "build": "microsoft/VibeVoice-ASR",
             "precision": "float16",
+            "quantization": "none",
+            "quantization_backend": None,
+            "quantization_skip_modules": [],
+            "numerics": "float16",
             "batch": 1,
             "audio_duration_seconds": 40.0,
             "acoustic_tokenizer_chunk_size": 1440000,
         }
 
     def test_merges_the_collector_summary_alongside_the_conditions(self):
-        result = bench_hw.build_result(
-            example="transcribe-long-meeting", machine="rtx-4090", precision="float16",
+        result = harness.build_result(
+            example="speaker-diarization-vibevoice", machine="rtx-4090",
+            runtime="model-compose + pytorch 2.11.0+cu128", build="microsoft/VibeVoice-ASR",
+            precision="float16", quantization="none", quantization_backend=None,
+            quantization_skip_modules=[],
             batch=1, audio_duration_seconds=40.0, acoustic_tokenizer_chunk_size=1440000,
             cold_start_seconds=12.0, summary=self._summary(), valid=True, errors=[],
         )
@@ -124,8 +145,11 @@ class TestBuildResult:
         assert result["vram"]["peak_mb"] == 6144.0
 
     def test_computes_real_time_factor_from_end_to_end_and_audio_duration(self):
-        result = bench_hw.build_result(
-            example="transcribe-long-meeting", machine="rtx-4090", precision="float16",
+        result = harness.build_result(
+            example="speaker-diarization-vibevoice", machine="rtx-4090",
+            runtime="model-compose + pytorch 2.11.0+cu128", build="microsoft/VibeVoice-ASR",
+            precision="float16", quantization="none", quantization_backend=None,
+            quantization_skip_modules=[],
             batch=1, audio_duration_seconds=40.0, acoustic_tokenizer_chunk_size=1440000,
             cold_start_seconds=12.0, summary=self._summary(), valid=True, errors=[],
         )
@@ -133,8 +157,11 @@ class TestBuildResult:
         assert result["real_time_factor"] == 0.2
 
     def test_reports_an_invalid_run_without_a_real_time_factor(self):
-        result = bench_hw.build_result(
-            example="transcribe-long-meeting", machine="rtx-4090", precision="float16",
+        result = harness.build_result(
+            example="speaker-diarization-vibevoice", machine="rtx-4090",
+            runtime="model-compose + pytorch 2.11.0+cu128", build="microsoft/VibeVoice-ASR",
+            precision="float16", quantization="none", quantization_backend=None,
+            quantization_skip_modules=[],
             batch=1, audio_duration_seconds=40.0, acoustic_tokenizer_chunk_size=1440000,
             cold_start_seconds=12.0, summary={}, valid=False,
             errors=["missing pipeline.done"],
@@ -148,12 +175,12 @@ class TestBuildResult:
 
 class TestResultsFilePath:
     def test_matches_the_documented_benchmarks_results_layout(self):
-        path = bench_hw.results_file_path(None, "transcribe-long-meeting", "rtx-4090")
+        path = harness.results_file_path(None, "speaker-diarization-vibevoice", "rtx-4090")
 
-        assert path == Path("benchmarks") / "transcribe-long-meeting" / "results" / "rtx-4090.json"
+        assert path == Path("benchmarks") / "speaker-diarization-vibevoice" / "results" / "rtx-4090.json"
 
     def test_honours_an_explicit_results_directory(self, tmp_path):
-        path = bench_hw.results_file_path(tmp_path, "transcribe-long-meeting", "dgx-spark")
+        path = harness.results_file_path(tmp_path, "speaker-diarization-vibevoice", "dgx-spark")
 
         assert path == tmp_path / "dgx-spark.json"
 
@@ -163,17 +190,17 @@ class TestAudioDurationSeconds:
         wav_path = tmp_path / "sample.wav"
         _write_silent_wav(wav_path, seconds=2.0)
 
-        assert bench_hw.audio_duration_seconds(wav_path) == pytest.approx(2.0, abs=0.01)
+        assert harness.audio_duration_seconds(wav_path) == pytest.approx(2.0, abs=0.01)
 
 
 class TestSnapshotSystem:
     def test_reads_a_positive_resident_set_size_for_the_current_process(self):
-        sample = bench_hw.snapshot_system()
+        sample = harness.snapshot_system()
 
         assert sample.rss_bytes > 0
         assert sample.num_threads > 0
 
     def test_reads_zero_video_memory_without_an_accelerator(self):
-        sample = bench_hw.snapshot_system()
+        sample = harness.snapshot_system()
 
-        assert sample.vram_bytes == bench_hw.sample_vram_bytes()
+        assert sample.vram_bytes == sample_vram_bytes()

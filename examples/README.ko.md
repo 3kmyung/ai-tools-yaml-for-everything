@@ -179,6 +179,7 @@ ReAct 루프와 도구 사용을 활용한 자율 에이전트.
 - [find-person-scenes](./showcase/find-person-scenes/) — 얼굴 임베딩으로 비디오 내 인물 등장 장면 검색
 - [vibevoice-realtime-tts](./showcase/vibevoice-realtime-tts/) — Microsoft VibeVoice 기반 실시간 WebSocket TTS
 - [echo-server](./showcase/echo-server/) — 최소 HTTP 에코 서버
+- [speaker-diarization-vibevoice](./showcase/speaker-diarization-vibevoice/) — VibeVoice-ASR이 한 번에 받아적는 화자별 전사와 타임스탬프
 
 ### Media Processing
 
