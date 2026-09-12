@@ -29,7 +29,7 @@
 ## 실행 방법
 
 ```bash
-cd examples/showcase/transcribe-long-meeting
+cd examples/showcase/speaker-diarization-vibevoice
 model-compose up
 ```
 

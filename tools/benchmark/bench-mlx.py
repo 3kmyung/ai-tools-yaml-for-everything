@@ -5,7 +5,7 @@
         --max-tokens 8192 \\
         --context "Microsoft,VibeVoice" \\
         --audio meeting.wav \\
-        --example transcribe-long-meeting \\
+        --example speaker-diarization-vibevoice \\
         --machine macbook-m1 \\
         --build mlx-community/VibeVoice-ASR-4bit \\
         --precision bfloat16 \\

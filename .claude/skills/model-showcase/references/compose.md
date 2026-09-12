@@ -83,7 +83,7 @@ that accepts a local file upload calls it as-is.
 `examples/showcase/` holds `find-person-scenes`, `upscale-video`, `analyze-disk-usage`,
 `make-inspiring-quote-voice`, `echo-server`, and `vibevoice-realtime-tts`. Four of the six
 are verb-object; `vibevoice-realtime-tts` is the outlier, named after the model rather
-than the capability. Name every new directory verb-object — `transcribe-long-meeting`,
+than the capability. Name every new directory verb-object — `speaker-diarization-vibevoice`,
 not `vibevoice-asr-demo` — because an example sells what it lets someone do, and the
 model behind it is an implementation detail that can change.
 

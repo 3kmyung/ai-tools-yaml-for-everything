@@ -179,7 +179,7 @@ End-to-end pipelines combining multiple components.
 - [find-person-scenes](./showcase/find-person-scenes/) — Locate a target person's scenes in a video via face embedding
 - [vibevoice-realtime-tts](./showcase/vibevoice-realtime-tts/) — Real-time WebSocket TTS with Microsoft VibeVoice
 - [echo-server](./showcase/echo-server/) — Minimal HTTP echo server
-- [transcribe-long-meeting](./showcase/transcribe-long-meeting/) — Hour-long transcription with speakers and timestamps via VibeVoice-ASR
+- [speaker-diarization-vibevoice](./showcase/speaker-diarization-vibevoice/) — Who spoke what and when, transcribed with speakers and timestamps in one pass by VibeVoice-ASR
 
 ### Media Processing
 
