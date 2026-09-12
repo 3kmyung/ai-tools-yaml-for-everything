@@ -53,6 +53,9 @@ such a row rather than as a pipeline that produced everything instantly.
 
 This script does not score transcription. Accuracy is delegated to the Open
 ASR Leaderboard and `chime-utils`; see `references/benchmark.md`.
+`--transcript-path` saves what the workflow produced so that a scorer can be
+pointed at it later, which keeps the accuracy run from having to re-decode the
+audio just to obtain a hypothesis.
 
 Neither does it apply precision or quantization. Both are decided by the
 component in the example's own `model-compose.yml`; the arguments here only
@@ -116,6 +119,7 @@ def parse_arguments(argv=None):
     parser.add_argument("--webui-port", type=int, default=None)
     parser.add_argument("--ready-timeout", type=float, default=1200.0)
     parser.add_argument("--shutdown-timeout", type=float, default=120.0)
+    parser.add_argument("--transcript-path", type=Path, default=None)
     add_condition_arguments(parser)
 
     return validate_condition_arguments(parser, parser.parse_args(argv))
@@ -244,7 +248,7 @@ async def run(arguments):
     workflow = asyncio.create_task(manager.run_workflow(
         arguments.workflow_id,
         workflow_input,
-        output_path=None,
+        output_path=str(arguments.transcript_path) if arguments.transcript_path else None,
         verbose=False,
     ))
 
