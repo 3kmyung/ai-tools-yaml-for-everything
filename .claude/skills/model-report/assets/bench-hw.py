@@ -8,6 +8,19 @@
         --example transcribe-long-meeting \\
         --machine rtx-4090 \\
         --precision float16 \\
+        --quantization none \\
+        --batch 1 \\
+        --acoustic-tokenizer-chunk-size 1440000
+
+A quantized run states its own quantization instead:
+
+    python bench-hw.py \\
+        ... \\
+        --machine rtx-4050-laptop \\
+        --precision float16 \\
+        --quantization nf4 \\
+        --quantization-backend bitsandbytes \\
+        --quantization-skip-modules acoustic_tokenizer,semantic_tokenizer \\
         --batch 1 \\
         --acoustic-tokenizer-chunk-size 1440000
 
@@ -26,6 +39,13 @@ clock once that event has already arrived.
 
 This script does not score transcription. Accuracy is delegated to the Open
 ASR Leaderboard and `chime-utils`; see `references/benchmark.md`.
+
+Neither does it apply precision or quantization. Both are decided by the
+component in the example's own `model-compose.yml`; the arguments here only
+record what that component was configured to do, so a mismatch between the
+two is invisible to this script and has to be checked by reading the compose
+file. `conditions.numerics` is the single label the report table carries, so
+that no row can reach a reader with its arithmetic left unstated.
 
 A component whose `runtime` is `virtualenv` or `docker` loads its model in a
 separate process. `sample_vram_bytes()` reads the CUDA context of whichever
@@ -53,6 +73,10 @@ from mindor.core.compose.manager import ComposeManager
 from mindor.dsl.loader import load_compose_config
 
 
+QUANTIZATION_CHOICES = ["none", "int8", "int4", "nf4"]
+QUANTIZATION_BACKEND_CHOICES = ["bitsandbytes", "quanto", "torchao"]
+
+
 def parse_arguments(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--compose-file", required=True, type=Path)
@@ -62,11 +86,35 @@ def parse_arguments(argv=None):
     parser.add_argument("--example", required=True)
     parser.add_argument("--machine", required=True)
     parser.add_argument("--precision", required=True)
+    parser.add_argument("--quantization", required=True, choices=QUANTIZATION_CHOICES)
+    parser.add_argument("--quantization-backend", choices=QUANTIZATION_BACKEND_CHOICES, default=None)
+    parser.add_argument("--quantization-skip-modules", default="")
     parser.add_argument("--batch", required=True, type=int)
     parser.add_argument("--acoustic-tokenizer-chunk-size", required=True, type=int)
     parser.add_argument("--results-directory", type=Path, default=None)
 
-    return parser.parse_args(argv)
+    arguments = parser.parse_args(argv)
+
+    if arguments.quantization == "none" and arguments.quantization_backend is not None:
+        parser.error("--quantization-backend is meaningless with --quantization none")
+
+    if arguments.quantization != "none" and arguments.quantization_backend is None:
+        parser.error("--quantization-backend is required whenever --quantization is not none")
+
+    return arguments
+
+
+def split_skip_modules(value):
+    return [name.strip() for name in value.split(",") if name.strip()]
+
+
+def numerics_label(precision, quantization, backend, skip_modules):
+    if quantization == "none":
+        return precision
+
+    scope = f", all but {' and '.join(skip_modules)}" if skip_modules else ", whole model"
+
+    return f"{quantization}/{backend}{scope}, compute {precision}"
 
 
 def audio_duration_seconds(path):
@@ -128,7 +176,8 @@ def results_file_path(results_directory, example, machine):
     return base / f"{machine}.json"
 
 
-def build_result(*, example, machine, precision, batch, audio_duration_seconds,
+def build_result(*, example, machine, precision, quantization, quantization_backend,
+                 quantization_skip_modules, batch, audio_duration_seconds,
                  acoustic_tokenizer_chunk_size, cold_start_seconds, summary, valid, errors):
     e2e_seconds = summary.get("e2e_seconds")
     real_time_factor = (
@@ -142,6 +191,11 @@ def build_result(*, example, machine, precision, batch, audio_duration_seconds,
         "machine": machine,
         "conditions": {
             "precision": precision,
+            "quantization": quantization,
+            "quantization_backend": quantization_backend,
+            "quantization_skip_modules": quantization_skip_modules,
+            "numerics": numerics_label(precision, quantization, quantization_backend,
+                                       quantization_skip_modules),
             "batch": batch,
             "audio_duration_seconds": audio_duration_seconds,
             "acoustic_tokenizer_chunk_size": acoustic_tokenizer_chunk_size,
@@ -218,6 +272,9 @@ async def run(arguments):
         example=arguments.example,
         machine=arguments.machine,
         precision=arguments.precision,
+        quantization=arguments.quantization,
+        quantization_backend=arguments.quantization_backend,
+        quantization_skip_modules=split_skip_modules(arguments.quantization_skip_modules),
         batch=arguments.batch,
         audio_duration_seconds=audio_duration_seconds(arguments.audio),
         acoustic_tokenizer_chunk_size=arguments.acoustic_tokenizer_chunk_size,

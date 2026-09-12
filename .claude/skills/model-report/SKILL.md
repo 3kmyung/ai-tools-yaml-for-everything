@@ -22,11 +22,17 @@ same output, with precision as the only exception. Running an accuracy harness t
 times to learn one number the hardware had no part in is the mistake this split exists
 to prevent.
 
+A machine too small to hold the checkpoint is measured quantized rather than skipped,
+and every such row carries `conditions.numerics` in the table as its own column. That
+row contributes speed and memory figures only — never an accuracy figure beside rows
+that ran different arithmetic. `references/benchmark.md` has the toolchain table and the
+modules a speech model must be told not to quantize.
+
 ## Reference files
 
 | File | Read it when |
 |---|---|
-| `references/benchmark.md` | measuring anything — what belongs on which axis, the precision trap, delegating accuracy rather than scoring it here |
+| `references/benchmark.md` | measuring anything — what belongs on which axis, the precision trap, quantizing a machine that cannot hold the weights, delegating accuracy rather than scoring it here |
 | `references/report.md` | writing the six-section report, especially section 4's mandatory interpretation and section 5's verbatim usage-scope quote |
 | `references/social.md` | writing the X thread — the one template, the four required elements, the one prohibition |
 
@@ -44,6 +50,6 @@ to prevent.
 > `references/benchmark.md` has the two conditions to match before trusting the
 > comparison at all.
 
-No figure reaches either document without a source and a stated condition (precision,
-batch setting, sample length). A number that cannot state where it came from does not
-appear.
+No figure reaches either document without a source and a stated condition
+(`conditions.numerics`, batch setting, sample length). A number that cannot state where
+it came from does not appear.

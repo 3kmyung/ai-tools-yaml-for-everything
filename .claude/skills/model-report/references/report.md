@@ -24,6 +24,25 @@ Why: a bare table goes unread. The sentence is what carries the result to a read
 will not do the division themselves.
 ```
 
+The numerics belong in the table, not under it. Section 4's hardware table carries
+`conditions.numerics` as its own column, immediately after the machine:
+
+| Machine | Numerics | Cold start | TTFO | E2E | RTF | Peak video memory |
+|---|---|---|---|---|---|---|
+| RTX 4090 | `bfloat16` | | | | | |
+| DGX Spark | `bfloat16` | | | | | |
+| RTX 4050 Laptop | `nf4/bitsandbytes, all but acoustic_tokenizer and semantic_tokenizer, compute float16` | | | | | |
+
+```
+✗ Putting the quantized row's numerics in a footnote, or writing "4bit" where the label
+  says which backend and which modules were skipped.
+→ Carry `conditions.numerics` verbatim in its own column, and give any row whose
+  numerics differ from the rest no accuracy figure at all.
+Why: a footnote is read after the comparison has already been made. Two rows differing in
+arithmetic look like two rows differing in hardware unless the difference sits in the
+reader's eye at the same moment the numbers do.
+```
+
 Section 4 states each accuracy figure with the harness that produced it and the
 published figure it was checked against — `references/benchmark.md` has both. It does
 not quote only the flattering row:
@@ -75,7 +94,7 @@ clean field read identically to a reader unless the report distinguishes them.
 
 ## What does not belong in the report
 
-Any figure without a stated source and a stated condition (precision, batch setting,
-sample length) is left out rather than included with a caveat. A caveat on an
+Any figure without a stated source and a stated condition (`conditions.numerics`, batch
+setting, sample length) is left out rather than included with a caveat. A caveat on an
 unsourced number still puts the number in front of a reader who may not read the
 caveat; leaving it out entirely is the only version of this rule that actually works.
