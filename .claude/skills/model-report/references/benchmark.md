@@ -8,18 +8,26 @@ writing a single number into `report.md`.
 
 The hardware axis (cold start, TTFO, E2E, RTF, peak video memory, peak resident set) is
 measured on every machine, because the whole point is how one model behaves across them.
-The accuracy axis is measured on one machine only, across the precisions the model
-actually runs under, because word-error rate does not depend on which chip did the
-multiplying — the same weights on the same input produce the same output. Precision is
-the one exception, and it gets its own section below.
+The accuracy axis is measured once, on one machine, and then checked on a second one.
+
+This file used to say accuracy could be measured once because the same weights on the
+same input produce the same output. That was measured and it is false. Two machines ran
+the same checkpoint at `bfloat16` on the same audio and returned different transcripts —
+17.88% against 17.66% word error rate, 152 segments against 153. At low precision a
+different kernel or a different reduction order flips one token, and everything decoded
+after it follows the flip.
 
 ```
-✗ Running the accuracy harness once per machine.
-→ Run it once, on one machine, at each of the precisions the model is actually deployed
-  under (`bfloat16`, `float16`, `float32`).
-Why: accuracy does not vary with hardware. Repeating a long accuracy run per machine
-would buy one number that hardware had no part in.
+✗ Reporting one machine's accuracy as the model's accuracy.
+→ Score a second machine too, and quote the spread between them as the noise floor
+  before attributing any difference to precision, quantization or build.
+Why: the spread was 0.22 points here, which is small — and it was larger than the gap
+between the reference checkpoint and a 4-bit conversion. Without the second baseline
+that conversion's score reads as a quantization penalty it did not cause.
 ```
+
+Scoring every machine is still the wrong default: a long accuracy run per machine buys
+little once the spread is known. Two is the number that makes the third interpretable.
 
 A row measured under a second inference stack is the exception that proves this: its
 accuracy would differ, because a different implementation is not the same weights

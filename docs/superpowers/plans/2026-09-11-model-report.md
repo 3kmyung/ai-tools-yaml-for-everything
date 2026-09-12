@@ -110,7 +110,7 @@ What `benchmark.md` must carry, none of which is negotiable because each was arg
 
 | Content | Why it is there |
 |---|---|
-| The two axes, and that accuracy is measured once rather than three times | accuracy does not vary with hardware; precision is the only exception |
+| The two axes, and that accuracy is scored on two machines rather than one | two machines at the same precision disagreed, so the spread between them is the noise floor every other comparison needs |
 | The precision trap and the two tables it forces | `precision: auto` resolves to bfloat16 on CUDA, float16 on MPS, float32 on CPU, so the machines are not running the same numerics |
 | The delegation to Open ASR Leaderboard and `chime-utils` | building a scorer here produces numbers comparable to nothing |
 | Which metric belongs to which task | tcpWER for multi-speaker long-form, and why WER alone scores half of this model's output |
