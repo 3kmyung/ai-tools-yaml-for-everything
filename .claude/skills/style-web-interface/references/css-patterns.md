@@ -242,7 +242,7 @@ in review. `.item` itself carried exactly this mistake as a plain <li> with a cl
 handler and a border-recolour focus rule that no element inside it could ever trigger.
 The fix restructured the row into `.item-select` (the clickable, focusable button) and
 `.item-remove` (its own button) — why both classes exist at all. Neither of
-`model-showcase`'s `assets/checks.js` focus checks — "base.css declares a default focus
+`build-model-release`'s `assets/checks.js` focus checks — "base.css declares a default focus
 ring" and "no rule removes the outline without a replacement" — catches this: both read
 stylesheet rules, not whether any element in the DOM can ever reach them.
 ```

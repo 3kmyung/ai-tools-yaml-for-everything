@@ -1,13 +1,12 @@
 ---
-name: model-report
-description: Use when a model-compose showcase example has a working real run and needs to be measured and published — benchmarks it across every machine under comparison, delegates accuracy to two external harnesses, and turns both into a report and an X thread where every number carries its source and its condition.
+description: Use when a model-compose release has a working real run and needs to be measured and published — benchmarks it across every machine under comparison, delegates accuracy to two external harnesses, and turns both into a report and an X thread where every number carries its source and its condition.
 ---
 
 # model-report
 
-`model-showcase` produces a runnable example; this skill produces the numbers about it
+`build-model-release` produces a runnable example; this skill produces the numbers about it
 and the two documents that carry those numbers to a reader. It starts after
-`model-showcase`'s step 6 real run has already succeeded — there is nothing to measure
+`build-model-release`'s step 6 real run has already succeeded — there is nothing to measure
 before that.
 
 ## Two axes

@@ -20,9 +20,9 @@ the slow loop.
 2. Run, from the repository root:
 
    ```
-   node .claude/skills/model-showcase/assets/ui-check.mjs <example>/ui --width=1440 --height=900
-   node .claude/skills/model-showcase/assets/ui-check.mjs <example>/ui --width=800 --height=900
-   node .claude/skills/model-showcase/assets/ui-check.mjs <example>/ui --width=390 --height=844
+   node .claude/skills/build-model-release/assets/ui-check.mjs <example>/ui --width=1440 --height=900
+   node .claude/skills/build-model-release/assets/ui-check.mjs <example>/ui --width=800 --height=900
+   node .claude/skills/build-model-release/assets/ui-check.mjs <example>/ui --width=390 --height=844
    ```
 
    The harness's own flags take the `=` form (`--width=1440`, not `--width 1440`).
@@ -36,7 +36,7 @@ the slow loop.
 3. Capture a screenshot at each of the three widths by adding `--screenshot=<path>`,
    which switches Chrome to load `index.html` directly instead of `test.html`. Look at
    all three — the narrowest one is the one most likely to have never been looked at.
-4. Self-critique the screenshots against `ui-house-style`'s checklist before treating the
+4. Self-critique the screenshots against `style-web-interface`'s checklist before treating the
    iteration as done.
 
 `assets/serve.mjs` exists in place of Python's `http.server` because Python serves `.js`
@@ -252,7 +252,7 @@ ui/fixture.json
 ```
 
 All three are copied or hand-written by this skill for the fast loop, not part of the
-example's own source; a fresh `model-showcase` run regenerates them from `assets/` and
+example's own source; a fresh `build-model-release` run regenerates them from `assets/` and
 from the researched output shape.
 
 **`ui/checks.local.js` is never added to this list.** It is source, committed alongside

@@ -17,8 +17,8 @@ ui/
     ... (per-example modules)
 ```
 
-`model-showcase`'s `assets/checks.js` fetches `./styles/components.css` and
-`./styles/layout.css` and imports `./src/icons.js`; `ui-house-style`'s own
+`build-model-release`'s `assets/checks.js` fetches `./styles/components.css` and
+`./styles/layout.css` and imports `./src/icons.js`; `style-web-interface`'s own
 `check-rules.mjs` reads `styles/base.css`, `styles/layout.css`, and `styles/components.css`
 from the reference UI it is pointed at. Neither tolerates a different shape.
 

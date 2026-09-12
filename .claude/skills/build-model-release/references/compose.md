@@ -29,8 +29,8 @@ controller:
     static_dir: ./ui
 ```
 
-Gradio is what `examples/model-tasks/` uses; a showcase example never uses it. The whole
-point of `model-showcase` is a purpose-built screen for one model's distinguishing
+Gradio is what `examples/model-tasks/` uses; a release never uses it. The whole
+point of `build-model-release` is a purpose-built screen for one model's distinguishing
 mechanism, and Gradio's generic component set is the opposite of that.
 
 ## Every UI-facing workflow needs an `id`
@@ -75,7 +75,7 @@ gets to make per example. Regenerating that file from prose produces protocol bu
 fixture-driven fast loop cannot catch, because the fast loop never opens a WebSocket.
 
 File drop needs no new work on top of the copy: `streamFile(file)` in that client already
-builds the `__variable__` stream descriptor the server pulls from. A showcase example
+builds the `__variable__` stream descriptor the server pulls from. A release
 that accepts a local file upload calls it as-is.
 
 ## Directory naming: verb-object

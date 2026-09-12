@@ -26,7 +26,7 @@ paraphrase or drop data silently; a raw file cannot.
 | Input and output shape | the literal types the driver's `action` block will carry |
 | Streaming, batch, or both | feeds step 3 directly — see below |
 | Hardware floor | minimum VRAM/RAM the card or README states |
-| The one distinguishing mechanism | the thing that makes this model worth a showcase, in one sentence |
+| The one distinguishing mechanism | the thing that makes this model worth releasing, in one sentence |
 | Withdrawal or restriction history | anything the authors pulled, walked back, or restricted after release |
 
 ## Two gates
@@ -34,7 +34,7 @@ paraphrase or drop data silently; a raw file cannot.
 | Gate | Stops the work? | Rule |
 |---|---|---|
 | Licence | Yes — asks a human before step 2 begins | Anything other than MIT or Apache-2.0. Reads the licence field alone, nothing else. |
-| Usage scope | No — the example still gets built | Checked independently of the licence gate. Any restriction statement is recorded verbatim in the research table; that record is an obligation on the not-yet-built `model-report` skill's `report.md` and `social.md`, once that skill exists, not on anything this skill produces itself. |
+| Usage scope | No — the example still gets built | Checked independently of the licence gate. Any restriction statement is recorded verbatim in the research table; that record is an obligation on the not-yet-built `measure-model-release` skill's `report.md` and `social.md`, once that skill exists, not on anything this skill produces itself. |
 
 **Licence, worked example.** VibeVoice's TTS 1.5B and 7B weights were pulled on
 2025-09-04 after Microsoft found out-of-scope use; the repository returned on 2025-09-05
