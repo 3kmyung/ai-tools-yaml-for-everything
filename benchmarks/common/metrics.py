@@ -28,19 +28,22 @@ class SystemSample:
     vram_bytes: int = 0
 
 
-def sample_vram_bytes() -> int:
+def _torch_vram_bytes() -> int:
     try:
         import torch
     except ImportError:
-        torch = None
+        return 0
 
-    if torch is not None:
-        if torch.cuda.is_available():
-            return torch.cuda.max_memory_allocated()
+    if torch.cuda.is_available():
+        return torch.cuda.max_memory_allocated()
 
-        if torch.backends.mps.is_available():
-            return torch.mps.current_allocated_memory()
+    if torch.backends.mps.is_available():
+        return torch.mps.current_allocated_memory()
 
+    return 0
+
+
+def _mlx_vram_bytes() -> int:
     try:
         import mlx.core
     except ImportError:
@@ -52,6 +55,10 @@ def sample_vram_bytes() -> int:
             return reader()
 
     return 0
+
+
+def sample_vram_bytes() -> int:
+    return max(_torch_vram_bytes(), _mlx_vram_bytes())
 
 
 @dataclass
