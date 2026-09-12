@@ -5,7 +5,7 @@ there, and those runners do not share an inference stack: the `model-compose`
 runner drives PyTorch through a `ComposeManager`, while a machine with no
 PyTorch build of the checkpoint runs it through another runtime entirely. What
 they do share is this file — the same resource sampling, the same
-`benchmarks/common/metrics.py` event contract, and the same result shape — so
+`scripts/analyze-model/metrics.py` event contract, and the same result shape — so
 that rows produced by different runners land in one table with the difference
 between them stated in `conditions.runtime` and `conditions.build` rather than
 hidden.
@@ -30,7 +30,7 @@ from pathlib import Path
 
 import psutil
 
-from .metrics import SystemSample, sample_vram_bytes
+from metrics import SystemSample, sample_vram_bytes
 
 QUANTIZATION_CHOICES = ["none", "int8", "int4", "nf4"]
 QUANTIZATION_BACKEND_CHOICES = ["bitsandbytes", "quanto", "torchao", "mlx"]

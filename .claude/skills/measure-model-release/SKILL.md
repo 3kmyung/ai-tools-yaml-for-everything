@@ -35,10 +35,10 @@ anything.
 
 | Runner | For a machine that |
 |---|---|
-| `tools/benchmark/bench-hw.py` | runs the reference checkpoint through `model-compose` and PyTorch |
-| `tools/benchmark/bench-mlx.py` | has no PyTorch build and runs an MLX conversion instead |
+| `scripts/analyze-model/bench_hw.py` | runs the reference checkpoint through `model-compose` and PyTorch |
+| `scripts/analyze-model/bench_mlx.py` | has no PyTorch build and runs an MLX conversion instead |
 
-Both write the same result shape through `benchmarks/common/harness.py`, so their rows
+Both write the same result shape through `scripts/analyze-model/harness.py`, so their rows
 land in one table.
 
 ## Reference files

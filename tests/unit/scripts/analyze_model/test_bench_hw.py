@@ -1,13 +1,14 @@
-"""Unit tests for `tools/benchmark/bench-hw.py`.
+"""Unit tests for `scripts/analyze-model/bench_hw.py`.
 
 Exercises the event emission and the result-file shape without a model:
-`bench-hw.py` drives an in-process `ComposeManager` that needs real hardware
+`bench_hw.py` drives an in-process `ComposeManager` that needs real hardware
 to load a checkpoint, so `run` itself is not covered here. What is covered is
 everything reachable without one — the JSONL event contract, the result
 dictionary a report's tables read from, and where the result file lands.
 """
 
 import importlib.util
+import sys
 import json
 import wave
 from pathlib import Path
@@ -15,7 +16,7 @@ from pathlib import Path
 import pytest
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[4]
-BENCH_HW_PATH = REPOSITORY_ROOT / "tools" / "benchmark" / "bench-hw.py"
+BENCH_HW_PATH = REPOSITORY_ROOT / "scripts" / "analyze-model" / "bench_hw.py"
 
 
 def _load_bench_hw():
@@ -28,11 +29,8 @@ def _load_bench_hw():
 
 bench_hw = _load_bench_hw()
 
-import sys
-
-sys.path.insert(0, str(REPOSITORY_ROOT))
-from benchmarks.common import harness
-from benchmarks.common.metrics import sample_vram_bytes
+import harness
+from metrics import sample_vram_bytes
 
 
 def _write_silent_wav(path, seconds):
