@@ -1,4 +1,4 @@
-import { speakerHue, speakerName } from "./segments.js";
+import { buildSwatch, hasSpeaker, speakerHue, speakerName } from "./segments.js";
 
 const PIXELS_PER_SECOND = 36;
 const MINIMUM_SEGMENT_WIDTH = 6;
@@ -16,11 +16,15 @@ function buildTrack(segments, selectedIndex, onSelect) {
 
     const block = document.createElement("button");
     block.type = "button";
-    block.className = index === selectedIndex ? "timeline-segment is-selected" : "timeline-segment";
+    block.className = [
+      "timeline-segment",
+      index === selectedIndex ? "is-selected" : "",
+      hasSpeaker(segment.speakerId) ? "" : "is-unattributed",
+    ].filter(Boolean).join(" ");
     block.style.left = left + "px";
     block.style.width = width + "px";
     block.style.setProperty("--category-hue", speakerHue(segment.speakerId) + "deg");
-    block.title = speakerName(segment.speakerId) + " — " + segment.text;
+    block.title = speakerName(segment.speakerId) + "\n" + segment.text;
 
     block.addEventListener("click", () => onSelect(index));
 
@@ -41,10 +45,7 @@ function buildLegend(segments) {
       const entry = document.createElement("li");
       entry.className = "timeline-legend-entry";
 
-      const swatch = document.createElement("span");
-      swatch.className = "category-swatch";
-      swatch.style.setProperty("--category-hue", speakerHue(speakerId) + "deg");
-      swatch.setAttribute("aria-hidden", "true");
+      const swatch = buildSwatch(speakerId);
 
       const label = document.createElement("span");
       label.textContent = speakerName(speakerId);

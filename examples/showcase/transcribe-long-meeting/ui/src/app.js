@@ -1,7 +1,7 @@
 import { createApi } from "./api.js";
 import { createDropzone } from "./dropzone.js";
 import { readHotwords } from "./hotwords.js";
-import { markSelectedListItem, renderSegmentList, segmentsFromResponse } from "./segments.js";
+import { firstSpokenIndex, markSelectedListItem, renderSegmentDetail, renderSegmentList, segmentsFromResponse } from "./segments.js";
 import { markSelectedTimelineBlock, renderTimeline } from "./timeline.js";
 import { errorMessage, hideStatus, showFinished, showProgress, showStatus } from "./status.js";
 
@@ -40,18 +40,22 @@ function rememberedTask() {
   }
 }
 
+function showSelection() {
+  markSelectedListItem(document.querySelector("#segments ol"), selectedIndex);
+  markSelectedTimelineBlock(document.getElementById("timeline"), selectedIndex);
+  renderSegmentDetail(document.getElementById("detail"), segments, selectedIndex);
+}
+
 function selectSegment(index) {
   selectedIndex = index;
 
-  markSelectedListItem(document.querySelector("#segments ol"), selectedIndex);
-  markSelectedTimelineBlock(document.getElementById("timeline"), selectedIndex);
+  showSelection();
 }
 
 function deselectSegment() {
   selectedIndex = null;
 
-  markSelectedListItem(document.querySelector("#segments ol"), selectedIndex);
-  markSelectedTimelineBlock(document.getElementById("timeline"), selectedIndex);
+  showSelection();
 }
 
 function renderResults() {
@@ -69,13 +73,14 @@ function renderResults() {
   timelineSection.hidden = !hasResults;
 
   renderSegmentList(segmentList, segments, { selectedIndex: selectedIndex, onSelect: selectSegment });
+  renderSegmentDetail(document.getElementById("detail"), segments, selectedIndex);
 
   if (hasResults) renderTimeline(timelineSection, segments, { selectedIndex: selectedIndex, onSelect: selectSegment });
 }
 
 function applyTranscription(output) {
   segments = segmentsFromResponse((output && output.transcription) || []);
-  selectedIndex = segments.length ? 0 : null;
+  selectedIndex = firstSpokenIndex(segments);
 
   renderResults();
 }

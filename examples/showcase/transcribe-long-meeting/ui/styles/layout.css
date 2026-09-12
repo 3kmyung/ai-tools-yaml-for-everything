@@ -118,16 +118,26 @@ main {
   padding: var(--space-3);
 }
 
-#hint[hidden], #segments-hint[hidden], #dropzone[hidden], #timeline[hidden] {
+#hint[hidden], #segments-hint[hidden], #dropzone[hidden], #timeline[hidden], #detail[hidden] {
   display: none;
 }
 
 #timeline {
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
   gap: var(--space-3);
   min-width: 0;
   min-height: 0;
+}
+
+#detail {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  background: var(--background-panel);
 }
 
 footer {
