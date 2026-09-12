@@ -50,6 +50,7 @@ from benchmarks.common.harness import (
     split_skip_modules,
     validate_condition_arguments,
     write_result,
+    write_transcript,
 )
 
 RUNTIME = "mlx-audio"
@@ -60,6 +61,7 @@ def parse_arguments(argv=None):
     parser.add_argument("--model", required=True)
     parser.add_argument("--max-tokens", type=int, default=8192)
     parser.add_argument("--context", default=None)
+    parser.add_argument("--transcript-path", type=Path, default=None)
     add_condition_arguments(parser)
 
     return validate_condition_arguments(parser, parser.parse_args(argv))
@@ -99,19 +101,19 @@ def run(arguments):
     sampler.start()
 
     run_error = None
+    transcript = None
 
     try:
-        first = True
-        count = 0
+        chunks = []
 
-        for _ in model.stream_transcribe(**transcription_arguments(arguments)):
-            count += 1
+        for chunk in model.stream_transcribe(**transcription_arguments(arguments)):
+            chunks.append(chunk)
 
-            if first:
+            if len(chunks) == 1:
                 collector.ingest(emit("pipeline", "first_output"))
-                first = False
 
-        collector.ingest(emit("pipeline", "done", count=count))
+        collector.ingest(emit("pipeline", "done", count=len(chunks)))
+        transcript = chunks
     except Exception as error:
         collector.ingest(emit("runtime", "error", detail=str(error)))
         run_error = f"{error.__class__.__name__}: {error}"
@@ -119,11 +121,14 @@ def run(arguments):
         stop_sampling.set()
         sampler.join(timeout=2)
 
+    transcript_error = write_transcript(arguments.transcript_path, transcript)
+
     valid, errors = collector.is_valid()
     summary = collector.summary() if valid else {}
 
-    if run_error is not None:
-        errors = [ *errors, run_error ]
+    for problem in (run_error, transcript_error):
+        if problem is not None:
+            errors = [ *errors, problem ]
 
     result = build_result(
         example=arguments.example,
