@@ -107,6 +107,7 @@ from benchmarks.common.harness import (
     split_skip_modules,
     validate_condition_arguments,
     write_result,
+    write_transcript,
 )
 
 from mindor.core.compose.manager import ComposeManager
@@ -184,25 +185,6 @@ def runtime_label(config, serve):
     label = f"model-compose + {torch_build(config)}"
 
     return f"{label}, adapters served" if serve else label
-
-
-def write_transcript(path, transcript):
-    if path is None:
-        return None
-
-    if transcript is None:
-        return (
-            f"--transcript-path was given but the run produced no output to write to "
-            f"{path}; the accuracy step has no hypothesis to score"
-        )
-
-    try:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(transcript, indent=2, default=str))
-    except (OSError, TypeError, ValueError) as error:
-        return f"could not write {path}: {error.__class__.__name__}: {error}"
-
-    return None
 
 
 def clear_stale_stop_request():
