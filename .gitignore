@@ -197,3 +197,10 @@ CLAUDE.md
 !.claude/
 .claude/*
 !.claude/skills/
+
+# Everything a benchmark run needs but nobody should commit: the checkout it
+# runs from, its virtual environments, the audio and reference annotations it
+# downloads, and its logs. One directory per machine, so cleaning up after a
+# run is one removal rather than six. Measured results are not in here — those
+# live under benchmarks/<example>/ and are committed.
+.benchmark/
