@@ -208,7 +208,7 @@ async function loadFixtureIfBackendUnreachable() {
     if (!response.ok) return;
 
     applyTranscription(await response.json());
-    showFinished("Showing sample output — start model-compose to transcribe your own audio.", resetForNewFile);
+    showFinished("Showing sample output.", resetForNewFile);
   } catch (fixtureFailure) {}
 }
 
