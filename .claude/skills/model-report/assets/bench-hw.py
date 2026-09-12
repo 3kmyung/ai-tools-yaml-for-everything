@@ -55,7 +55,10 @@ This script does not score transcription. Accuracy is delegated to the Open
 ASR Leaderboard and `chime-utils`; see `references/benchmark.md`.
 `--transcript-path` saves what the workflow produced so that a scorer can be
 pointed at it later, which keeps the accuracy run from having to re-decode the
-audio just to obtain a hypothesis.
+audio just to obtain a hypothesis. It is written here rather than through
+`run_workflow`'s own `output_path`, whose `_save_output` is an empty stub that
+writes nothing and then sets `state.output` to `None` — asking for the
+transcript that way loses it.
 
 Neither does it apply precision or quantization. Both are decided by the
 component in the example's own `model-compose.yml`; the arguments here only
@@ -108,6 +111,7 @@ from benchmarks.common.harness import (
 
 from mindor.core.compose.manager import ComposeManager
 from mindor.dsl.loader import load_compose_config
+
 
 def parse_arguments(argv=None):
     parser = argparse.ArgumentParser()
@@ -180,6 +184,25 @@ def runtime_label(config, serve):
     label = f"model-compose + {torch_build(config)}"
 
     return f"{label}, adapters served" if serve else label
+
+
+def write_transcript(path, transcript):
+    if path is None:
+        return None
+
+    if transcript is None:
+        return (
+            f"--transcript-path was given but the run produced no output to write to "
+            f"{path}; the accuracy step has no hypothesis to score"
+        )
+
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(transcript, indent=2, default=str))
+    except (OSError, TypeError, ValueError) as error:
+        return f"could not write {path}: {error.__class__.__name__}: {error}"
+
+    return None
 
 
 def clear_stale_stop_request():
@@ -284,7 +307,7 @@ async def run(arguments):
     workflow = asyncio.create_task(manager.run_workflow(
         arguments.workflow_id,
         workflow_input,
-        output_path=str(arguments.transcript_path) if arguments.transcript_path else None,
+        output_path=None,
         verbose=False,
     ))
 
@@ -301,6 +324,7 @@ async def run(arguments):
     sampler.start()
 
     run_error = None
+    transcript = None
 
     try:
         state = await workflow
@@ -309,20 +333,20 @@ async def run(arguments):
             collector.ingest(emit("runtime", "error", detail=str(state.error)))
             run_error = str(state.error)
         elif hasattr(state.output, "__aiter__"):
-            first = True
-            count = 0
+            chunks = []
 
-            async for _ in state.output:
-                count += 1
+            async for chunk in state.output:
+                chunks.append(chunk)
 
-                if first:
+                if len(chunks) == 1:
                     collector.ingest(emit("pipeline", "first_output"))
-                    first = False
 
-            collector.ingest(emit("pipeline", "done", count=count))
+            collector.ingest(emit("pipeline", "done", count=len(chunks)))
+            transcript = chunks
         else:
             collector.ingest(emit("pipeline", "first_output"))
             collector.ingest(emit("pipeline", "done", count=1))
+            transcript = state.output
     except Exception as error:
         collector.ingest(emit("runtime", "error", detail=str(error)))
         run_error = f"{error.__class__.__name__}: {error}"
@@ -330,11 +354,14 @@ async def run(arguments):
         stop_sampling.set()
         sampler.join(timeout=2)
 
+    transcript_error = write_transcript(arguments.transcript_path, transcript)
+
     valid, errors = collector.is_valid()
     summary = collector.summary() if valid else {}
 
-    if run_error is not None:
-        errors = [ *errors, run_error ]
+    for problem in (run_error, transcript_error):
+        if problem is not None:
+            errors = [ *errors, problem ]
 
     result = build_result(
         example=arguments.example,
