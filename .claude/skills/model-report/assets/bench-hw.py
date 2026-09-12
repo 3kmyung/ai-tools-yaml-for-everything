@@ -28,13 +28,19 @@ Drives the example's own `model-compose.yml` through an in-process
 `ComposeManager`, the same mechanism
 `benchmarks/stt-embed-streaming/model-compose/pipeline.py` already uses.
 
-That mechanism races. `launch_services(detach=False)` is written to run until
-the controller stops, and in a native runtime its final wait returns at once,
-so the controller starts tearing down while this process is still polling
-`controller.started`. Winning the race means submitting the workflow as the
-very first thing after `started` goes true: the audio is read before launch and
-`run_workflow` is scheduled before the collector and the sampler thread exist.
-Losing it looks like `ShutdownError: Service is shutting down`.
+That precedent declares `controller: {}` — no protocol adapter and no web user
+interface — and this runner defaults to the same shape, stripping both from the
+configuration in memory. `launch_services(detach=False)` is written to run
+until the controller stops, and in a native runtime its final wait returns at
+once; with adapters configured the controller then tears itself down while this
+process is still polling `controller.started`, and `run_workflow` comes back
+`ShutdownError: Service is shutting down`. Nothing here needs those adapters:
+the workflow is invoked in process, not over HTTP.
+
+`--serve` keeps them, with `--controller-port` and `--webui-port` to move them
+off ports another process holds. Cold start then includes bringing the servers
+up, which is why `conditions.runtime` says so.
+
 `benchmarks/common/harness.py` holds everything this shares with the runners
 for machines that have no PyTorch build of the checkpoint, including the event
 contract and the result shape.
@@ -52,11 +58,10 @@ examples use over HTTP, and the runner substitutes the bytes of `--audio` for
 it. A file path will not do: `${input.audio as audio}` accepts bytes or a
 stream, and a path arrives as a string.
 
-On a machine that is already running something, pass `--controller-port` and
-`--webui-port` rather than editing the example: the compose file's ports are
-part of what the example documents, and a benchmark has no business changing
-them on disk. `--ready-timeout` bounds the wait for the controller, so a port
-already in use fails with that sentence instead of spinning forever.
+The example's compose file is never edited on disk: its ports and its web user
+interface are part of what the example documents. `--ready-timeout` bounds the
+wait for the controller, so a port already in use under `--serve` fails with
+that sentence instead of spinning forever.
 
 A component whose `runtime` is `virtualenv` or `docker` loads its model in a
 separate process. `sample_vram_bytes()` reads the accelerator context of
@@ -100,6 +105,7 @@ def parse_arguments(argv=None):
     parser.add_argument("--compose-file", required=True, type=Path)
     parser.add_argument("--workflow-id", required=True)
     parser.add_argument("--workflow-input", required=True)
+    parser.add_argument("--serve", action="store_true")
     parser.add_argument("--controller-port", type=int, default=None)
     parser.add_argument("--webui-port", type=int, default=None)
     parser.add_argument("--ready-timeout", type=float, default=1200.0)
@@ -109,7 +115,13 @@ def parse_arguments(argv=None):
     return validate_condition_arguments(parser, parser.parse_args(argv))
 
 
-def override_ports(config, controller_port, webui_port):
+def apply_serving(config, serve, controller_port, webui_port):
+    if not serve:
+        config.controller.adapters = []
+        config.controller.webui = None
+
+        return config
+
     if controller_port is not None:
         for adapter in config.controller.adapters:
             adapter.port = controller_port
@@ -118,6 +130,10 @@ def override_ports(config, controller_port, webui_port):
         config.controller.webui.port = webui_port
 
     return config
+
+
+def runtime_label(serve):
+    return f"{RUNTIME}, adapters served" if serve else RUNTIME
 
 
 def resolve_workflow_input(raw, audio_path):
@@ -208,7 +224,7 @@ async def run(arguments):
     launch_t = time.time()
 
     config = load_compose_config(str(arguments.compose_file.parent), [arguments.compose_file], env={})
-    config = override_ports(config, arguments.controller_port, arguments.webui_port)
+    config = apply_serving(config, arguments.serve, arguments.controller_port, arguments.webui_port)
     manager = ComposeManager(config, daemon=True)
     launch = asyncio.create_task(manager.launch_services(detach=False, verbose=False))
 
@@ -269,7 +285,7 @@ async def run(arguments):
     result = build_result(
         example=arguments.example,
         machine=arguments.machine,
-        runtime=RUNTIME,
+        runtime=runtime_label(arguments.serve),
         build=arguments.build,
         precision=arguments.precision,
         quantization=arguments.quantization,
