@@ -1,11 +1,3 @@
-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  background: var(--background-panel);
-}
-
 @property --scroll-fade-start {
   syntax: "<length>";
   inherits: false;
@@ -28,8 +20,13 @@ header {
   to { --scroll-fade-end: 0px; }
 }
 
-#settings, #segment-scroller, #log, main, #workspace, .timeline-scroller {
-  scrollbar-width: none;
+.scroll-fade {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  timeline-scope: --scroll-fade;
+  padding: 2px;
   mask-image: linear-gradient(
     var(--scroll-fade-direction),
     transparent 0,
@@ -37,75 +34,87 @@ header {
     #000 calc(100% - var(--scroll-fade-end)),
     transparent 100%
   );
-  animation: scroll-fade-start linear both, scroll-fade-end linear both;
+  animation-name: scroll-fade-start, scroll-fade-end;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-timeline: --scroll-fade;
   animation-range: 0px var(--space-5), calc(100% - var(--space-5)) 100%;
 }
 
-#settings {
+.scroll-fade > * {
   flex: 1 1 auto;
-  min-width: 0;
+  min-height: 0;
+}
+
+#settings, main, #segment-scroller, #workspace, #timeline-scroller, #log {
+  scrollbar-width: none;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--background-panel);
+}
+
+.scroll-fade:has(> #settings) {
+  flex: 1 1 auto;
+  --scroll-fade-direction: to right;
+}
+
+#settings {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   overflow-x: auto;
+  overflow-y: hidden;
+  scroll-timeline: --scroll-fade inline;
+}
+
+.scroll-fade:has(> main) {
+  flex: 1 1 auto;
   --scroll-fade-direction: to right;
-  animation-timeline: scroll(self inline);
 }
 
 main {
-  flex: 1;
-  min-height: 0;
   display: grid;
   grid-template-columns: clamp(13rem, 22vw, 20rem) minmax(16rem, 1fr);
   grid-template-rows: minmax(0, 1fr);
   gap: var(--space-3);
   padding: var(--space-3);
   overflow-x: auto;
-  --scroll-fade-direction: to right;
-  animation-timeline: scroll(self inline);
+  scroll-timeline: --scroll-fade inline;
 }
 
 #segments {
-  min-width: 0;
-  min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: var(--space-3);
-  background: var(--background-panel);
+  min-width: 0;
+  min-height: 0;
+  padding: var(--space-2);
   border-radius: var(--radius-lg);
+  background: var(--background-panel);
+}
+
+.scroll-fade:has(> #segment-scroller) {
+  flex: 1 1 auto;
+  --scroll-fade-direction: to bottom;
 }
 
 #segment-scroller {
-  min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
-  --scroll-fade-direction: to bottom;
-  animation-timeline: scroll(self block);
+  scroll-timeline: --scroll-fade block;
 }
 
-#segments ol {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+#segment-list {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-}
-
-#workspace {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  min-width: 0;
-  min-height: 0;
-  overflow: auto;
-  --scroll-fade-direction: to bottom;
-  animation-timeline: scroll(self block);
-}
-
-#workspace:has(#dropzone:not([hidden])) {
-  align-items: center;
-  justify-content: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 #hint, #segments-hint {
@@ -118,23 +127,57 @@ main {
   padding: var(--space-3);
 }
 
-#hint[hidden], #segments-hint[hidden], #dropzone[hidden], #timeline[hidden], #detail[hidden] {
-  display: none;
+.scroll-fade:has(> #workspace) {
+  --scroll-fade-direction: to bottom;
+}
+
+#workspace {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-timeline: --scroll-fade block;
+}
+
+#workspace > * {
+  flex: none;
+}
+
+#workspace:has(#dropzone:not([hidden])) {
+  align-items: center;
+  justify-content: safe center;
 }
 
 #timeline {
   display: flex;
   flex-direction: column;
-  flex-shrink: 0;
-  gap: var(--space-3);
-  min-width: 0;
-  min-height: 0;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--radius-lg);
+  background: var(--background-panel);
+}
+
+#timeline[hidden] {
+  display: none;
+}
+
+.scroll-fade:has(> #timeline-scroller) {
+  --scroll-fade-direction: to right;
+}
+
+#timeline-scroller {
+  padding: var(--space-1);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-timeline: --scroll-fade inline;
+}
+
+#timeline-legend {
+  padding-inline: var(--space-1);
 }
 
 #detail {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
   padding: var(--space-3);
   border-radius: var(--radius-lg);
   background: var(--background-panel);
@@ -144,90 +187,100 @@ footer {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
+  padding-inline: var(--space-3);
   background: var(--background-panel);
-  opacity: 1;
-  translate: 0 0;
-  transition: opacity var(--duration-base) ease, translate var(--duration-base) ease, display var(--duration-base) allow-discrete;
 }
 
-footer:not(:has(#log:not([hidden]):not(:empty))) {
-  display: none;
-  opacity: 0;
-  translate: 0 100%;
+footer > * {
+  margin-block: var(--space-2);
+  transition: opacity var(--duration-base) ease;
+}
+
+footer > :is([hidden], :empty, .scroll-fade:has(> :is([hidden], :empty))) {
+  display: none !important;
 }
 
 @starting-style {
-  footer:has(#log:not([hidden]):not(:empty)) {
+  footer > * {
     opacity: 0;
-    translate: 0 100%;
   }
+}
+
+.scroll-fade:has(> #log) {
+  flex: 1 1 auto;
+  --scroll-fade-direction: to bottom;
+}
+
+#log {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  max-height: 40vh;
+  overflow-y: auto;
+  scroll-timeline: --scroll-fade block;
 }
 
 .action-primary {
   margin-left: auto;
 }
 
-footer .action-primary {
+footer .action-primary, header .action-back {
   display: none;
-}
-
-header .action-back {
-  display: none;
-}
-
-#log {
-  flex: 1;
-  min-width: 0;
-  max-height: 40vh;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  overflow-y: auto;
-  --scroll-fade-direction: to bottom;
-  animation-timeline: scroll(self block);
-}
-
-.status-trailing {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  min-width: 0;
-  gap: var(--space-1);
-  margin-left: auto;
 }
 
 @media (width < 900px) {
   main {
     grid-template-columns: 1fr;
     grid-template-rows: auto minmax(0, 1fr);
-    overflow-x: hidden;
   }
 
-  #segments {
-    min-height: 0;
+  .scroll-fade:has(> #segment-scroller) {
+    --scroll-fade-direction: to right;
   }
 
   #segment-scroller {
     overflow-x: auto;
     overflow-y: hidden;
-    --scroll-fade-direction: to right;
-    animation-timeline: scroll(self inline);
+    scroll-timeline: --scroll-fade inline;
   }
 
-  #segments ol {
+  #segment-list {
     flex-direction: row;
+  }
+
+  #segment-list > .item {
+    flex: none;
+    width: clamp(13rem, 22vw, 20rem);
   }
 }
 
 @media (width < 600px) {
-  body:has(.item.is-selected) #segments {
-    display: none;
+  main {
+    grid-template-rows: minmax(0, 1fr);
   }
 
-  body:not(:has(.item.is-selected)) #workspace {
+  .scroll-fade:has(> #segment-scroller) {
+    --scroll-fade-direction: to bottom;
+  }
+
+  #segment-scroller {
+    overflow-x: hidden;
+    overflow-y: auto;
+    scroll-timeline: --scroll-fade block;
+  }
+
+  #segment-list {
+    flex-direction: column;
+  }
+
+  #segment-list > .item {
+    width: auto;
+  }
+
+  body:has(.item.is-selected) #segments,
+  body:not(:has(.item)) #segments,
+  body:has(.item):not(:has(.item.is-selected)) .scroll-fade:has(> #workspace) {
     display: none;
   }
 
@@ -241,15 +294,5 @@ header .action-back {
 
   footer .action-primary {
     display: inline-flex;
-  }
-
-  footer:not(:has(#log:not([hidden]):not(:empty))) {
-    display: flex;
-    opacity: 1;
-    translate: 0 0;
-  }
-
-  body:has(#log:not([hidden]):not(:empty)) footer .action-primary {
-    display: none;
   }
 }

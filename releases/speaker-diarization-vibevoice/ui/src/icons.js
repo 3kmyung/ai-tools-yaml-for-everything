@@ -9,21 +9,22 @@ export const ICONS = {
 };
 
 export function icon(name) {
-  const spec = ICONS[name];
-
+  const entry = ICONS[name];
   const svg = document.createElementNS(SVG_NAMESPACE, "svg");
+  const paths = entry.paths.map((data) => {
+    const path = document.createElementNS(SVG_NAMESPACE, "path");
+
+    path.setAttribute("d", data);
+
+    return path;
+  });
+
   svg.setAttribute("class", "icon");
   svg.setAttribute("width", "16");
   svg.setAttribute("height", "16");
-  svg.setAttribute("viewBox", spec.viewBox);
+  svg.setAttribute("viewBox", entry.viewBox);
   svg.setAttribute("aria-hidden", "true");
-
-  spec.paths.forEach((data) => {
-    const path = document.createElementNS(SVG_NAMESPACE, "path");
-    path.setAttribute("d", data);
-
-    svg.appendChild(path);
-  });
+  svg.append(...paths);
 
   return svg;
 }

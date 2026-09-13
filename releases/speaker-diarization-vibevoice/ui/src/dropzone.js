@@ -1,53 +1,43 @@
 import { icon } from "./icons.js";
 
 const IDLE_LABEL = "Drop an audio file, or click to browse";
+const INPUT_ID = "audio-file";
 
 function probeDuration(file, onDuration) {
   const probe = new Audio();
   const objectUrl = URL.createObjectURL(file);
+  const release = () => URL.revokeObjectURL(objectUrl);
 
   probe.addEventListener("loadedmetadata", () => {
     onDuration(probe.duration);
-    URL.revokeObjectURL(objectUrl);
+    release();
   }, { once: true });
-
-  probe.addEventListener("error", () => {
-    URL.revokeObjectURL(objectUrl);
-  }, { once: true });
+  probe.addEventListener("error", release, { once: true });
 
   probe.src = objectUrl;
 }
 
 export function createDropzone(element, handlers) {
-  const onFile = handlers.onFile;
-  const onDuration = handlers.onDuration;
+  const input = Object.assign(document.createElement("input"), {
+    type: "file",
+    accept: "audio/*",
+    id: INPUT_ID,
+    className: "field-file-input",
+  });
+  const target = Object.assign(document.createElement("label"), { className: "dropzone-target", htmlFor: INPUT_ID });
+  const label = Object.assign(document.createElement("span"), { className: "dropzone-label", textContent: IDLE_LABEL });
 
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = "audio/*";
-  input.className = "field-file-input";
-
-  const label = document.createElement("label");
-  label.className = "dropzone-target";
-
-  const uploadIcon = icon("upload");
-  uploadIcon.classList.add("dropzone-icon");
-
-  const text = document.createElement("span");
-  text.className = "dropzone-label";
-  text.textContent = IDLE_LABEL;
-
-  label.append(uploadIcon, text, input);
-  element.append(label);
-
-  function choose(file) {
+  const choose = (file) => {
     if (!file) return;
 
-    text.textContent = file.name;
+    label.textContent = file.name;
 
-    onFile(file);
-    probeDuration(file, onDuration);
-  }
+    handlers.onFile(file);
+    probeDuration(file, handlers.onDuration);
+  };
+
+  target.append(icon("upload"), label);
+  element.append(target, input);
 
   input.addEventListener("change", () => choose(input.files && input.files[0]));
 
@@ -56,8 +46,8 @@ export function createDropzone(element, handlers) {
     element.classList.add("is-dragover");
   });
 
-  element.addEventListener("dragleave", () => {
-    element.classList.remove("is-dragover");
+  element.addEventListener("dragleave", (event) => {
+    if (!element.contains(event.relatedTarget)) element.classList.remove("is-dragover");
   });
 
   element.addEventListener("drop", (event) => {
@@ -70,7 +60,7 @@ export function createDropzone(element, handlers) {
   return {
     reset: () => {
       input.value = "";
-      text.textContent = IDLE_LABEL;
+      label.textContent = IDLE_LABEL;
     },
   };
 }

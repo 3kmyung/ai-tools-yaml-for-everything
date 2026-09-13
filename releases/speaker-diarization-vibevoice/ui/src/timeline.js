@@ -1,79 +1,89 @@
-import { buildSwatch, hasSpeaker, speakerCategory, speakerName } from "./segments.js";
+import { createCategoryMarker } from "./category-marker.js";
+import { compareSpeakers, speakerCategory, speakerName } from "./segments.js";
 
-const PIXELS_PER_SECOND = 36;
-const MINIMUM_SEGMENT_WIDTH = 6;
+const PREVIOUS_KEYS = [ "ArrowLeft", "ArrowUp" ];
+const NEXT_KEYS = [ "ArrowRight", "ArrowDown" ];
 
-function buildTrack(segments, selectedIndex, onSelect) {
-  const totalSeconds = segments.reduce((longest, segment) => Math.max(longest, segment.endTime), 0);
-
-  const track = document.createElement("div");
-  track.className = "timeline-track";
-  track.style.width = Math.max(totalSeconds * PIXELS_PER_SECOND, 1) + "px";
-
-  segments.forEach((segment, index) => {
-    const left = segment.startTime * PIXELS_PER_SECOND;
-    const width = Math.max((segment.endTime - segment.startTime) * PIXELS_PER_SECOND, MINIMUM_SEGMENT_WIDTH);
-
-    const block = document.createElement("button");
-    block.type = "button";
-    block.className = [
-      "timeline-segment",
-      index === selectedIndex ? "is-selected" : "",
-      hasSpeaker(segment.speakerId) ? "" : "is-unattributed",
-    ].filter(Boolean).join(" ");
-    block.style.left = left + "px";
-    block.style.width = width + "px";
-    block.dataset.category = speakerCategory(segment.speakerId);
-    block.title = speakerName(segment.speakerId) + "\n" + segment.text;
-
-    block.addEventListener("click", () => onSelect(index));
-
-    track.appendChild(block);
+function createBlock(segment, index, onSelect) {
+  const category = speakerCategory(segment.speakerId);
+  const block = Object.assign(document.createElement("button"), {
+    type: "button",
+    className: "timeline-block",
+    tabIndex: -1,
+    title: segment.text,
   });
 
-  return track;
+  block.dataset.index = String(index);
+  block.style.setProperty("--start", String(segment.startTime));
+  block.style.setProperty("--duration", String(segment.endTime - segment.startTime));
+  block.setAttribute("aria-label", speakerName(segment.speakerId));
+  block.addEventListener("click", () => onSelect(index));
+
+  if (category) block.dataset.category = category;
+
+  return block;
 }
 
-function buildLegend(segments) {
-  const legend = document.createElement("ol");
-  legend.className = "timeline-legend";
+function createLegendEntry(speakerId) {
+  const entry = Object.assign(document.createElement("li"), { className: "timeline-legend-entry" });
+  const name = Object.assign(document.createElement("span"), { textContent: speakerName(speakerId) });
 
-  const speakerIds = Array.from(new Set(segments.map((segment) => segment.speakerId))).sort((first, second) => first - second);
+  entry.append(createCategoryMarker(speakerId), name);
 
-  legend.append(
-    ...speakerIds.map((speakerId) => {
-      const entry = document.createElement("li");
-      entry.className = "timeline-legend-entry";
-
-      const swatch = buildSwatch(speakerId);
-
-      const label = document.createElement("span");
-      label.textContent = speakerName(speakerId);
-
-      entry.append(swatch, label);
-
-      return entry;
-    })
-  );
-
-  return legend;
+  return entry;
 }
 
-export function renderTimeline(element, segments, options) {
-  const onSelect = options.onSelect;
-  const selectedIndex = options.selectedIndex;
+function neighbourIndex(key, currentIndex, count) {
+  if (key === "Home") return 0;
+  if (key === "End") return count - 1;
+  if (PREVIOUS_KEYS.includes(key)) return Math.max(currentIndex - 1, 0);
+  if (NEXT_KEYS.includes(key)) return Math.min(currentIndex + 1, count - 1);
 
-  const scroller = document.createElement("div");
-  scroller.className = "timeline-scroller";
-  scroller.appendChild(buildTrack(segments, selectedIndex, onSelect));
-
-  element.replaceChildren(scroller, buildLegend(segments));
+  return null;
 }
 
-export function markSelectedTimelineBlock(element, selectedIndex) {
-  const blocks = element.querySelectorAll(".timeline-segment");
+function moveFocus(event, blocks, onSelect) {
+  const current = event.target.closest(".timeline-block");
+  const nextIndex = current ? neighbourIndex(event.key, Number(current.dataset.index), blocks.length) : null;
+
+  if (nextIndex === null) return;
+
+  event.preventDefault();
+  onSelect(nextIndex);
+
+  blocks[nextIndex].focus({ preventScroll: true });
+  blocks[nextIndex].scrollIntoView({ block: "nearest", inline: "nearest" });
+}
+
+export function markSelectedTimelineBlock(scroller, selectedIndex) {
+  const blocks = Array.from(scroller.querySelectorAll(".timeline-block"));
+  const rovingIndex = selectedIndex !== null && blocks[selectedIndex] ? selectedIndex : 0;
 
   blocks.forEach((block, index) => {
-    block.classList.toggle("is-selected", index === selectedIndex);
+    const selected = index === selectedIndex;
+
+    block.classList.toggle("is-selected", selected);
+    block.tabIndex = index === rovingIndex ? 0 : -1;
+
+    if (selected) block.setAttribute("aria-current", "true");
+    else block.removeAttribute("aria-current");
   });
+}
+
+export function renderTimeline(scroller, legend, segments, options) {
+  const totalSeconds = segments.reduce((longest, segment) => Math.max(longest, segment.endTime), 0);
+  const speakerIds = Array.from(new Set(segments.map((segment) => segment.speakerId))).sort(compareSpeakers);
+  const blocks = segments.map((segment, index) => createBlock(segment, index, options.onSelect));
+  const track = Object.assign(document.createElement("div"), { className: "timeline-track" });
+
+  track.setAttribute("role", "group");
+  track.setAttribute("aria-label", "Timeline");
+  track.style.setProperty("--duration", String(totalSeconds));
+  track.addEventListener("keydown", (event) => moveFocus(event, blocks, options.onSelect));
+  track.append(...blocks);
+
+  scroller.replaceChildren(track);
+  legend.replaceChildren(...speakerIds.map((speakerId) => createLegendEntry(speakerId)));
+
+  markSelectedTimelineBlock(scroller, options.selectedIndex);
 }
