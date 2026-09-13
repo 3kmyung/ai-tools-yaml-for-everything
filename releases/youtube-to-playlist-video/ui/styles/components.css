@@ -342,6 +342,10 @@ header .setting {
   padding: var(--space-3) var(--space-5);
 }
 
+a.action-add {
+  text-decoration: none;
+}
+
 .action-primary, .action-resume {
   border-color: transparent;
   background: var(--accent-text);
@@ -486,7 +490,7 @@ header .setting {
 
 .status-video {
   display: block;
-  max-width: 24rem;
+  max-width: min(24rem, 100%);
   border-radius: var(--radius-lg);
 }
 
