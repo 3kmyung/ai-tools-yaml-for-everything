@@ -48,8 +48,11 @@ header {
   to { --scroll-fade-end: 0px; }
 }
 
-#settings, #track-scroller, #log, main, #workspace {
-  scrollbar-width: none;
+.scroll-fade {
+  display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  timeline-scope: --scroll-fade;
+  padding: 2px;
   mask-image: linear-gradient(
     var(--scroll-fade-direction),
     transparent 0,
@@ -57,32 +60,45 @@ header {
     #000 calc(100% - var(--scroll-fade-end)),
     transparent 100%
   );
-  animation: scroll-fade-start linear both, scroll-fade-end linear both;
+  animation-name: scroll-fade-start, scroll-fade-end;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-timeline: --scroll-fade;
   animation-range: 0px var(--space-5), calc(100% - var(--space-5)) 100%;
 }
 
-#settings {
+#settings, #track-scroller, #log, main, #workspace {
+  scrollbar-width: none;
+}
+
+.scroll-fade:has(> #settings) {
   flex: 1 1 auto;
   min-width: 0;
+  --scroll-fade-direction: to right;
+}
+
+#settings {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   overflow-x: auto;
+  scroll-timeline: --scroll-fade inline;
+}
+
+.scroll-fade:has(> main) {
+  flex: 1;
+  min-height: 0;
   --scroll-fade-direction: to right;
-  animation-timeline: scroll(self inline);
 }
 
 main {
-  flex: 1;
-  min-height: 0;
   display: grid;
   grid-template-columns: clamp(13rem, 22vw, 20rem) minmax(16rem, 1fr);
   grid-template-rows: minmax(0, 1fr);
   gap: var(--space-3);
   padding: var(--space-3);
   overflow-x: auto;
-  --scroll-fade-direction: to right;
-  animation-timeline: scroll(self inline);
+  scroll-timeline: --scroll-fade inline;
 }
 
 #tracks {
@@ -95,25 +111,31 @@ main {
   border-radius: var(--radius-lg);
 }
 
-#track-scroller {
+.scroll-fade:has(> #track-scroller) {
   min-height: 0;
+  --scroll-fade-direction: to bottom;
+}
+
+#track-scroller {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
   overflow-y: auto;
+  scroll-timeline: --scroll-fade block;
+}
+
+.scroll-fade:has(> #workspace) {
+  min-width: 0;
+  min-height: 0;
   --scroll-fade-direction: to bottom;
-  animation-timeline: scroll(self block);
 }
 
 #workspace {
   position: relative;
   display: grid;
   gap: var(--space-3);
-  min-width: 0;
-  min-height: 0;
   overflow: auto;
-  --scroll-fade-direction: to bottom;
-  animation-timeline: scroll(self block);
+  scroll-timeline: --scroll-fade block;
 }
 
 body:has(#ratio[data-value="16:9"]) #workspace { grid-template-columns: 1fr 1fr; }
@@ -153,23 +175,22 @@ footer {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
+  padding-inline: var(--space-3);
   background: var(--background-panel);
-  opacity: 1;
-  translate: 0 0;
-  transition: opacity var(--duration-base) ease, translate var(--duration-base) ease, display var(--duration-base) allow-discrete;
 }
 
-footer:not(:has(#log:not([hidden]):not(:empty))) {
-  display: none;
-  opacity: 0;
-  translate: 0 100%;
+footer > * {
+  margin-block: var(--space-2);
+  transition: opacity var(--duration-base) ease;
+}
+
+footer > :is([hidden], :empty, .scroll-fade:has(> :is([hidden], :empty))) {
+  display: none !important;
 }
 
 @starting-style {
-  footer:has(#log:not([hidden]):not(:empty)) {
+  footer > * {
     opacity: 0;
-    translate: 0 100%;
   }
 }
 
@@ -185,17 +206,20 @@ header .action-back {
   display: none;
 }
 
-#log {
+.scroll-fade:has(> #log) {
   flex: 1;
   min-width: 0;
+  --scroll-fade-direction: to bottom;
+}
+
+#log {
   max-height: 40vh;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: var(--space-3);
   overflow-y: auto;
-  --scroll-fade-direction: to bottom;
-  animation-timeline: scroll(self block);
+  scroll-timeline: --scroll-fade block;
 }
 
 #preview {
@@ -227,13 +251,16 @@ header .action-back {
     min-height: 0;
   }
 
+  .scroll-fade:has(> #track-scroller) {
+    --scroll-fade-direction: to right;
+  }
+
   #track-scroller {
     flex-direction: row;
     align-items: center;
     overflow-x: auto;
     overflow-y: hidden;
-    --scroll-fade-direction: to right;
-    animation-timeline: scroll(self inline);
+    scroll-timeline: --scroll-fade inline;
   }
 
   #tracks ol {
@@ -250,7 +277,7 @@ header .action-back {
     display: none;
   }
 
-  body:not(:has(.item.is-selected)) #workspace {
+  body:not(:has(.item.is-selected)) .scroll-fade:has(> #workspace) {
     display: none;
   }
 
@@ -264,15 +291,5 @@ header .action-back {
 
   footer .action-primary {
     display: inline-flex;
-  }
-
-  footer:not(:has(#log:not([hidden]):not(:empty))) {
-    display: flex;
-    opacity: 1;
-    translate: 0 0;
-  }
-
-  body:has(#log:not([hidden]):not(:empty)) footer .action-primary {
-    display: none;
   }
 }

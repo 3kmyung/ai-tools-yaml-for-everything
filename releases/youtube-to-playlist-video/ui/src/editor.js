@@ -7,24 +7,24 @@ import { STYLE_COLOR_ROLES } from "./color-roles.js";
 
 const URL_DEBOUNCE_MILLISECONDS = 500;
 
-const BASE_FIELD_SPECS = [
+const BASE_FIELD_SPECIFICATIONS = [
   { key: "youtube_url", label: "YouTube", type: "url", placeholder: "https://www.youtube.com/watch?v=…" },
   { key: "title", label: "Title", type: "text" },
   { key: "artist", label: "Artist", type: "text" },
   { key: "cover", label: "Cover", type: "image" },
 ];
 
-const COLOR_FIELD_SPECS = {
+const COLOR_FIELD_SPECIFICATIONS = {
   primary: { key: "primary_color", label: "Primary", type: "color", fallback: DEFAULT_TRACK_COLORS.primary },
   secondary: { key: "secondary_color", label: "Secondary", type: "color", fallback: DEFAULT_TRACK_COLORS.secondary },
   accent: { key: "accent_color", label: "Accent", type: "color", fallback: DEFAULT_TRACK_COLORS.accent },
   text: { key: "text_color", label: "Text", type: "color", fallback: DEFAULT_TRACK_COLORS.text },
 };
 
-function fieldSpecsFor(style) {
+function fieldSpecificationsFor(style) {
   const roles = STYLE_COLOR_ROLES[style] || [];
 
-  return BASE_FIELD_SPECS.concat(roles.map((role) => COLOR_FIELD_SPECS[role]));
+  return BASE_FIELD_SPECIFICATIONS.concat(roles.map((role) => COLOR_FIELD_SPECIFICATIONS[role]));
 }
 
 export function createEditor(options) {
@@ -77,24 +77,24 @@ export function createEditor(options) {
     return cover && cover.colors && Array.isArray(cover.colors.swatches) ? cover.colors.swatches : [];
   }
 
-  function handlers(track, spec) {
+  function handlers(track, specification) {
     return {
       suggestions: () => coverSwatches(track),
 
       onInput: (value) => {
-        track[spec.key].value = value;
-        markOverridden(spec.key);
+        track[specification.key].value = value;
+        markOverridden(specification.key);
 
-        if (spec.key === "youtube_url") {
+        if (specification.key === "youtube_url") {
           scheduleResolve(track, value);
         } else {
           onEdited();
         }
       },
 
-      onRevert: spec.key === "youtube_url" ? null : async () => {
+      onRevert: specification.key === "youtube_url" ? null : async () => {
         try {
-          await withStatus("Reverting…", () => revert(track, spec.key, getApi()), "That field could not be reverted.");
+          await withStatus("Reverting…", () => revert(track, specification.key, getApi()), "That field could not be reverted.");
         } catch (revertFailure) {
         }
 
@@ -129,7 +129,7 @@ export function createEditor(options) {
     hint.hidden = !!track;
 
     editor.replaceChildren(
-      ...(track ? fieldSpecsFor(getStyle()).map((spec) => renderField(spec, track[spec.key], handlers(track, spec))) : [])
+      ...(track ? fieldSpecificationsFor(getStyle()).map((specification) => renderField(specification, track[specification.key], handlers(track, specification))) : [])
     );
   }
 

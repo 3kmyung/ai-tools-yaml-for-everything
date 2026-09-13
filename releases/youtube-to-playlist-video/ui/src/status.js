@@ -42,6 +42,7 @@ export function showProgress(options) {
   status.hidden = false;
 
   const label = document.createElement("span");
+  label.className = "status-message";
   label.textContent = "Rendering…";
 
   const cancel = document.createElement("button");
@@ -75,6 +76,7 @@ export function showInterrupt(state, options) {
   const interruptMessage = state.interrupt ? state.interrupt.message : null;
 
   const label = document.createElement("span");
+  label.className = "status-message";
   label.textContent = interruptMessage != null ? interruptMessage : "Waiting before the next step…";
 
   const resume = document.createElement("button");
