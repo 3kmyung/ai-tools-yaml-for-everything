@@ -87,24 +87,34 @@ divergence between two examples' otherwise-shared components.css.
 ## Categorical colour for a small enumerable set
 
 An interface sometimes has to tell apart a handful of categories at a glance — a
-speaker, a track, a label — and one hue is not enough for that.
+speaker, a track, a label — and one hue is not enough for that. `tokens.md` carries
+eight `--category-*` tokens for exactly this; its "Category colours" section holds their
+values, their measured contrast, and the rule that keeps them off text.
 
 ```
-✗ A second accent hue hand-picked to distinguish one category from another, such as a
-  fixed hex value for "speaker two" alongside --accent for "speaker one."
-→ Derive every category past the first from --accent with filter: hue-rotate(Ndeg), on a
-  small, non-text marker element — a dot, a bar segment — never on text, and never as a
-  replacement for a text label the row already carries.
-Why: tokens.md's ten custom properties hold exactly one accent hue; a hand-picked second
-one is a colour invented outside that scale. hue-rotate derives every additional
-category from the token that already exists instead of adding new ones, and confining it
-to a decorative, non-text marker sidesteps the contrast arithmetic tokens.md works out
-for --accent-text, which a rotated hue has not been checked against. Pair the marker with
-the row's own text label — a speaker name, a category name — so colour is never the only
-channel telling two categories apart.
+✗ A hand-picked hex per category, or a category derived from --accent with
+  filter: hue-rotate(Ndeg).
+→ Number each category 1 to 8 — its index modulo eight, plus one — into a data-category
+  attribute on the marker, and map it with one CSS line per token:
+  [data-category="3"] { --category-color: var(--category-3); }. The marker paints
+  var(--category-color).
+Why: a hand-picked hex is a colour invented outside the scale. hue-rotate on a
+full-strength accent paints near-maximum chroma at every angle — OKLCH chroma 0.13 to
+0.28 across the six angles speaker-diarization-vibevoice once shipped — which reads as
+loud beside a palette that is otherwise grey and one blue, and every angle set needed its
+own canvas-read contrast and distance checks. The eight tokens are muted, fixed, and
+measured once in build-model-release's portable checks.
 ```
 
-Paint the marker's fill with `--accent` at full strength, not `color-mix`'d down through
+```
+✗ element.style.setProperty("--category-color", "var(--category-3)") from JavaScript.
+→ element.dataset.category = "3", read by the [data-category] rules above.
+Why: an inline custom property is a second source of truth the stylesheet cannot select
+on and a check cannot query; the attribute is the fact itself, the same reason
+JavaScript class toggling is banned above.
+```
+
+Paint the marker's fill with `--category-color` at full strength, not `color-mix`'d down through
 `--alpha-1`–`--alpha-3`. Those three steps exist for a tint sitting on top of content
 that is already legible without it — a hover wash, a selected-row background — and read
 as barely-there pastel once they are the only thing carrying a category's identity, which
@@ -114,58 +124,10 @@ scale-compliant way instead — `border-color: var(--text)` on the marker itself
 than reaching for a fourth, stronger alpha step that does not exist on the scale either.
 
 ```
-✗ A hue-rotate angle set shipped with no check confirming that every angle it produces
-  still clears a usable floor against the surfaces it sits on.
-→ Add a check to that interface's own `ui/checks.local.js` asserting every angle the
-  interface derives clears 3:1 against both `--background` and `--background-panel`,
-  measured by copying the marker's computed `filter` value onto a canvas and reading the
-  pixel `getImageData` returns, not by recomputing the hue-rotate matrix by hand —
-  `getComputedStyle` on the marker itself returns the pre-filter fill, so it cannot answer
-  what the filter actually paints.
-Why: rotation angle changes contrast on a non-monotonic curve, not a safe range with soft
-edges — a sweep of the accent hue through hue-rotate found some angles under 3:1 against
-`--background` and a wider band under 3:1 against the tighter `--background-panel` alone,
-so an angle picked on the assumption that "some rotation" is always safe can generate a
-marker the same colour as the surface behind it, and nothing in the portable suite reads
-a filtered colour to catch that before it ships.
-```
-
-```
-✗ A hue-rotate angle set whose check only measures each angle's contrast against the
-  surfaces it sits on, with nothing checking whether two of those angles paint colours
-  close enough to read as the same category.
-→ Add a second check to that interface's own `ui/checks.local.js` computing a perceptual
-  colour-difference metric — CIEDE2000 between each pair's Lab coordinates, converted
-  from the same painted, filter-applied colour the contrast check already reads through
-  a canvas `getImageData` — and failing any pair that falls under a floor set for what a
-  swatch-sized glance needs, not the angle values themselves.
-Why: contrast against the surface and distance between two colours are separate
-measurements, and passing one says nothing about the other — this example's own
-six-angle set cleared 3:1 against both surfaces at every angle while its `0deg` and
-`350deg` markers, only 10 degrees of rotation apart, painted colours a CIEDE2000 of 4.9
-apart, indistinguishable at swatch size, so a timeline with those two speakers showed one
-colour twice. Angular spacing does not predict this either: the same set's `205deg` and
-`249deg` markers, 44 degrees apart, painted colours roughly 30 apart on CIEDE2000, a
-wider gap than several pairs spaced further apart in degrees — hue-rotate's matrix bends
-perceptual distance the same way it bends contrast, so only measuring what it painted,
-never the angle arithmetic, can catch a collision.
-```
-
-A colour set is not usable on the strength of the derivation rule alone; it is usable
-once its own example's checks have measured both properties a derived set can silently
-fail — each colour's contrast against the surfaces it sits on, and every pair's distance
-from every other colour in the set — and passed both. Restating the shape these three
-rules share on purpose: derive from the one token and never invent a second one, then
-verify what that derivation actually painted, on both axes, before trusting it — the same
-relationship `tokens.md` already has between defining `--accent`/`--accent-text` and
-writing down the exact ratios each one measures at.
-
-```
 ✗ outline: 0 or outline: none with no replacement indicator in the same declaration
   block.
 → Only pair a removed default outline with a replacement in the same block: a
-  border-colour change, an inward ring, or an underline thickness change, as the three
-  blocks below do.
+  border-colour change or an inward ring, as the blocks below do.
 Why: removing the default focus ring and stopping there is invisible in a mouse-driven
 review and unusable for anyone tabbing through the page. A rule that turns the ring off
 without also turning something else on has silently deleted focus indication.
@@ -185,21 +147,21 @@ already has, to `--accent`. An element with no such line, or whose line is alrea
 
 | Element | Existing outer line | Focus treatment |
 |---|---|---|
-| `.field-line`, `.color-picker-hex` | `border-bottom 1px` | underline → accent |
-| `.color-picker-swatch` | `border 1px transparent` | border → accent |
-| `.dropdown` | `border 1px var(--border)` | border → accent |
-| `.action-add`, `.action-cancel` | `border 1px var(--accent)` | inward ring |
+| `.field-line`, `.color-picker-hex` | `border-bottom` at `--border-width` | underline → accent |
+| `.color-picker-swatch` | `border` at `--border-width`, transparent | border → accent |
+| `.dropdown` | `border` at `--border-width`, `var(--border)` | border → accent |
+| `.action-add`, `.action-cancel` | `border` at `--border-width`, `var(--accent)` | inward ring |
 | `.action-primary`, `.action-resume` | none; background is accent | inward ring in `--background` |
 | `.item-select`, `.item-remove`, `.revert-field` | none | inward ring |
 | `.dropdown-option` | none | inward ring |
-| `footer a` | none | `text-decoration-thickness: 2px` |
+| `footer a` | an underline already at `--border-width` | inward ring — the underline has no heavier weight to move to |
 
 `base.css` supplies the default that anything without its own indicator gets:
 
 ```css
 :is(button, a, input, select):focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
+  outline: var(--border-width) solid var(--accent);
+  outline-offset: calc(-1 * var(--border-width));
 }
 ```
 
@@ -217,7 +179,7 @@ The ring inverts only where the background is already accent:
 ```css
 :is(.action-primary, .action-resume):focus-visible {
   outline-color: var(--background);
-  outline-offset: -3px;
+  outline-offset: calc(-2 * var(--border-width));
 }
 ```
 

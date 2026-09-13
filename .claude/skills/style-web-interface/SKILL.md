@@ -15,7 +15,7 @@ file. Rules live in `references/`, read on demand — do not load all of them up
    `references/layout.md`'s "The directory both check suites hardcode" section, with
    `base.css` linked before `components.css` and `layout.css`.
 2. **Tokens** — read `references/tokens.md`, lay down `base.css` unchanged. Do not
-   invent a colour or a spacing/type/radius/duration value outside its scale.
+   invent a colour or a spacing/type/radius/line-width/duration value outside its scale.
 3. **Layout** — decide batch or streaming before choosing a layout; the two produce
    different skeletons. Then decide what the list is and what the workspace is for this
    example, and map that decision onto the three-region skeleton in `references/layout.md`.
@@ -28,7 +28,7 @@ file. Rules live in `references/`, read on demand — do not load all of them up
 
 | File | Read it when |
 |---|---|
-| `references/tokens.md` | laying down `base.css`, or choosing any colour, spacing, radius, or duration value |
+| `references/tokens.md` | laying down `base.css`, or choosing any colour, spacing, radius, line width, or duration value |
 | `references/layout.md` | building the page skeleton, the list/workspace split, or a scrolling region |
 | `references/components.md` | assembling a dropdown, field, button, list item, popover, or status bar |
 | `references/css-patterns.md` | writing any CSS rule — elevation, state, focus, motion, or responsiveness |
@@ -38,6 +38,9 @@ file. Rules live in `references/`, read on demand — do not load all of them up
 ## Self-critique checklist
 
 - Invented a new colour instead of using a token from `tokens.md`?
+- Written a `border`, `outline`, or `outline-offset` width as a literal instead of
+  `var(--border-width)`?
+- Painted a category marker with anything but a `--category-*` token, or put one on text?
 - Used `box-shadow` anywhere?
 - Toggled visual state from JavaScript instead of a CSS selector reading the DOM?
 - Styled anything in `components.css` by ID, or named a class after this example's

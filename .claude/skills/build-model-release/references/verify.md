@@ -45,10 +45,10 @@ types does not.
 
 ## The checks every generated example must pass
 
-Two files hold the seventeen checks between them, and each has a different owner and a
+Two files hold the twenty checks between them, and each has a different owner and a
 different lifecycle.
 
-`assets/checks.js` is the current, versioned source of truth for the eleven checks that
+`assets/checks.js` is the current, versioned source of truth for the fourteen checks that
 travel unchanged to every generated interface — read it directly rather than
 reconstructing the list from any single task's code block, including this one.
 `assets/ui-check.mjs` copies it over `ui/checks.js` on every invocation, so it is edited
@@ -60,7 +60,9 @@ duplicating them.
 | Group | Portable checks (`assets/checks.js`) |
 |---|---|
 | Contrast | `--accent-text` / `--text-caption` against `--background` and `--background-panel` at 4.5:1; `--link` resolves to the same colour as `--accent-text`; no text rule in `components.css` paints with `--accent` directly |
-| Focus | `base.css` declares a default `:focus-visible` ring (`2px solid`, `-2px` offset, coloured `--accent`); no rule turns an outline off without a replacement indicator in the same declaration |
+| Category colour | `--category-1` through `--category-8` clear 3:1 against `--background` and `--background-panel`; every pair sits a CIEDE2000 of at least 16 apart |
+| Line width | no `border`, `outline`, `outline-offset`, or `text-decoration-thickness` in `base.css`, `components.css`, or `layout.css` is a literal length |
+| Focus | `base.css` declares a default `:focus-visible` ring (`var(--border-width) solid`, `calc(-1 * var(--border-width))` offset, coloured `--accent`); no rule turns an outline off without a replacement indicator in the same declaration |
 | Motion | `base.css` collapses `transition-duration` and `animation-duration` under `prefers-reduced-motion`, with `!important` on both |
 | Component hygiene | `components.css` carries no ID selectors |
 | Responsive | no sideways scroll at the current width; `main` is single-column below 900px |
@@ -117,6 +119,9 @@ being committed. A per-example file that is generated instead of tracked, or tha
 | 15 | icons keep Lucide's 24-unit `viewBox` | `assets/checks.js` | identical everywhere |
 | 16 | a rendered icon is 16px with `aria-hidden` | `ui/checks.local.js`, when an interface has a dropdown | absent from both current examples' files — neither ships a dropdown whose selected option needs a check icon; a future interface with one adds this slot to its own file, not to `assets/checks.js` |
 | 17 | the viewport is the width that was asked for | `assets/checks.js` | identical everywhere |
+| 18 | `--category-*` tokens clear 3:1 on both surfaces | `assets/checks.js` | identical everywhere |
+| 19 | every pair of `--category-*` tokens clears a CIEDE2000 of 16 | `assets/checks.js` | identical everywhere |
+| 20 | no border or outline width is a literal length | `assets/checks.js` | identical everywhere |
 
 A per-example check whose named element, vocabulary or structure genuinely has no
 counterpart in an interface is left out of that interface's `checks.local.js`, not kept

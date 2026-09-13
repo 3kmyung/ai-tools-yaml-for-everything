@@ -1,4 +1,7 @@
 const missingTokenSentinel = "rgb(1, 2, 3)";
+const categoryCount = 8;
+const categoryDistanceFloor = 16;
+const referenceWhite = [ 0.95047, 1, 1.08883 ];
 
 function channel(value) {
   const normalized = value / 255;
@@ -17,6 +20,98 @@ export function contrast(foreground, background) {
   const darker = Math.min(luminance(foreground), luminance(background));
 
   return (lighter + 0.05) / (darker + 0.05);
+}
+
+function labPivot(value) {
+  const delta = 6 / 29;
+
+  return value > delta ** 3 ? Math.cbrt(value) : value / (3 * delta * delta) + 4 / 29;
+}
+
+function labFromColor(color) {
+  const [ red, green, blue ] = color.match(/\d+(\.\d+)?/g).slice(0, 3).map(Number);
+
+  const linearRed = channel(red);
+  const linearGreen = channel(green);
+  const linearBlue = channel(blue);
+
+  const x = linearRed * 0.4124564 + linearGreen * 0.3575761 + linearBlue * 0.1804375;
+  const y = linearRed * 0.2126729 + linearGreen * 0.7151522 + linearBlue * 0.0721750;
+  const z = linearRed * 0.0193339 + linearGreen * 0.1191920 + linearBlue * 0.9503041;
+
+  const fx = labPivot(x / referenceWhite[0]);
+  const fy = labPivot(y / referenceWhite[1]);
+  const fz = labPivot(z / referenceWhite[2]);
+
+  return [ 116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz) ];
+}
+
+function ciede2000(labFirst, labSecond) {
+  const [ lightnessFirst, aFirst, bFirst ] = labFirst;
+  const [ lightnessSecond, aSecond, bSecond ] = labSecond;
+
+  const chromaFirst = Math.sqrt(aFirst * aFirst + bFirst * bFirst);
+  const chromaSecond = Math.sqrt(aSecond * aSecond + bSecond * bSecond);
+  const chromaMean = (chromaFirst + chromaSecond) / 2;
+
+  const chromaCorrection = 0.5 * (1 - Math.sqrt(chromaMean ** 7 / (chromaMean ** 7 + 25 ** 7)));
+
+  const aFirstPrime = aFirst * (1 + chromaCorrection);
+  const aSecondPrime = aSecond * (1 + chromaCorrection);
+
+  const chromaFirstPrime = Math.sqrt(aFirstPrime * aFirstPrime + bFirst * bFirst);
+  const chromaSecondPrime = Math.sqrt(aSecondPrime * aSecondPrime + bSecond * bSecond);
+
+  const hueFirstPrime = (Math.atan2(bFirst, aFirstPrime) + 2 * Math.PI) % (2 * Math.PI);
+  const hueSecondPrime = (Math.atan2(bSecond, aSecondPrime) + 2 * Math.PI) % (2 * Math.PI);
+
+  const deltaLightnessPrime = lightnessSecond - lightnessFirst;
+  const deltaChromaPrime = chromaSecondPrime - chromaFirstPrime;
+
+  const chromaProduct = chromaFirstPrime * chromaSecondPrime;
+  const hueDifference = hueSecondPrime - hueFirstPrime;
+
+  let deltaHuePrime;
+  if (chromaProduct === 0) deltaHuePrime = 0;
+  else if (Math.abs(hueDifference) <= Math.PI) deltaHuePrime = hueDifference;
+  else if (hueDifference > Math.PI) deltaHuePrime = hueDifference - 2 * Math.PI;
+  else deltaHuePrime = hueDifference + 2 * Math.PI;
+
+  const deltaChromaHuePrime = 2 * Math.sqrt(chromaProduct) * Math.sin(deltaHuePrime / 2);
+
+  const lightnessMeanPrime = (lightnessFirst + lightnessSecond) / 2;
+  const chromaMeanPrime = (chromaFirstPrime + chromaSecondPrime) / 2;
+  const hueSum = hueFirstPrime + hueSecondPrime;
+
+  let hueMeanPrime;
+  if (chromaProduct === 0) hueMeanPrime = hueSum;
+  else if (Math.abs(hueFirstPrime - hueSecondPrime) <= Math.PI) hueMeanPrime = hueSum / 2;
+  else if (hueSum < 2 * Math.PI) hueMeanPrime = (hueSum + 2 * Math.PI) / 2;
+  else hueMeanPrime = (hueSum - 2 * Math.PI) / 2;
+
+  const toDegrees = (angleInRadians) => (angleInRadians * 180) / Math.PI;
+  const toRadians = (angleInDegrees) => (angleInDegrees * Math.PI) / 180;
+
+  const hueWeighting = 1
+    - 0.17 * Math.cos(hueMeanPrime - toRadians(30))
+    + 0.24 * Math.cos(2 * hueMeanPrime)
+    + 0.32 * Math.cos(3 * hueMeanPrime + toRadians(6))
+    - 0.20 * Math.cos(4 * hueMeanPrime - toRadians(63));
+
+  const hueRotationAngle = toRadians(30) * Math.exp(-(((toDegrees(hueMeanPrime) - 275) / 25) ** 2));
+  const hueRotationTerm = 2 * Math.sqrt(chromaMeanPrime ** 7 / (chromaMeanPrime ** 7 + 25 ** 7));
+
+  const lightnessScale = 1 + (0.015 * (lightnessMeanPrime - 50) ** 2) / Math.sqrt(20 + (lightnessMeanPrime - 50) ** 2);
+  const chromaScale = 1 + 0.045 * chromaMeanPrime;
+  const hueScale = 1 + 0.015 * chromaMeanPrime * hueWeighting;
+
+  const crossTerm = -Math.sin(2 * hueRotationAngle) * hueRotationTerm;
+
+  const lightnessTerm = deltaLightnessPrime / lightnessScale;
+  const chromaTerm = deltaChromaPrime / chromaScale;
+  const hueTerm = deltaChromaHuePrime / hueScale;
+
+  return Math.sqrt(lightnessTerm ** 2 + chromaTerm ** 2 + hueTerm ** 2 + crossTerm * chromaTerm * hueTerm);
 }
 
 export function requireTokenColor(frameDocument, frameWindow, name) {
@@ -45,7 +140,7 @@ function readCssRules(sheet) {
 function outlineWidthOf(styleDeclaration) {
   if (styleDeclaration.outlineWidth) return styleDeclaration.outlineWidth;
 
-  const match = styleDeclaration.outline.match(/\d+(\.\d+)?px/);
+  const match = styleDeclaration.outline.match(/var\(--border-width\)|\d+(\.\d+)?px/);
 
   return match ? match[0] : "";
 }
@@ -111,6 +206,8 @@ export function escapeRegExp(value) {
 
 const groupingAtRule = /^@(media|supports|container|starting-style|layer|scope)\b/i;
 const opaqueAtRule = /^@(-webkit-)?(keyframes|property|font-face|page|counter-style|font-palette-values)\b/i;
+const lineWidthDeclaration = /(?:^|[;{\s])(border(?:-(?:top|right|bottom|left|block|inline)(?:-(?:start|end))?)?(?:-width)?|outline(?:-width|-offset)?|text-decoration-thickness)\s*:\s*([^;]*)/g;
+const literalLength = /(?:^|[\s(,])-?\d*\.?\d+(?:px|rem|em)\b/;
 
 function matchingBraceIndex(source, openIndex) {
   let depth = 0;
@@ -234,8 +331,8 @@ export const CHECKS = [
       const outlineWidth = outlineWidthOf(base.style);
       const outlineStyle = outlineStyleOf(base.style);
 
-      if (outlineWidth !== "2px") return `outline-width is ${outlineWidth}`;
-      if (base.style.outlineOffset !== "-2px") return `outline-offset is ${base.style.outlineOffset}`;
+      if (outlineWidth !== "var(--border-width)") return `outline-width is ${outlineWidth}`;
+      if (base.style.outlineOffset.replace(/\s+/g, "") !== "calc(-1*var(--border-width))") return `outline-offset is ${base.style.outlineOffset}`;
       if (outlineStyle !== "solid") return `outline-style is ${outlineStyle}`;
       if (!outlineIsAccentColored(base.style)) return "outline color is not var(--accent)";
 
@@ -331,6 +428,77 @@ export const CHECKS = [
         .map(([ name ]) => name);
 
       return wrong.length === 0 ? true : wrong.join(", ");
+    },
+  },
+  {
+    name: `--category-1 through --category-${categoryCount} clear 3:1 on --background and --background-panel`,
+    run: (frameDocument, frameWindow) => {
+      const surfaceTokens = [ "--background", "--background-panel" ];
+
+      const failures = [];
+
+      for (let category = 1; category <= categoryCount; category += 1) {
+        const marker = requireTokenColor(frameDocument, frameWindow, `--category-${category}`);
+
+        if (marker.missing) {
+          failures.push(`${marker.name} is not defined`);
+          continue;
+        }
+
+        for (const surfaceToken of surfaceTokens) {
+          const surface = requireTokenColor(frameDocument, frameWindow, surfaceToken);
+
+          if (surface.missing) {
+            failures.push(`${surface.name} is not defined`);
+            continue;
+          }
+
+          const ratio = contrast(marker.color, surface.color);
+
+          if (ratio < 3) failures.push(`${marker.name} on ${surfaceToken} is ${ratio.toFixed(2)}`);
+        }
+      }
+
+      return failures.length === 0 ? true : failures.join(" / ");
+    },
+  },
+  {
+    name: `every pair of --category-* tokens clears a CIEDE2000 of ${categoryDistanceFloor}`,
+    run: (frameDocument, frameWindow) => {
+      const markers = Array.from({ length: categoryCount }, (unused, index) => requireTokenColor(frameDocument, frameWindow, `--category-${index + 1}`));
+      const missing = markers.filter((marker) => marker.missing);
+
+      if (missing.length > 0) return missing.map((marker) => `${marker.name} is not defined`).join(" / ");
+
+      const labs = markers.map((marker) => labFromColor(marker.color));
+
+      const failures = [];
+
+      for (let firstIndex = 0; firstIndex < markers.length; firstIndex += 1) {
+        for (let secondIndex = firstIndex + 1; secondIndex < markers.length; secondIndex += 1) {
+          const distance = ciede2000(labs[firstIndex], labs[secondIndex]);
+
+          if (distance < categoryDistanceFloor) {
+            failures.push(`${markers[firstIndex].name} vs ${markers[secondIndex].name} is ${distance.toFixed(2)}`);
+          }
+        }
+      }
+
+      return failures.length === 0 ? true : failures.join(" / ");
+    },
+  },
+  {
+    name: "no border or outline width is a literal length",
+    run: async () => {
+      const paths = [ "./styles/base.css", "./styles/components.css", "./styles/layout.css" ];
+      const sources = await Promise.all(paths.map(stylesheetSource));
+
+      const offenders = sources.flatMap((source) => extractStyleRules(source)
+        .flatMap(({ selector, body }) => [ ...body.matchAll(lineWidthDeclaration) ]
+          .filter((match) => literalLength.test(match[2]))
+          .map((match) => `${selector} { ${match[1]}: ${match[2].trim()} }`)));
+
+      return offenders.length === 0 ? true : offenders.join(" / ");
     },
   },
   {
