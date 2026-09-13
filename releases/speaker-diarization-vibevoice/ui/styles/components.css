@@ -236,7 +236,7 @@
   line-height: 1.7;
 }
 
-.action-primary, .action-cancel {
+.action-primary, .action-cancel, .action-add {
   box-sizing: border-box;
   display: inline-flex;
   flex: none;
@@ -249,6 +249,7 @@
   background: none;
   color: var(--accent-text);
   font-weight: 500;
+  text-decoration: none;
   text-transform: uppercase;
   cursor: pointer;
   transition: background-color var(--duration-slow) ease, color var(--duration-slow) ease;
@@ -264,7 +265,7 @@
   background: color-mix(in srgb, var(--accent-text), var(--text) var(--alpha-3));
 }
 
-.action-cancel:is(:hover, :focus-visible):not(:disabled) {
+:is(.action-cancel, .action-add):is(:hover, :focus-visible):not(:disabled) {
   background: color-mix(in srgb, currentColor var(--alpha-2), transparent);
 }
 
