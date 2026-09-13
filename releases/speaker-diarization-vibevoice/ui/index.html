@@ -1,63 +1,71 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Transcribe a Long Meeting</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" />
+  <title>VibeVoice Speaker Diarization</title>
   <link rel="stylesheet" href="./styles/base.css" />
   <link rel="stylesheet" href="./styles/components.css" />
   <link rel="stylesheet" href="./styles/layout.css" />
+  <script type="module" src="./src/main.js"></script>
 </head>
 <body>
   <header>
-    <button id="back-to-segments" class="action-cancel action-back" type="button">Back</button>
-    <div class="scroll-fade">
-      <div id="settings">
-        <div class="setting">
+    <div id="settings">
+      <div class="field" data-field="audio" id="audio-field">
+        <div class="field-body">
+          <label class="field-label" for="audio-file">Audio file</label>
+          <div class="field-control is-default" id="audio-control">
+            <input class="field-file-input" type="file" id="audio-file" accept="audio/*" />
+            <label class="field-line field-file-pick" for="audio-file">
+              <span class="field-file-name" id="audio-name">No file chosen</span>
+              <svg class="icon" data-icon="upload"></svg>
+            </label>
+          </div>
+          <span id="warning" class="caption-warning" hidden></span>
+        </div>
+        <button class="revert-field" type="button" id="audio-revert" aria-label="Clear the chosen file" disabled>
+          <svg class="icon" data-icon="rotate-ccw"></svg>
+        </button>
+      </div>
+      <div class="field" data-field="hotwords">
+        <div class="field-body">
           <label class="field-label" for="hotwords">Hotwords</label>
-          <div class="field-line">
-            <input type="text" id="hotwords" placeholder="Microsoft, VibeVoice" />
-          </div>
-        </div>
-        <span id="warning" class="caption-warning" hidden></span>
-      </div>
-    </div>
-    <button id="transcribe" class="action-primary" type="button">Transcribe</button>
-  </header>
-  <div class="scroll-fade">
-    <main>
-      <section id="segments" aria-label="Segments">
-        <div class="scroll-fade">
-          <div id="segment-scroller">
-            <p id="segments-hint">Segments will appear here once a file is transcribed.</p>
-            <ol id="segment-list"></ol>
-          </div>
-        </div>
-      </section>
-      <div class="scroll-fade">
-        <div id="workspace">
-          <p id="hint">No transcription yet.</p>
-          <section id="dropzone" class="dropzone"></section>
-          <section id="timeline" hidden>
-            <div class="scroll-fade">
-              <div id="timeline-scroller"></div>
+          <div class="field-control is-default" id="hotwords-control">
+            <div class="field-line">
+              <input type="text" id="hotwords" value="" placeholder="Names or terms, comma-separated" autocomplete="off" spellcheck="false" />
             </div>
-            <ol id="timeline-legend" class="timeline-legend"></ol>
-          </section>
-          <section id="detail" hidden></section>
+          </div>
+        </div>
+        <button class="revert-field" type="button" id="hotwords-revert" aria-label="Clear hotwords" disabled>
+          <svg class="icon" data-icon="rotate-ccw"></svg>
+        </button>
+      </div>
+    </div>
+    <button class="action-primary" type="button" id="transcribe" disabled>Transcribe</button>
+  </header>
+  <main>
+    <section id="overview" aria-labelledby="source-name">
+      <div id="summary">
+        <h1 id="source-name">Sample recording</h1>
+        <ul id="figures" class="figures"></ul>
+      </div>
+      <p id="hint" class="caption"></p>
+      <div class="timeline" role="group" aria-label="Who spoke when">
+        <div class="timeline-headers" id="timeline-headers"></div>
+        <div class="scroll-fade" id="timeline-fade">
+          <div class="timeline-tracks" id="timeline">
+            <div class="timeline-canvas" id="timeline-canvas"></div>
+          </div>
         </div>
       </div>
-    </main>
-  </div>
-  <footer>
-    <div class="scroll-fade">
-      <div id="log" role="status" hidden></div>
+    </section>
+    <div class="scroll-fade" id="segments-fade">
+      <ol id="segments" aria-label="Segments"></ol>
     </div>
-    <button id="transcribe-compact" class="action-primary" type="button">Transcribe</button>
+  </main>
+  <footer>
+    <div id="log" role="status" aria-live="polite"></div>
   </footer>
-  <script type="module" src="./src/app.js"></script>
 </body>
 </html>

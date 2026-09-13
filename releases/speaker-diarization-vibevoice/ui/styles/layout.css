@@ -21,10 +21,6 @@
 }
 
 .scroll-fade {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  min-height: 0;
   timeline-scope: --scroll-fade;
   padding: 2px;
   mask-image: linear-gradient(
@@ -41,146 +37,92 @@
   animation-range: 0px var(--space-5), calc(100% - var(--space-5)) 100%;
 }
 
-.scroll-fade > * {
-  flex: 1 1 auto;
-  min-height: 0;
-}
-
-#settings, main, #segment-scroller, #workspace, #timeline-scroller, #log {
-  scrollbar-width: none;
-}
-
 header {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  align-items: flex-end;
   gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-3);
   background: var(--background-panel);
-}
-
-.scroll-fade:has(> #settings) {
-  flex: 1 1 auto;
-  --scroll-fade-direction: to right;
 }
 
 #settings {
   display: flex;
-  align-items: center;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
   gap: var(--space-3);
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-timeline: --scroll-fade inline;
+  min-inline-size: 0;
 }
 
-.scroll-fade:has(> main) {
-  flex: 1 1 auto;
-  --scroll-fade-direction: to right;
+#settings > .field {
+  flex: 1 1 16rem;
+  max-inline-size: 28rem;
+}
+
+#transcribe {
+  margin-inline-start: auto;
 }
 
 main {
-  display: grid;
-  grid-template-columns: clamp(13rem, 22vw, 20rem) minmax(16rem, 1fr);
-  grid-template-rows: minmax(0, 1fr);
+  flex: 1;
+  min-block-size: 0;
+  display: flex;
+  flex-direction: column;
   gap: var(--space-3);
-  padding: var(--space-3);
-  overflow-x: auto;
-  scroll-timeline: --scroll-fade inline;
+  padding-block-start: var(--space-3);
+  padding-inline: var(--space-3);
+}
+
+#overview {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+#summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--space-3);
+  row-gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+#source-name {
+  margin: 0;
+  min-inline-size: 0;
+  font-size: var(--text-lg);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+#timeline-fade {
+  --scroll-fade-direction: to right;
+  min-inline-size: 0;
+}
+
+#segments-fade {
+  --scroll-fade-direction: to bottom;
+  flex: 1;
+  min-block-size: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 #segments {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  min-height: 0;
-  padding: var(--space-2);
-  border-radius: var(--radius-lg);
-  background: var(--background-panel);
-}
-
-.scroll-fade:has(> #segment-scroller) {
-  flex: 1 1 auto;
-  --scroll-fade-direction: to bottom;
-}
-
-#segment-scroller {
-  overflow-x: hidden;
-  overflow-y: auto;
-  scroll-timeline: --scroll-fade block;
-}
-
-#segment-list {
+  flex: 1;
+  min-block-size: 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
   margin: 0;
   padding: 0;
-  list-style: none;
-}
-
-#hint, #segments-hint {
-  margin: 0;
-  text-align: center;
-  color: var(--text-caption);
-}
-
-#segments-hint {
-  padding: var(--space-3);
-}
-
-.scroll-fade:has(> #workspace) {
-  --scroll-fade-direction: to bottom;
-}
-
-#workspace {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  overflow-x: hidden;
+  padding-block-end: var(--space-3);
   overflow-y: auto;
+  scrollbar-width: none;
   scroll-timeline: --scroll-fade block;
-}
-
-#workspace > * {
-  flex: none;
-}
-
-#workspace:has(#dropzone:not([hidden])) {
-  align-items: center;
-  justify-content: safe center;
-}
-
-#timeline {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-2);
-  border-radius: var(--radius-lg);
-  background: var(--background-panel);
-}
-
-#timeline[hidden] {
-  display: none;
-}
-
-.scroll-fade:has(> #timeline-scroller) {
-  --scroll-fade-direction: to right;
-}
-
-#timeline-scroller {
-  padding: var(--space-1);
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-timeline: --scroll-fade inline;
-}
-
-#timeline-legend {
-  padding-inline: var(--space-1);
-}
-
-#detail {
-  padding: var(--space-3);
-  border-radius: var(--radius-lg);
-  background: var(--background-panel);
 }
 
 footer {
@@ -206,93 +148,40 @@ footer > :is([hidden], :empty, .scroll-fade:has(> :is([hidden], :empty))) {
   }
 }
 
-.scroll-fade:has(> #log) {
-  flex: 1 1 auto;
-  --scroll-fade-direction: to bottom;
-}
-
 #log {
+  flex: 1;
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
-  max-height: 40vh;
-  overflow-y: auto;
-  scroll-timeline: --scroll-fade block;
-}
-
-.action-primary {
-  margin-left: auto;
-}
-
-footer .action-primary, header .action-back {
-  display: none;
-}
-
-@media (width < 900px) {
-  main {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(0, 1fr);
-  }
-
-  .scroll-fade:has(> #segment-scroller) {
-    --scroll-fade-direction: to right;
-  }
-
-  #segment-scroller {
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-timeline: --scroll-fade inline;
-  }
-
-  #segment-list {
-    flex-direction: row;
-  }
-
-  #segment-list > .item {
-    flex: none;
-    width: clamp(13rem, 22vw, 20rem);
-  }
+  min-inline-size: 0;
+  min-block-size: calc(var(--space-5) + var(--space-3));
 }
 
 @media (width < 600px) {
-  main {
-    grid-template-rows: minmax(0, 1fr);
-  }
-
-  .scroll-fade:has(> #segment-scroller) {
-    --scroll-fade-direction: to bottom;
-  }
-
-  #segment-scroller {
-    overflow-x: hidden;
-    overflow-y: auto;
-    scroll-timeline: --scroll-fade block;
-  }
-
-  #segment-list {
+  header {
     flex-direction: column;
+    align-items: stretch;
+    padding: var(--space-2) var(--space-3);
+    gap: var(--space-2);
   }
 
-  #segment-list > .item {
-    width: auto;
+  #settings {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: var(--space-2);
   }
 
-  body:has(.item.is-selected) #segments,
-  body:not(:has(.item)) #segments,
-  body:has(.item):not(:has(.item.is-selected)) .scroll-fade:has(> #workspace) {
-    display: none;
+  #settings > .field {
+    flex: none;
+    max-inline-size: none;
   }
 
-  body:has(.item.is-selected) header .action-back {
-    display: inline-flex;
+  #transcribe {
+    margin: 0;
   }
 
-  header .action-primary {
-    display: none;
-  }
-
-  footer .action-primary {
-    display: inline-flex;
+  main {
+    gap: var(--space-2);
+    padding-block-start: var(--space-2);
   }
 }

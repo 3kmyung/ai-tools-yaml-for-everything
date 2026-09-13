@@ -1,53 +1,76 @@
 const CATEGORY_COUNT = 7;
-const NON_SPEECH_TAG = /^\s*[\[(][^\])]*[\])]\s*$/;
+const NON_SPEECH_NAME = "Non-speech";
 
-export function segmentsFromResponse(response) {
-  return response.map((segment) => ({
-    text: segment.text ?? segment.Content,
-    startTime: segment.start_time ?? segment.Start,
-    endTime: segment.end_time ?? segment.End,
-    speakerId: segment.speaker_id ?? segment.Speaker,
-  }));
+export function hasSpeaker(segment) {
+  return Number.isFinite(segment.speaker_id);
 }
 
-export function hasSpeaker(speakerId) {
-  return Number.isInteger(speakerId);
+export function speakerName(segment) {
+  return hasSpeaker(segment) ? "Speaker " + (segment.speaker_id + 1) : NON_SPEECH_NAME;
 }
 
-export function isSpokenSegment(segment) {
-  return !NON_SPEECH_TAG.test(segment.text || "");
+export function categoryFor(segment) {
+  return hasSpeaker(segment) ? String((Math.abs(segment.speaker_id) % CATEGORY_COUNT) + 1) : null;
 }
 
-export function firstSpokenIndex(segments) {
-  const index = segments.findIndex(isSpokenSegment);
-
-  if (index !== -1) return index;
-
-  return segments.length > 0 ? 0 : null;
+export function laneKey(segment) {
+  return hasSpeaker(segment) ? "speaker-" + segment.speaker_id : "none";
 }
 
-export function speakerCategory(speakerId) {
-  return hasSpeaker(speakerId) ? String(speakerId % CATEGORY_COUNT + 1) : "";
+function unwrapOutput(output) {
+  if (typeof output === "string") return unwrapOutput(JSON.parse(output));
+  if (Array.isArray(output)) return output;
+  if (output && output.transcription != null) return unwrapOutput(output.transcription);
+
+  throw new Error("The model returned no segments.");
 }
 
-export function speakerName(speakerId) {
-  return hasSpeaker(speakerId) ? "Speaker " + (speakerId + 1) : "Unattributed";
+function normalizeSegment(raw) {
+  const speaker = raw.speaker_id == null || raw.speaker_id === "" ? NaN : Number(raw.speaker_id);
+  const segment = {
+    text: raw.text == null ? "" : String(raw.text),
+    start_time: Number(raw.start_time) || 0,
+    end_time: Number(raw.end_time) || 0,
+  };
+
+  if (Number.isFinite(speaker)) segment.speaker_id = speaker;
+
+  return segment;
 }
 
-export function compareSpeakers(first, second) {
-  if (hasSpeaker(first) && hasSpeaker(second)) return first - second;
+export function readSegments(output) {
+  const segments = unwrapOutput(output);
 
-  return Number(hasSpeaker(second)) - Number(hasSpeaker(first));
+  return segments.map(normalizeSegment);
 }
 
-export function formatTimestamp(seconds) {
-  const wholeSeconds = Math.floor(seconds);
-  const minutes = Math.floor(wholeSeconds / 60);
-  const remainingSeconds = wholeSeconds % 60;
-
-  return minutes + ":" + String(remainingSeconds).padStart(2, "0");
+function createLane(segment) {
+  return {
+    key: laneKey(segment),
+    name: speakerName(segment),
+    category: categoryFor(segment),
+    order: hasSpeaker(segment) ? segment.speaker_id : Number.MAX_SAFE_INTEGER,
+    total: 0,
+  };
 }
 
-export function formatRange(segment) {
-  return formatTimestamp(segment.startTime) + "–" + formatTimestamp(segment.endTime);
+export function summarizeSegments(segments) {
+  const lanes = new Map();
+  const duration = segments.reduce((latest, segment) => Math.max(latest, segment.end_time), 0);
+
+  segments.forEach((segment) => {
+    const lane = lanes.get(laneKey(segment)) || createLane(segment);
+
+    lane.total += Math.max(0, segment.end_time - segment.start_time);
+    lanes.set(lane.key, lane);
+  });
+
+  const ordered = [...lanes.values()].sort((first, second) => first.order - second.order);
+
+  return {
+    duration: duration,
+    lanes: ordered,
+    speakerCount: ordered.filter((lane) => lane.category !== null).length,
+    withHours: duration >= 3600,
+  };
 }
