@@ -215,6 +215,11 @@ saved from that real run. From that point on, the fast loop renders real data, a
 schema ambiguity step 1 could not resolve (see `compose.md`'s fixture adapter) is settled
 by what the real run actually produced.
 
+The fixture saved from the real run is committed with the example. Someone who clones
+the release and opens `ui/` without running the model sees real output instead of an
+empty page, and the report's screenshot can be reproduced from the repository alone.
+Keep it short: the first screenful or so of the real output, not the whole run.
+
 **`checks.js` never reads `fixture.json`.** Every check operates on static stylesheet
 text or on DOM structure that exists whether or not the page has ever received real
 output — the fixture makes screenshots worth looking at, not the pass/fail lines. Wire it
@@ -248,14 +253,15 @@ Add to the generated example's `.gitignore`, alongside the existing `.output/` e
 ```
 ui/test.html
 ui/checks.js
-ui/fixture.json
 ```
 
-All three are copied or hand-written by this skill for the fast loop, not part of the
-example's own source; a fresh `build-model-release` run regenerates them from `assets/` and
-from the researched output shape.
+Both are copied by `ui-check.mjs` from `assets/` on every run, not part of the example's
+own source.
 
-**`ui/checks.local.js` is never added to this list.** It is source, committed alongside
+**`ui/fixture.json` is never added to this list.** Once it holds real output it is part of
+the release — see the fixture lifecycle above.
+
+**`ui/checks.local.js` is never added to this list either.** It is source, committed alongside
 `index.html`, `styles/` and `src/` — `ui-check.mjs` reads it but never writes or
 overwrites it, so ignoring it would delete the one place this interface's own checks
 live. If the interface genuinely needs no per-example checks, the correct state is no
