@@ -113,15 +113,22 @@ there is indistinguishable from "this machine has no accelerator" — which is p
 the difference a cross-machine table exists to show.
 
 ```
-✗ Trusting `vram_bytes` from `scripts/analyze-model/bench_hw.py` when the component's `runtime` is
-  `virtualenv` or `docker`.
-→ Read peak video memory from the component's own subprocess for those runtimes; treat
-  `bench_hw.py`'s own reading as a confirmed zero, not a missing one.
-Why: a CUDA context is per-process. `bench_hw.py` runs the orchestrator in its own
-process and calls `torch.cuda.max_memory_allocated()` there; a component with `runtime:
-type: virtualenv` (VibeVoice's transcriber, for one) loads its model in a separate
-interpreter whose CUDA allocations that call cannot see.
+✗ Reading `vram_bytes` from `scripts/analyze-model/bench_hw.py` as the component's memory
+  without checking which process loaded the model.
+→ Match the reading to the component's runtime with the table below before a memory
+  figure goes into the report.
+Why: a CUDA context is per-process, and `torch.cuda.max_memory_allocated()` sees only the
+process that calls it. `scripts/analyze-model/harness.py` adds `nvidia-smi`'s
+per-process memory for every process in the runner's tree, which reaches a child
+interpreter but not a container.
 ```
+
+| Component runtime | Accelerator | `vram_bytes` holds |
+|---|---|---|
+| in the runner's process | CUDA or MPS | the runner's own `torch` reading |
+| `virtualenv`, a child process | CUDA | the peak of `nvidia-smi` samples, one per second, summed over the runner's process tree |
+| `virtualenv`, a child process | MPS | zero — `torch.mps` reads only the runner's process and there is no `nvidia-smi` |
+| `docker` | any | the runner's process only — the container's processes are not in that tree, so read the container's own figure |
 
 ## The hardware axis's metrics
 
