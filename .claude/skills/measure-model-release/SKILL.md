@@ -1,5 +1,5 @@
 ---
-description: Use when a model-compose release has a working real run and needs to be measured and published — benchmarks it across every machine under comparison, delegates accuracy to two external harnesses, and turns both into a report and an X post where every number carries its source and its condition.
+description: Use when a model-compose release has a working real run and needs to be measured and published — benchmarks it across every machine under comparison, scores accuracy through MeetEval against a published baseline, and turns both into a report and an X post where every number carries its source and its condition.
 ---
 
 # model-report
@@ -27,7 +27,7 @@ Writing produces its files in `releases/<example>/`: `report.md`, `social.md`,
 | Axis | Where | What varies | Reference data |
 |---|---|---|---|
 | Speed and memory | every machine under comparison | hardware, and whatever build each machine can actually load | none needed |
-| Accuracy | two machines | precision, build, and the spread between two machines at the same precision | required, from an external harness |
+| Accuracy | two machines | precision, build, and the spread between two machines at the same precision | required: the corpus's own annotation, scored through MeetEval |
 
 Accuracy varies with hardware more than it looks like it should. Two machines running
 one checkpoint at `bfloat16` returned different transcripts here, because low precision
@@ -52,19 +52,24 @@ anything.
 | `scripts/analyze-model/bench_mlx.py` | has no PyTorch build and runs an MLX conversion instead |
 
 Both write the same result shape through `scripts/analyze-model/harness.py`, so their rows
-land in one table.
+land in one table. Accuracy is scored from the transcript a runner saved:
+
+| Script | Does |
+|---|---|
+| `scripts/analyze-model/ami_reference.py` | turns one AMI meeting's word annotation into a MeetEval SegLST reference |
+| `scripts/analyze-model/score_accuracy.py` | scores a saved transcript against that reference through MeetEval, writing tcpWER, cpWER and WER |
 
 ## Reference files
 
 | File | Read it when |
 |---|---|
-| `references/benchmark.md` | measuring anything — what belongs on which axis, the precision trap, quantizing a machine that cannot hold the weights, delegating accuracy rather than scoring it here |
+| `references/benchmark.md` | measuring anything — what belongs on which axis, the precision trap, quantizing a machine that cannot hold the weights, scoring accuracy through MeetEval rather than a scorer written here |
 | `references/report.md` | writing the six-section report in Korean, especially section 4's mandatory interpretation and section 5's verbatim usage-scope quote |
 | `references/social.md` | writing the X post and its link reply in friendly 합니다체 mixed with 해요체 — the one template, the five required elements, the RTF table image, the length check, the one prohibition |
 
 > **STOP — hardware and data gate.** Every row of the table, and the accuracy run, needs
 > a physical machine this skill cannot reach on its own, plus a reference dataset for the
-> accuracy run. Hand the matching runner and the external accuracy harnesses to a human
+> accuracy run. Hand the matching runner and the scoring scripts to a human
 > on that hardware, then read back `releases/<example>/benchmarks/results/*.json` and
 > `releases/<example>/benchmarks/accuracy/*.json`. Never invent a figure for a machine that has
 > not actually run.

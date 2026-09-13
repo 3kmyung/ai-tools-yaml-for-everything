@@ -1,7 +1,7 @@
 # benchmark.md
 
 Read this before running or describing any measurement — before touching
-`scripts/analyze-model/bench_hw.py`, before invoking either external accuracy harness, and before
+`scripts/analyze-model/bench_hw.py`, before scoring accuracy, and before
 writing a single number into `report.md`.
 
 ## Why accuracy is measured once and hardware once per machine
@@ -294,27 +294,31 @@ Why: a reader comparing a quantized row's word-error rate against an unquantized
 attributes the difference to the machine. The machine had nothing to do with it.
 ```
 
-## Accuracy: delegated, not reimplemented
+## Accuracy: scored through MeetEval, not reimplemented
 
-Two open harnesses cover the whole job. Building a scorer in this repository would
-produce numbers comparable to nothing anyone else has published.
+[MeetEval](https://github.com/fgnt/meeteval) computes every accuracy figure. Building a
+scorer in this repository would produce numbers comparable to nothing anyone else has
+published.
 
 ```
 ✗ Writing a WER, cpWER, or tcpWER scorer in this repository.
-→ Run the Open ASR Leaderboard for WER and RTFx; run `chime-utils`, scoring through
-  MeetEval, for cpWER and tcpWER.
+→ Convert the corpus annotation with `scripts/analyze-model/ami_reference.py`, then score
+  the transcript a runner saved with `--transcript-path` using
+  `scripts/analyze-model/score_accuracy.py`, which calls MeetEval for tcpWER, cpWER and
+  WER.
 Why: a scorer built here produces a number with no other number in the world to sit
-beside. The two harnesses below already carry that comparability.
+beside. MeetEval is the scorer CHiME-8 DASR and NOTSOFAR-1 rank with.
 ```
 
-- **[Open ASR Leaderboard](https://github.com/huggingface/open_asr_leaderboard)**
-  ([arXiv:2510.06961](https://arxiv.org/abs/2510.06961)) downloads its own reference
-  datasets, applies its own normaliser, and reports WER and RTFx across ESPnet, NeMo,
-  SpeechBrain, and Transformers backends.
-- **[chime-utils](https://github.com/chimechallenge/chime-utils)** prepares CHiME-6,
-  DiPCo, MX6, and NOTSOFAR-1 and scores through
-  [MeetEval](https://github.com/fgnt/meeteval), which is where cpWER and tcpWER come
-  from.
+`score_accuracy.py` normalises both sides with the `EnglishTextNormalizer` the Open ASR
+Leaderboard applies, drops non-speech segments and records how many, and writes the file
+`--output` names, which belongs in `releases/<example>/benchmarks/accuracy/`. Two outside
+projects stand beside it without being run by it:
+
+| Project | Role here |
+|---|---|
+| [Open ASR Leaderboard](https://github.com/huggingface/open_asr_leaderboard) ([arXiv:2510.06961](https://arxiv.org/abs/2510.06961)) | its published WER is the baseline the self-test gate checks against. It scores pre-segmented utterances with its own harness, which this skill does not run |
+| [chime-utils](https://github.com/chimechallenge/chime-utils) | prepares CHiME-6, DiPCo, MX6 and NOTSOFAR-1 for MeetEval, when a corpus other than AMI is scored |
 
 Which metric belongs to which task is not a style choice:
 
