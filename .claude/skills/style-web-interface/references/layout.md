@@ -3,7 +3,7 @@
 The page skeleton is fixed across every generated example. Only the inside of `main`
 changes per example — what the list is, what the workspace shows.
 
-## The directory both check suites hardcode
+## The directory the check suite hardcodes
 
 ```
 ui/
@@ -17,10 +17,9 @@ ui/
     ... (per-example modules)
 ```
 
-`build-model-release`'s `assets/checks.js` fetches `./styles/components.css` and
-`./styles/layout.css` and imports `./src/icons.js`; `style-web-interface`'s own
-`check-rules.mjs` reads `styles/base.css`, `styles/layout.css`, and `styles/components.css`
-from the reference UI it is pointed at. Neither tolerates a different shape.
+`build-model-release`'s `assets/checks.js` fetches `./styles/base.css`,
+`./styles/components.css` and `./styles/layout.css` and imports `./src/icons.js`. It does
+not tolerate a different shape.
 
 `index.html`'s head links the three stylesheets in this order, `base.css` first:
 
@@ -131,8 +130,8 @@ JS-owned source of truth for the same fact is one more place for the two to disa
 
 ## The scroll-fade mechanism
 
-Every scrolling region in the skeleton (`#settings`, `#track-scroller` or its equivalent,
-`#log`, `main`, `#workspace`) sits inside its own `.scroll-fade` wrapper, which masks the
+Every scrolling region in the skeleton (`#settings`, the list column's scroller, `#log`,
+`main`, `#workspace`) sits inside its own `.scroll-fade` wrapper, which masks the
 region's edges so content fades out before the frame cuts it off, and the fade tracks
 scroll position with no JavaScript scroll listener:
 

@@ -13,16 +13,16 @@ rendered once induces motion sickness at ten arrivals a second — same code, sa
 a failure that only exists at the higher rate. That difference in kind, not degree, is why
 streaming gets its own document instead of a paragraph inside `css-patterns.md`.
 
-Neither reference example in this repository streams, so nothing below was extracted from
-a shipped stylesheet the way the other five files were — every rule here is reasoned from
-platform primitives and the existing tokens, not checked against code that already works.
+No interface built on this house style has streamed yet, so every rule here is reasoned
+from platform primitives and the existing tokens, not checked against code that already
+works.
 Treat a future streaming example that disagrees with a rule below as a reason to reopen
 this file and say so, not as a mistake in the example to quietly fix.
 
 ## Output streaming
 
 1. A growing list of arrivals gets a fixed-height container that scrolls inside itself —
-   `overflow-y: auto`, `min-height: 0` — the same shape `#track-scroller` already uses.
+   `overflow-y: auto`, `min-height: 0` — the same shape the list column's scroller uses.
    The page itself does not grow with every arrival.
 2. Auto-scroll to the newest arrival only while the scroller is pinned to its bottom edge.
    The moment the reader scrolls up, tracking stops until they scroll back down
@@ -123,13 +123,13 @@ this file and say so, not as a mistake in the example to quietly fix.
    is a screen reader's own memory of what it already read aloud, which no code can
    revise after the fact.
    ```
-8. Progress and cancellation reuse the existing `showProgress({ onCancel })` language
-   already rendered into the footer by `status.js`. A streaming screen does not grow a
-   second progress UI of its own.
+8. Progress and cancellation reuse the status bar's message-with-actions state from
+   `components.md` — a `.status-message` beside an `.action-cancel` in the footer. A
+   streaming screen does not grow a second progress UI of its own.
    ```
    ✗ A dedicated progress bar or a second cancel button built for the streaming view.
-   → Call the existing `showProgress({ onCancel })`, the same call `render-runner.js`
-     already makes for a batch render.
+   → Put the operation in the status bar's message-with-actions state, the same place a
+     batch operation reports progress.
    Why: the footer is already the one place progress and cancellation live; a second one
      on the same screen asks the reader to learn where "an operation is running and can
      be stopped" lives twice for the one underlying fact.

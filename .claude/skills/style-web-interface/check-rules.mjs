@@ -1,73 +1,8 @@
 import { readdir, readFile } from "node:fs/promises";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
-
-if (!process.argv[2]) {
-  console.error("Usage: node check-rules.mjs <path-to-reference-ui-directory>");
-  process.exit(1);
-}
-
-const reference = resolve(process.argv[2]);
-
-async function fencedBlock(referenceFile, language) {
-  const source = await readFile(join(here, "references", referenceFile), "utf8");
-  const match = source.match(new RegExp("```" + language + "\\n([\\s\\S]*?)```"));
-
-  return match ? match[1] : null;
-}
-
-function widthBreakpoints(styleSheet) {
-  const mediaQueries = styleSheet.match(/@media[^{]+/g) || [];
-  const breakpoints = new Set();
-
-  for (const mediaQuery of mediaQueries) {
-    if (!mediaQuery.includes("width")) continue;
-
-    const pixelValues = mediaQuery.match(/\d+px/g) || [];
-
-    pixelValues.forEach((pixelValue) => breakpoints.add(pixelValue));
-  }
-
-  return Array.from(breakpoints);
-}
-
-function namedClasses(source) {
-  const names = new Set();
-
-  const backtickSpans = [ ...source.matchAll(/`([^`\n]*)`/g) ].map((match) => match[1]);
-
-  for (const span of backtickSpans) {
-    for (const match of span.matchAll(/(?:^|[^\w.])(\.[a-z][\w-]*)(\*)?/g)) {
-      names.add(match[1] + (match[2] || ""));
-    }
-  }
-
-  const fencedHtmlBlocks = [ ...source.matchAll(/```html\n([\s\S]*?)```/g) ].map((match) => match[1]);
-
-  for (const block of fencedHtmlBlocks) {
-    for (const attribute of block.matchAll(/class="([^"]*)"/g)) {
-      for (const className of attribute[1].split(/\s+/).filter(Boolean)) {
-        names.add("." + className);
-      }
-    }
-  }
-
-  return Array.from(names);
-}
-
-function classExists(styleSheet, name) {
-  const isFamilyReference = name.endsWith("*");
-  const stem = isFamilyReference ? name.slice(0, -1) : name;
-  const escaped = stem.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-  const pattern = isFamilyReference
-    ? new RegExp(escaped + "[\\w-]")
-    : new RegExp(escaped + "(?![\\w-])");
-
-  return pattern.test(styleSheet);
-}
 
 function markerLines(source) {
   return source.split("\n").filter((line) => /^\s*(✗|→|Why:) /.test(line));
@@ -83,41 +18,48 @@ async function referenceMarkdownFiles() {
   return entries.filter((entry) => entry.endsWith(".md"));
 }
 
+async function skillMarkdownSources() {
+  const files = await referenceMarkdownFiles();
+  const references = await Promise.all(files.map(async (file) => ({
+    file: `references/${file}`,
+    source: await readFile(join(here, "references", file), "utf8"),
+  })));
+  const skill = { file: "SKILL.md", source: await readFile(join(here, "SKILL.md"), "utf8") };
+
+  return [ skill, ...references ];
+}
+
 const RULES = [
   {
-    name: "tokens.md embeds base.css verbatim",
+    name: "no file depends on a shipped interface",
     run: async () => {
-      const quoted = await fencedBlock("tokens.md", "css");
-      const actual = await readFile(join(reference, "styles/base.css"), "utf8");
+      const sources = await skillMarkdownSources();
+      const offenders = sources
+        .filter(({ source }) => /(?:^|[\s`(])(?:releases|examples)\//.test(source))
+        .map(({ file }) => file);
 
-      return quoted === actual ? true : "the embedded block differs from styles/base.css";
+      return offenders.length === 0 ? true : offenders.join(", ");
     },
   },
   {
-    name: "layout.md states every width breakpoint in layout.css",
+    name: "tokens.md embeds a base.css with every scale",
     run: async () => {
-      const styleSheet = await readFile(join(reference, "styles/layout.css"), "utf8");
-      const source = await readFile(join(here, "references/layout.md"), "utf8");
+      const source = await readFile(join(here, "references/tokens.md"), "utf8");
+      const match = source.match(/```css\n([\s\S]*?)```/);
 
-      const breakpoints = widthBreakpoints(styleSheet);
+      if (!match) return "found no css block in tokens.md";
 
-      if (breakpoints.length === 0) return "found no width breakpoints in styles/layout.css to check";
-
-      const missing = breakpoints.filter((breakpoint) => !source.includes(breakpoint));
+      const required = [ "--space-1", "--text-sm", "--radius-sm", "--border-width", "--duration-fast", "--category-1" ];
+      const missing = required.filter((token) => !match[1].includes(`${token}:`));
 
       return missing.length === 0 ? true : missing.join(", ");
     },
   },
   {
-    name: "components.md names only classes that exist",
+    name: "layout.md states both width breakpoints",
     run: async () => {
-      const source = await readFile(join(here, "references/components.md"), "utf8");
-      const actual = await readFile(join(reference, "styles/components.css"), "utf8");
-      const named = namedClasses(source);
-
-      if (named.length === 0) return "found no class names in components.md to check";
-
-      const missing = named.filter((name) => !classExists(actual, name));
+      const source = await readFile(join(here, "references/layout.md"), "utf8");
+      const missing = [ "@media (width < 900px)", "@media (width < 600px)" ].filter((breakpoint) => !source.includes(breakpoint));
 
       return missing.length === 0 ? true : missing.join(", ");
     },
@@ -145,7 +87,7 @@ const RULES = [
     },
   },
   {
-    name: "js-patterns.md bans the habits the reference avoids",
+    name: "js-patterns.md bans the habits the house style avoids",
     run: async () => {
       const source = await readFile(join(here, "references/js-patterns.md"), "utf8");
       const bannedTerms = [
@@ -171,7 +113,7 @@ const RULES = [
       const source = await readFile(join(here, "references/streaming.md"), "utf8");
       const required = [
         "overflow-y", "pinned", "--text-caption", "translate", "tabular-nums",
-        "requestAnimationFrame", "aria-live", "showProgress", "user gesture",
+        "requestAnimationFrame", "aria-live", "status bar", "user gesture",
         "red dot", "<meter>", "label", "WebAudio", "prefers-reduced-motion",
       ];
       const missing = required.filter((term) => !source.includes(term));

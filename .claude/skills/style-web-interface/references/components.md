@@ -1,11 +1,9 @@
 # components.md
 
 Assemble a screen from these first; write a new widget only when none of them fits.
-Every class name below is checked against the shipped `components.css` — a name that
-does not appear there does not belong in a generated UI. Superseded names such as
-`track`, `track-label`, `remove-track`, and the ID selector `render-playlist` are not
-vocabulary; they are the domain-noun mistake `css-patterns.md` bans, and its ban list is
-where they live.
+The class names below are the shared vocabulary. A generated UI uses them as written
+rather than renaming them after its own domain — the domain-noun mistake `css-patterns.md`
+bans.
 
 ## Field — `.field`, `.field-body`, `.field-control`, `.field-line`
 
@@ -62,8 +60,8 @@ anchor within roughly a quarter second of its own dismissal.
 
 ```
 ✗ A popover positioning library.
-→ getBoundingClientRect on the anchor and the popover, clamped to the viewport, as
-  popover.js already does.
+→ getBoundingClientRect on the anchor and the popover, clamped to the viewport in each
+  axis.
 Why: the placement math here is one clamp in each axis. A library earns its weight when
 placement needs collision-aware flipping across many anchors with different growth
 directions; this one does not.
@@ -208,7 +206,7 @@ field afterward; it is not rebuilt per field. It holds:
 Every channel slider's `--from`/`--to` gradient stops repaint on every input so the track
 always shows what moving the thumb in either direction would produce.
 `.color-picker-suggestions` carries `hidden` rather than being removed from the DOM when
-a track has no cover to draw suggestions from.
+there is no image to draw suggestions from.
 
 ## Icons
 

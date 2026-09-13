@@ -69,11 +69,9 @@ is exactly how one component's hover state quietly stops matching the rest.
 ✗ Styling anything in components.css by ID.
 → Style by class.
 Why: a component is reusable by definition, and an ID is unique by definition. An ID
-selector on a component is a contradiction that resolves itself the first time the
-example needs two of that component on the same page. This example's own components.css
-once carried that mistake as #render-playlist; commit 6464ebae converted it to
-.action-primary, because an ID selector cannot be reused across two instances of the
-same component the way a class can.
+selector on a component is a contradiction that resolves itself the first time a screen
+needs two of that component on the same page — a primary action styled as #render
+cannot also be the footer's copy of that action, where .action-primary can.
 ```
 
 ```
@@ -143,7 +141,7 @@ without also turning something else on has silently deleted focus indication.
 
 `layout.css` keeps its ID selectors on the skeleton's singleton page regions —
 `#settings`, `#workspace`, `#log`, `#hint`, and each example's own list and workspace
-regions such as `#track-scroller` or its equivalent. Those are not components, and
+regions such as the list column's scroller. Those are not components, and
 unlike a component's class name they are allowed to be per-example — the ban above is
 about a reusable component leaking a per-example identity, not about IDs as a mechanism.
 

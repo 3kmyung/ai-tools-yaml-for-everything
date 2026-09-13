@@ -4,15 +4,14 @@ description: Use when writing any web UI for a model-compose release — supplie
 
 # style-web-interface
 
-The house style is extracted from
-`releases/youtube-to-playlist-video/ui/`. That directory is the source
-of truth; the rules here exist so a generated UI matches it without copying it file for
-file. Rules live in `references/`, read on demand — do not load all of them up front.
+This skill is the source of truth for the house style. No shipped interface is — every
+release follows these rules, and a release that disagrees with them is the one to fix.
+Rules live in `references/`, read on demand — do not load all of them up front.
 
 ## Process
 
 1. **Skeleton** — create `index.html`, `styles/`, and `src/` per the directory tree in
-   `references/layout.md`'s "The directory both check suites hardcode" section, with
+   `references/layout.md`'s "The directory the check suite hardcodes" section, with
    `base.css` linked before `components.css` and `layout.css`.
 2. **Tokens** — read `references/tokens.md`, lay down `base.css` unchanged. Do not
    invent a colour or a spacing/type/radius/line-width/duration value outside its scale.
@@ -53,12 +52,12 @@ file. Rules live in `references/`, read on demand — do not load all of them up
 
 ## `check-rules.mjs`
 
-A maintenance tool for this skill, not a generation-time check. It validates these
-reference files against the reference UI the rules were extracted from — never against a
-generated example, whose own vocabulary and prose it has no way to judge:
+A maintenance tool for this skill, not a generation-time check. It validates the
+reference files against each other — never against a generated or shipped interface,
+whose own vocabulary and prose it has no way to judge:
 
 ```
-node .claude/skills/style-web-interface/check-rules.mjs releases/youtube-to-playlist-video/ui
+node .claude/skills/style-web-interface/check-rules.mjs
 ```
 
 Run it after editing any file in `references/`, before committing that edit.

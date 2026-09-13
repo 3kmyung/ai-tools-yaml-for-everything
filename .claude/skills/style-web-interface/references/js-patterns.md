@@ -1,9 +1,8 @@
 # js-patterns.md
 
-Read this before writing any `.js` module for the UI. The reference at
-`releases/youtube-to-playlist-video/ui/src/` follows every rule below
-throughout; when in doubt, open the module that already does the thing you are about to
-write and match its shape rather than inventing a new one.
+Read this before writing any `.js` module for the UI. When the interface already has a
+module that does the thing you are about to write, match its shape rather than inventing
+a new one — provided that module follows the rules below.
 
 ## Module shape
 
@@ -17,8 +16,8 @@ name for the same thing, and a project-wide search for who uses openColorPicker 
 every call site only when the name is the same everywhere.
 ```
 
-No `class`. State that would live on `this` lives in module-scope variables (as
-`dropdown.js` holds its open menu and current anchor) or in a plain object a factory
+No `class`. State that would live on `this` lives in module-scope variables (a dropdown
+module's open menu and current anchor, for instance) or in a plain object a factory
 function returns.
 
 ```
@@ -34,8 +33,7 @@ function returns.
     };
   }
 Why: a createX() factory returning an object literal gets the same encapsulation a class
-gives, with no constructor, no this, and no prototype chain to reason about. popover.js's
-createReopenGuard is the shipped example.
+gives, with no constructor, no this, and no prototype chain to reason about.
 ```
 
 ## Building and updating the DOM
@@ -113,8 +111,7 @@ time, against the diff it describes, and is never silently out of date afterward
 ## Paragraphs
 
 A function body reads as declaration, then work, then return, each its own paragraph
-separated by a blank line — not one dense block. `popover.js`'s `trackPlacement` is the
-shipped example, quoted verbatim:
+separated by a blank line — not one dense block:
 
 ```js
 export function trackPlacement(anchor, element) {
@@ -128,9 +125,9 @@ export function trackPlacement(anchor, element) {
 
 ## File size
 
-One file, one concern. `hex.js` converts between hex strings and channel arrays and does
-nothing else; `popover.js` places and repositions a popover and does nothing else. 100
-lines is not a ceiling this reference holds itself to — `app.js` orchestrates the whole
-screen and `websocket-client.js` carries the whole wire protocol, and both run well past
-it. Past 100 lines, ask whether the file has quietly picked up a second concern; split
-only when the answer is yes, not because a line counter tripped.
+One file, one concern. A module that converts between hex strings and channel arrays does
+nothing else; a module that places and repositions a popover does nothing else. 100 lines
+is not a ceiling — the module that orchestrates the whole screen and the one that carries
+a whole wire protocol can both run well past it. Past 100 lines, ask whether the file has
+quietly picked up a second concern; split only when the answer is yes, not because a line
+counter tripped.
