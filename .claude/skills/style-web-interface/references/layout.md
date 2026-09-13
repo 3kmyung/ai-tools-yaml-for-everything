@@ -101,8 +101,13 @@ JS-owned source of truth for the same fact is one more place for the two to disa
 ## The scroll-fade mechanism
 
 Every scrolling region in the skeleton (`#settings`, `#track-scroller` or its equivalent,
-`#log`, `main`, `#workspace`) masks its own edges so content fades out before the frame
-cuts it off, and the fade tracks scroll position with no JavaScript scroll listener:
+`#log`, `main`, `#workspace`) sits inside its own `.scroll-fade` wrapper, which masks the
+region's edges so content fades out before the frame cuts it off, and the fade tracks
+scroll position with no JavaScript scroll listener:
+
+```html
+<div class="scroll-fade"><div id="region">…</div></div>
+```
 
 ```css
 @property --scroll-fade-start {
@@ -117,7 +122,20 @@ cuts it off, and the fade tracks scroll position with no JavaScript scroll liste
   initial-value: 0px;
 }
 
-#region {
+@keyframes scroll-fade-start {
+  from { --scroll-fade-start: 0px; }
+  to { --scroll-fade-start: var(--space-5); }
+}
+
+@keyframes scroll-fade-end {
+  from { --scroll-fade-end: var(--space-5); }
+  to { --scroll-fade-end: 0px; }
+}
+
+.scroll-fade {
+  timeline-scope: --scroll-fade;
+  padding: 2px;
+  margin: -2px;
   mask-image: linear-gradient(
     var(--scroll-fade-direction),
     transparent 0,
@@ -125,28 +143,65 @@ cuts it off, and the fade tracks scroll position with no JavaScript scroll liste
     #000 calc(100% - var(--scroll-fade-end)),
     transparent 100%
   );
-  animation: scroll-fade-start linear both, scroll-fade-end linear both;
+  animation-name: scroll-fade-start, scroll-fade-end;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-timeline: --scroll-fade;
   animation-range: 0px var(--space-5), calc(100% - var(--space-5)) 100%;
-  animation-timeline: scroll(self block);
+}
+
+#region {
+  scroll-timeline: --scroll-fade block;
 }
 ```
 
 `@property` makes `--scroll-fade-start` and `--scroll-fade-end` animatable custom
-properties (a plain custom property cannot be interpolated). `animation-timeline: scroll(
-self block|inline)` drives that animation from the element's own scroll position instead
-of wall-clock time — `block` for a vertical scroller, `inline` for a horizontal one, set
-per region alongside its `--scroll-fade-direction`. The mask is fully open until the
-scroller nears an edge, then closes over the last `--space-5` of scroll distance. This is
-why the mechanism does not count as motion under `prefers-reduced-motion`: progress is the
-scroll fraction, not a clock, so it has no autoplay and moves only as fast as the reader
-scrolls.
+properties (a plain custom property cannot be interpolated). The region names its own
+scroll position with `scroll-timeline: --scroll-fade block|inline` — `block` for a
+vertical scroller, `inline` for a horizontal one — and the wrapper's `timeline-scope` lifts
+that name up to where the mask's animation can read it. Each wrapper holds exactly one
+scrolling region, so a nested wrapper's scope never sees two timelines of the same name.
+Per region, only two things change: `--scroll-fade-direction` on the wrapper and the axis
+of `scroll-timeline` on the region, and a breakpoint that turns a vertical list horizontal
+flips both. Whatever places the region in its parent — `flex`, `min-height: 0`, grid
+placement — moves to the wrapper, because the wrapper now occupies that slot; the region
+keeps its `overflow` and its `scroll-timeline`.
+
+The mask is fully open until the scroller nears an edge, then closes over the last
+`--space-5` of scroll distance. This is why the mechanism does not count as motion under
+`prefers-reduced-motion`: progress is the scroll fraction, not a clock, so it has no
+autoplay and moves only as fast as the reader scrolls. The wrapper's `2px` padding and
+matching negative margin are a component-intrinsic literal in the sense `tokens.md` uses
+the term — the bleed that keeps the mask's edge off the scroller's clip — not a step on the
+spacing scale.
 
 ```
 ✗ A scroll event listener that measures scrollTop/scrollLeft and sets an inline mask.
-→ @property plus animation-timeline: scroll(self block|inline), as every scrolling
+→ @property plus a named scroll-timeline read through timeline-scope, as every scrolling
   region in this skeleton already does.
 Why: a scroll listener runs on the main thread on every frame of scrolling; the
 timeline-driven mask is composited and costs nothing per frame.
+```
+
+```
+✗ The animation shorthand in the shared scroll-fade rule, with the timeline declared in a
+  separate rule.
+→ animation-name, animation-timing-function, animation-fill-mode, and animation-range as
+  longhands, beside animation-timeline in the same rule.
+Why: the animation shorthand resets animation-timeline to auto. A timeline rule that
+loads earlier than the shorthand, such as a scroller styled in components.css, falls back
+to the document timeline, finishes instantly, and keeps its start edge faded at every
+scroll position.
+```
+
+```
+✗ mask-image on the scrolling element itself.
+→ The mask on a .scroll-fade wrapper that extends 2px past the scroller
+  (padding: 2px; margin: -2px), driven through timeline-scope and a named scroll-timeline.
+Why: at a fractional device pixel ratio such as Windows' 125% scaling, a mask whose edge
+coincides with a scroll container's clip leaves the outermost device pixel 25–50%
+transparent even with the fade fully closed, so a region scrolled all the way to its end
+still reads as not quite there.
 ```
 
 ## Breakpoints
