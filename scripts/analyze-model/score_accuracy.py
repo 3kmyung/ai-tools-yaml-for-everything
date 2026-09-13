@@ -1,10 +1,14 @@
 """Score one saved transcript against a SegLST reference, through MeetEval.
 
     python score_accuracy.py \\
-        --reference ES2004a.reference.json \\
-        --hypothesis ES2004a.hypothesis.json \\
+        --reference releases/speaker-diarization-vibevoice/benchmarks/transcripts/ES2004a.reference.json \\
+        --hypothesis releases/speaker-diarization-vibevoice/benchmarks/transcripts/rtx-4090.json \\
         --session ES2004a \\
-        --output releases/speaker-diarization-vibevoice/benchmarks/accuracy/bfloat16.json
+        --output releases/speaker-diarization-vibevoice/benchmarks/accuracy/accuracy-rtx-4090.json
+
+The result records `reference` and `hypothesis` relative to the output file, so the
+figures point at the transcripts committed beside them rather than at wherever the
+scoring machine kept its copies.
 
 MeetEval computes every number here. What this file does is convert the
 workflow's own output into the SegLST shape MeetEval reads, and record which
@@ -46,6 +50,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 from pathlib import Path
 
@@ -160,8 +165,23 @@ def collapse_to_one_line(seglst, session):
     } ])
 
 
+def path_from_output(path, output):
+    try:
+        relative = os.path.relpath(path.resolve(), output.resolve().parent)
+    except ValueError as error:
+        raise ValueError(
+            f"{path} and {output} are on different drives; keep the transcripts beside the "
+            f"accuracy file so the result can name them"
+        ) from error
+
+    return Path(relative).as_posix()
+
+
 def main():
     arguments = parse_arguments()
+
+    reference_path = path_from_output(arguments.reference, arguments.output)
+    hypothesis_path = path_from_output(arguments.hypothesis, arguments.output)
 
     normaliser = english_normaliser()
 
@@ -178,8 +198,8 @@ def main():
 
     result = {
         "session": arguments.session,
-        "reference": str(arguments.reference),
-        "hypothesis": str(arguments.hypothesis),
+        "reference": reference_path,
+        "hypothesis": hypothesis_path,
         "scorer": "meeteval",
         "normaliser": "transformers EnglishTextNormalizer",
         "collar_seconds": arguments.collar,
