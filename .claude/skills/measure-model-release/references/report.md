@@ -46,8 +46,9 @@ them before the numbers.
 ```
 ✗ Putting a row's runtime, build or numerics in a footnote, or writing "4bit" where the
   label says which backend and which modules stayed at full precision.
-→ Carry all three verbatim as columns, and give no accuracy figure to any row whose
-  numerics or runtime differ from the baseline's.
+→ Carry all three verbatim as columns. A row whose numerics or runtime differ from the
+  baseline's gets its accuracy in a separate table headed as not comparable, never in the
+  baseline's.
 Why: a footnote is read after the comparison has already been made. A row differing in
 arithmetic or in inference stack looks like a row differing in hardware unless the
 difference sits in the reader's eye at the same moment the numbers do.

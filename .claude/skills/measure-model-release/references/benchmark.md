@@ -29,10 +29,10 @@ that conversion's score reads as a quantization penalty it did not cause.
 Scoring every machine is still the wrong default: a long accuracy run per machine buys
 little once the spread is known. Two is the number that makes the third interpretable.
 
-A row measured under a second inference stack is the exception that proves this: its
-accuracy would differ, because a different implementation is not the same weights
-arithmetic. That is why such a row carries no accuracy figure at all rather than a
-separately measured one — see the runtime section below.
+A row measured under a second inference stack is scored too, and kept apart: its accuracy
+differs because a different implementation is not the same arithmetic, so its score sits
+in a table of its own rather than in the baseline's accuracy column — see the runtime
+section below.
 
 ## Where a run puts its files
 
@@ -279,8 +279,8 @@ Two rows at different `conditions.numerics` are comparable on speed and memory a
 ```
 ✗ A table where one row is nf4 and the rest are bfloat16, with one shared accuracy
   column.
-→ Keep the accuracy column on the matched-precision rows only, and state under the table
-  that the quantized row carries speed and memory figures alone.
+→ Keep the shared accuracy table to the matched-precision rows, and give a quantized or
+  converted row's score a table of its own, headed as not comparable with the first.
 Why: a reader comparing a quantized row's word-error rate against an unquantized row's
 attributes the difference to the machine. The machine had nothing to do with it.
 ```
