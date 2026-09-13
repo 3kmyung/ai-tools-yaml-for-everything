@@ -99,7 +99,6 @@ horizontally-scrollable strip of coloured blocks positioned by their real start 
 times, with a matching colour on every segment's row in the list beside it. A plainer
 screen — a scrolling text transcript with speaker names inline — would show the same data
 without showing the shape of the conversation: who talks over whom, how long each turn
-runs, where the silences fall. Every colour on the timeline is derived from the single
-`--accent` design token with a CSS `hue-rotate` filter rather than a hand-picked palette,
-so the screen tells speakers apart without inventing new colours outside the design
-system's own scale.
+runs, where the silences fall. Every colour on the timeline is one of the design system's
+eight `--category-*` tokens rather than a hand-picked palette, so the screen tells
+speakers apart without inventing new colours outside the design system's own scale.
