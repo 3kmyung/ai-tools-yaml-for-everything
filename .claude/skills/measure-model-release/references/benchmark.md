@@ -346,7 +346,7 @@ change what the gap means:
 |---|---|
 | Which microphone condition `ami_test` is | The row is labelled `ami_test` and nothing more. A headset mix and a single distant microphone are two different problems; if the local run picks one, the report says which and does not claim the published figure used the same |
 | That it is long-form | The leaderboard scores pre-segmented utterances. A run on a whole meeting is measuring something harder, so a slightly worse number is not a regression |
-| Anything about speakers or timing | The published figure is WER. cpWER and tcpWER on a full meeting have no published counterpart at all |
+| Anything about speakers or timing | The published figure is WER. The model's technical report publishes AMI cpWER and tcpWER, but not the session split, collar or normaliser behind them, so those figures sit beside the local ones with no conclusion drawn |
 
 ```
 ✗ Writing "17.20% is IHM" — or any other condition the source does not state.
