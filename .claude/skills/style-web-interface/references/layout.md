@@ -135,7 +135,6 @@ scroll position with no JavaScript scroll listener:
 .scroll-fade {
   timeline-scope: --scroll-fade;
   padding: 2px;
-  margin: -2px;
   mask-image: linear-gradient(
     var(--scroll-fade-direction),
     transparent 0,
@@ -174,10 +173,12 @@ keeps its `overflow` and its `scroll-timeline`.
 The mask is fully open until the scroller nears an edge, then closes over the last
 `--space-5` of scroll distance. This is why the mechanism does not count as motion under
 `prefers-reduced-motion`: progress is the scroll fraction, not a clock, so it has no
-autoplay and moves only as fast as the reader scrolls. The wrapper's `2px` padding and
-matching negative margin are a component-intrinsic literal in the sense `tokens.md` uses
-the term — the bleed that keeps the mask's edge off the scroller's clip — not a step on the
-spacing scale.
+autoplay and moves only as fast as the reader scrolls. The wrapper's `2px` padding is a
+component-intrinsic literal in the sense `tokens.md` uses the term — the gap that keeps
+the mask's edge off the scroller's clip, insetting the region 2px inside its slot — not a
+step on the spacing scale. It is padding alone. A matching negative margin would push the
+wrapper 2px past its slot, and inside a scrolling parent such as `main` those 2px become a
+sideways scroll.
 
 ```
 ✗ A scroll event listener that measures scrollTop/scrollLeft and sets an inline mask.
@@ -200,8 +201,8 @@ scroll position.
 
 ```
 ✗ mask-image on the scrolling element itself.
-→ The mask on a .scroll-fade wrapper that extends 2px past the scroller
-  (padding: 2px; margin: -2px), driven through timeline-scope and a named scroll-timeline.
+→ The mask on a .scroll-fade wrapper with padding: 2px around the scroller, driven through
+  timeline-scope and a named scroll-timeline.
 Why: at a fractional device pixel ratio such as Windows' 125% scaling, a mask whose edge
 coincides with a scroll container's clip leaves the outermost device pixel 25–50%
 transparent even with the fade fully closed, so a region scrolled all the way to its end
