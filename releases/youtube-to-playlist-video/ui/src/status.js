@@ -1,5 +1,14 @@
+const FALLBACK_FILE_NAME = "youtube-to-playlist-video.mp4";
+
 function statusElement() {
   return document.getElementById("log");
+}
+
+function outputFileName(output) {
+  const segments = String(output.path || "").split(/[\\/]/);
+  const fileName = segments[segments.length - 1];
+
+  return fileName || FALLBACK_FILE_NAME;
 }
 
 function trailingGroup() {
@@ -117,7 +126,17 @@ export function showResult(output) {
   video.controls = true;
   video.src = output.url;
 
-  status.replaceChildren(video);
+  const download = Object.assign(document.createElement("a"), {
+    className: "action-add",
+    href: output.url,
+    download: outputFileName(output),
+    textContent: "MP4",
+  });
+
+  const trailing = trailingGroup();
+  trailing.append(download);
+
+  status.replaceChildren(video, trailing);
 }
 
 export function errorMessage(error, fallback) {
