@@ -89,7 +89,26 @@ the keyboard for free. `.item-remove` carries only an icon, so it always needs a
 `aria-label` — an icon with no visible text and no accessible name is a control a screen
 reader cannot describe. Selection state is `.is-selected` on the `<li>`, read by CSS for
 both the border-colour change and the hover suppression (`.item:not(.is-selected)` is
-the only one that gets the hover tint); nothing else keys off it.
+the only one that gets the hover tint); nothing else keys off it. The class paints the
+selection and says nothing to a screen reader, so the same function that moves
+`.is-selected` also moves `aria-current="true"` onto the selected `.item-select` and
+removes it from the one before. One function, two attributes, never set apart.
+
+## Dense sets of small targets — one tab stop
+
+A timeline of event blocks, a grid of cells, a strip of swatches: any set with more than a
+handful of focusable children is one stop in the tab order, not one per child.
+
+```
+✗ Every block in a dense, scrollable set as its own tab stop.
+→ Roving tabindex: the selected child, or the first when nothing is selected, carries
+  tabindex="0" and every other child tabindex="-1". Arrow keys move focus and selection
+  to the neighbouring child, Home and End jump to the ends, and the newly focused child
+  scrolls into view with scrollIntoView({ block: "nearest", inline: "nearest" }).
+Why: forty blocks as forty tab stops put everything after the timeline forty presses
+away. A composite widget is one stop, the same model the dropdown menu's Arrow and
+Home/End handling already follows.
+```
 
 ## Action buttons — `.action-primary`, `.action-add`, `.action-cancel`, `.action-resume`
 

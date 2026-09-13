@@ -117,6 +117,11 @@ on and a check cannot query; the attribute is the fact itself, the same reason
 JavaScript class toggling is banned above.
 ```
 
+That ban is about category colour, which has seven values an attribute selector can
+enumerate. A continuous value no selector can enumerate — a block's start and length on a
+timeline, a meter's fill — does go in an inline custom property set from script, such as
+`--start`, `--duration`, or `--value`, and the stylesheet does the geometry with `calc()`.
+
 Paint the marker's fill with `--category-color` at full strength, not `color-mix`'d down through
 `--alpha-1`–`--alpha-3`. Those three steps exist for a tint sitting on top of content
 that is already legible without it — a hover wash, a selected-row background — and read
