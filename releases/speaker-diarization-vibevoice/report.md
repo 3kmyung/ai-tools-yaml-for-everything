@@ -1,18 +1,17 @@
-# VibeVoice-ASR across three machines
+# 세 머신에서 돌린 VibeVoice-ASR
 
-## 1. What it is
+## 1. 무엇인가
 
-Microsoft's speech-to-text model that transcribes a meeting, labels who spoke, and
-timestamps every segment, in one pass over audio up to sixty minutes long.
+회의를 받아 적으면서 누가 말했는지 표시하고 모든 구간에 타임스탬프를 붙이는 Microsoft의
+음성 인식 모델이다. 최대 60분 길이의 오디오를 한 번에 처리한다.
 
-## 2. What is different
+## 2. 무엇이 다른가
 
-Two things, and the second is what the benchmark below is actually about.
+두 가지이고, 아래 벤치마크가 실제로 다루는 것은 두 번째다.
 
-**A 7.5 Hz tokenizer.** Audio at 24000 Hz is compressed by a hop length of 3200 into
-7.5 tokens per second, so an hour of speech is 27000 acoustic tokens rather than the
-hundreds of thousands a frame-level model would produce. That is what lets an hour fit
-inside the context window at all.
+**7.5 Hz 토크나이저.** 24000 Hz 오디오를 hop length 3200으로 압축해 초당 7.5개 토큰으로
+만든다. 그래서 한 시간 분량의 음성이 프레임 단위 모델이라면 수십만 개가 될 토큰 대신
+27000개의 음향 토큰이 된다. 한 시간이 컨텍스트 윈도우 안에 들어갈 수 있는 이유가 이것이다.
 
 ```
 24000 Hz audio ─▶ acoustic tokenizer ─┐
@@ -21,195 +20,182 @@ inside the context window at all.
                      both at 7.5 Hz
 ```
 
-**One pass, not a pipeline.** The usual approach runs a transcriber and a separate
-diarisation model and then aligns their outputs. Here a single decode emits the words,
-the speaker and the times together, which is why the accuracy section below reports
-tcpWER rather than word error rate alone — word error rate scores one third of what
-this model produces.
+**파이프라인이 아니라 한 번의 디코딩.** 보통은 받아 적는 모델과 별도의 화자 분리 모델을
+돌린 뒤 두 출력을 맞춘다. 여기서는 한 번의 디코딩에서 단어, 화자, 시각이 함께 나온다.
+아래 정확도 절이 word error rate만이 아니라 tcpWER을 보고하는 이유다. word error rate는
+이 모델이 내놓는 것의 3분의 1만 채점한다.
 
-The checkpoint is 8,674,021,857 parameters, 17.35 GB at `bfloat16`, and not evenly
-distributed:
+체크포인트는 8,674,021,857개 파라미터, `bfloat16` 기준 17.35 GB이고 모듈별로 고르게
+나뉘어 있지 않다.
 
-| Module | Size | Share |
+| 모듈 | 크기 | 비중 |
 |---|---|---|
 | `model.language_model` | 14.14 GB | 81.5% |
 | `model.acoustic_tokenizer` | 1.37 GB | 7.9% |
 | `lm_head` | 1.09 GB | 6.3% |
 | `model.semantic_tokenizer` | 0.69 GB | 4.0% |
-| connectors | 0.06 GB | 0.4% |
+| 커넥터 | 0.06 GB | 0.4% |
 
-Read from the checkpoint's own weight index, not estimated. It matters for section 5.
+추정치가 아니라 체크포인트의 가중치 인덱스에서 직접 읽은 값이다. 5절에서 이 값이 중요해진다.
 
-## 3. What was built
+## 3. 무엇을 만들었나
 
-`releases/speaker-diarization-vibevoice` — a `model-compose.yml` that wires the
-model to an HTTP endpoint and a web interface: drop an audio file, optionally supply
-hotwords, get a speaker-coloured segment list and a timeline.
+`releases/speaker-diarization-vibevoice`는 모델을 HTTP 엔드포인트와 웹 인터페이스에 연결하는
+`model-compose.yml`이다. 오디오 파일을 올리고 필요하면 핫워드를 넣으면, 화자별로 색이
+구분된 구간 목록과 타임라인이 나온다.
 
-![The transcription interface showing a speaker-coloured segment list, a timeline strip and the selected segment's text](media/speaker-diarization-vibevoice.png)
+![화자별로 색이 구분된 구간 목록, 타임라인, 선택한 구간의 텍스트를 보여주는 전사 인터페이스](media/speaker-diarization-vibevoice.png)
 
-The sample data on screen is this report's own AMI run, not a hand-written fixture.
-That swap found two defects a written fixture had hidden: the model emits non-speech
-events as segments carrying no speaker, which rendered as `Speaker NaN`, and the
-interface had nowhere to read a segment's full text — the list truncates, and the
-pane beside it held only a timeline.
+화면의 샘플 데이터는 손으로 쓴 픽스처가 아니라 이 리포트의 AMI 실측 결과다. 이렇게 바꾸면서
+손으로 쓴 픽스처가 가리고 있던 결함 두 개가 드러났다. 모델은 화자가 없는 비음성 이벤트를
+별도 구간으로 내보내는데 이것이 `Speaker NaN`으로 렌더링됐고, 인터페이스에는 구간의 전체
+텍스트를 읽을 곳이 없었다. 목록은 텍스트를 자르고, 옆 패널에는 타임라인만 있었다.
 
-A capture limitation worth stating rather than discovering: `position: fixed` content
-does not paint in a headless capture even when it is genuinely open on screen, so the
-media here is scripted around states that do capture — no open popover.
+발견하기 전에 밝혀둘 캡처 한계가 있다. `position: fixed` 콘텐츠는 화면에 실제로 열려 있어도
+헤드리스 캡처에 그려지지 않는다. 그래서 여기 실린 미디어는 제대로 캡처되는 상태, 즉 팝오버가
+닫힌 상태를 기준으로 연출했다.
 
-## 4. Performance
+## 4. 성능
 
-One audio file on every machine: AMI meeting ES2004a, headset mix, 1049.35 seconds
-(17.5 minutes), four speakers, downloaded from the AMI corpus.
+모든 머신에서 같은 오디오 파일 하나를 썼다. AMI 회의 ES2004a, 헤드셋 믹스, 1049.35초
+(17.5분), 화자 4명이며 AMI 코퍼스에서 내려받았다.
 
-| Machine | Runtime | Build | Numerics | Cold start | TTFO | E2E | RTF | Peak accelerator memory | Peak resident set |
+| 머신 | 런타임 | 빌드 | 수치 형식 | 콜드 스타트 | TTFO | E2E | RTF | 최대 가속기 메모리 | 최대 상주 메모리 |
 |---|---|---|---|---|---|---|---|---|---|
 | RTX 4090 | model-compose + pytorch 2.11.0+cu128 | `microsoft/VibeVoice-ASR` | `bfloat16` | 17.50 s | = E2E | 233.53 s | **0.223** | 22134 MB | 3064 MB |
 | DGX Spark (GB10) | model-compose + pytorch 2.14.0+cu130 | `microsoft/VibeVoice-ASR` | `bfloat16` | 94.76 s | = E2E | 1023.93 s | **0.976** | 23777 MB | 3456 MB |
-| MacBook Air M1 | mlx-audio | `mlx-community/VibeVoice-ASR-4bit` | `int4/mlx`, all but the tokenizers and connectors | 4.60 s | 225.36 s | 1134.33 s | **1.081** | 13852 MB | 5957 MB |
+| MacBook Air M1 | mlx-audio | `mlx-community/VibeVoice-ASR-4bit` | `int4/mlx`, 토크나이저와 커넥터 제외 | 4.60 s | 225.36 s | 1134.33 s | **1.081** | 13852 MB | 5957 MB |
 
-**The 4090 transcribes a 17.5-minute meeting in under four minutes; the Spark takes
-17.1 minutes, barely faster than listening to it; the M1 is slower than real time.**
-Below RTF 1.0 a machine keeps up with live audio, and only one of these three does so
-with room to spare.
+**4090은 17.5분짜리 회의를 4분 안에 받아 적는다. Spark는 17.1분이 걸려 직접 듣는 것보다
+겨우 빠르고, M1은 실시간보다 느리다.** RTF 1.0 미만이면 라이브 오디오를 따라잡을 수 있는데,
+셋 중 여유 있게 따라잡는 머신은 하나뿐이다.
 
-Only the M1 has a time to first output distinct from its end-to-end figure. The MLX
-build streams text as it decodes, so words appear after 3.8 minutes of an 18.9-minute
-run; the `model-compose` workflow declares its output `as json` and hands back a
-finished value, which makes those two columns equal by construction rather than by
-speed.
+TTFO와 E2E가 다른 머신은 M1뿐이다. MLX 빌드는 디코딩하면서 텍스트를 스트리밍하므로 18.9분
+실행 중 3.8분 만에 첫 단어가 나온다. `model-compose` 워크플로우는 출력을 `as json`으로
+선언해 완성된 값을 한 번에 돌려주므로, 두 열이 같은 것은 속도 때문이 아니라 구조 때문이다.
 
-Three columns read differently across these rows and the table cannot hide it:
+세 열은 행마다 의미가 달라지고, 표는 그 사실을 감출 수 없다.
 
-| Column | Across these rows |
+| 열 | 이 행들 사이에서 |
 |---|---|
-| Cold start | not comparable — two runners, one bringing a compose stack up and one loading a model, and the M1 loads 5.71 GB where the others load 17.35 GB |
-| RTF, E2E | comparable as delivered performance, not as a hardware ranking |
-| Memory | the 4090's figure is video memory; the Spark's and the M1's are unified memory shared with the system |
+| 콜드 스타트 | 비교 불가. 러너가 둘이고 하나는 compose 스택을 올리고 하나는 모델만 로드한다. M1은 5.71 GB를 로드하고 나머지는 17.35 GB를 로드한다 |
+| RTF, E2E | 실제로 받는 성능으로는 비교 가능하지만 하드웨어 순위로는 비교 불가 |
+| 메모리 | 4090은 비디오 메모리, Spark와 M1은 시스템과 공유하는 통합 메모리 |
 
-The M1 row is not the same measurement as the other two. It runs a 4-bit MLX
-conversion under Metal kernels, not the reference checkpoint under CUDA, so the gap
-between it and the Spark is part hardware and part build and this table separates
-neither. What it does show is that a 16 GB laptop runs this model at all, with 332 MB
-of swap.
+M1 행은 나머지 두 행과 같은 측정이 아니다. CUDA에서 레퍼런스 체크포인트를 돌린 것이 아니라
+Metal 커널에서 4-bit MLX 변환본을 돌렸다. 그래서 M1과 Spark의 차이에는 하드웨어와 빌드가
+섞여 있고, 이 표는 둘을 분리하지 못한다. 이 행이 보여주는 것은 16 GB 노트북에서도 332 MB의
+스왑만으로 이 모델이 돌아간다는 사실이다.
 
-### Length costs more than linearly
+### 길이가 늘면 비용은 선형보다 더 늘어난다
 
-The same machine, the same model, two audio lengths:
+같은 머신, 같은 모델, 두 가지 오디오 길이다.
 
-| Audio | RTF | Peak video memory |
+| 오디오 | RTF | 최대 비디오 메모리 |
 |---|---|---|
 | 60 s | 0.111 | 19298 MB |
 | 1049 s | 0.223 | 22134 MB |
 
-Seventeen times the audio doubles the real-time factor and adds 2.8 GB. Attention
-grows with the square of sequence length and the key-value cache grows linearly —
-57.3 KB per token for this decoder — so the "sixty minutes in one pass" claim is about
-what fits in the context window, not about a cost that stays flat.
+오디오가 17배 길어지자 RTF는 두 배가 되고 메모리는 2.8 GB 늘었다. 어텐션은 시퀀스 길이의
+제곱으로, key-value 캐시는 선형으로 커진다. 이 디코더의 key-value 캐시는 토큰당 57.3 KB다.
+따라서 "60분을 한 번에"라는 주장은 컨텍스트 윈도우에 들어간다는 뜻이지 비용이 일정하다는
+뜻이 아니다.
 
-### Accuracy
+### 정확도
 
-Every machine's transcript was scored, by MeetEval, against AMI's manual word
-annotation for the same meeting. Scoring all three was not the plan; it became the
-plan once the first two disagreed.
+모든 머신의 전사 결과를 같은 회의의 AMI 수동 단어 주석과 대조해 MeetEval로 채점했다. 원래
+세 대를 모두 채점할 계획은 아니었다. 처음 두 대의 결과가 서로 달랐기 때문에 계획이 바뀌었다.
 
-| Machine | Numerics | WER | cpWER | tcpWER | Segments |
+| 머신 | 수치 형식 | WER | cpWER | tcpWER | 구간 수 |
 |---|---|---|---|---|---|
 | RTX 4090 | `bfloat16` | 17.88% | 17.51% | 18.18% | 152 |
 | DGX Spark | `bfloat16` | 17.66% | 17.17% | 17.51% | 153 |
 | MacBook M1 | `int4/mlx` | 17.47% | 17.28% | 17.66% | 149 |
-| *Published* | *`ami_test`* | *17.20%* | *none* | *none* | — |
+| *공개 수치* | *`ami_test`* | *17.20%* | *없음* | *없음* | — |
 
-**Two machines running the same checkpoint at the same precision produced different
-transcripts.** `bfloat16` carries little enough precision that a different kernel or a
-different reduction order flips a token, and one flipped token changes everything
-decoded after it. The 4090 ran PyTorch 2.11.0+cu128 on AD102 and the Spark ran
-2.14.0+cu130 on GB10, because GB10 is `sm_121` and no cu128 wheel exists for aarch64.
-So the common assumption that accuracy need be measured only once — same weights, same
-input, same output — does not hold here. The spread is small enough to be treatable as
-noise, but that is a measured conclusion rather than an assumption.
+**같은 체크포인트를 같은 정밀도로 돌린 두 머신이 서로 다른 전사 결과를 냈다.** `bfloat16`은
+정밀도가 낮아서 커널이나 연산 순서가 달라지면 토큰 하나가 뒤집히고, 뒤집힌 토큰 하나가 그
+뒤의 디코딩 전체를 바꾼다. 4090은 AD102에서 PyTorch 2.11.0+cu128을, Spark는 GB10에서
+2.14.0+cu130을 돌렸다. GB10은 `sm_121`이고 aarch64용 cu128 휠이 없기 때문이다. 따라서
+같은 가중치, 같은 입력이면 같은 출력이 나오니 정확도는 한 번만 재면 된다는 흔한 가정은 여기서
+성립하지 않는다. 차이는 노이즈로 봐도 될 만큼 작지만, 그것은 가정이 아니라 측정으로 얻은
+결론이다.
 
-**The 4-bit build is not the worst row.** Its three figures land inside the range the
-two `bfloat16` machines already span, and on WER it is the best of the three. Whatever
-4-bit quantization cost this model in words, it is smaller than the difference between
-two CUDA machines running the reference checkpoint. `mlx-community` publishes no
-evaluation numbers for any of its converted builds, so this is the only figure of its
-kind here.
+**4-bit 빌드가 가장 나쁜 행이 아니다.** 세 수치 모두 `bfloat16` 두 머신이 이미 만든 범위
+안에 들어가고, WER로는 셋 중 가장 좋다. 4-bit 양자화가 이 모델의 단어 정확도에서 깎은 것이
+무엇이든, 레퍼런스 체크포인트를 돌린 CUDA 머신 두 대 사이의 차이보다 작다. `mlx-community`는
+변환 빌드 중 어느 것에도 평가 수치를 공개하지 않으므로, 이 리포트에서 이런 종류의 수치는
+이것 하나뿐이다.
 
-That conclusion depended on having two baselines. Measured alone, 17.47% against a
-published 17.20% would have read as a 0.27-point quantization penalty.
+이 결론은 기준선이 둘 있었기에 나왔다. 하나만 쟀다면 공개 수치 17.20% 대비 17.47%는 0.27%p의
+양자화 손실로 읽혔을 것이다.
 
-**17.88% against a published 17.20% is the setup checking out, not a finding.** The
-Open ASR Leaderboard table on the `microsoft/VibeVoice-ASR-HF` model card gives
-`ami_test` 17.20%, average 7.77% across eight datasets, and RTFx 51.80. AMI is the
-worst row in that table and it belongs in the body, because a meeting transcriber is
-exactly what AMI measures. The leaderboard scores pre-segmented utterances; this is a
-whole meeting decoded in one pass, a harder problem, and the card does not state which
-microphone condition its row used. Agreement this close under conditions that differ
-this much means the pipeline is sound — the only reason to have measured it, since the
-timing figures above would look identical if the model had been producing nonsense.
+**공개 수치 17.20% 대비 17.88%는 발견이 아니라 셋업이 맞다는 확인이다.** `microsoft/VibeVoice-ASR-HF`
+모델 카드의 Open ASR Leaderboard 표는 `ami_test` 17.20%, 8개 데이터셋 평균 7.77%, RTFx
+51.80을 제시한다. AMI는 그 표에서 가장 나쁜 행이지만 회의 전사기가 바로 AMI가 재는 대상이므로
+본문에 둔다. 리더보드는 미리 잘라둔 발화를 채점하고, 여기서는 회의 전체를 한 번에 디코딩했으니
+더 어려운 문제다. 모델 카드는 그 행이 어떤 마이크 조건인지도 밝히지 않는다. 조건이 이만큼
+다른데도 결과가 이만큼 가깝다는 것은 파이프라인이 제대로 돌았다는 뜻이다. 모델이 엉터리를
+내놓았어도 위의 시간 수치는 똑같아 보였을 테니, 이것을 잰 이유가 바로 이 확인이다.
 
-**tcpWER stays within 0.67 points of cpWER on every machine, and that gap is the size
-of the timestamp error.** Adding a time constraint barely moves the score, so the model
-places words close to where it says they are. No published figure exists for either
-metric.
+**모든 머신에서 tcpWER은 cpWER과 0.67%p 이내이고, 그 차이가 타임스탬프 오차의 크기다.**
+시간 제약을 더해도 점수가 거의 움직이지 않으므로, 모델은 단어를 자기가 말한 위치 근처에
+배치한다. 두 지표 모두 공개된 비교 수치가 없다.
 
-Two normalisations, both applied to reference and hypothesis alike:
+레퍼런스와 가설 양쪽에 똑같이 두 가지 정규화를 적용했다.
 
-| Step | Effect |
+| 단계 | 효과 |
 |---|---|
-| `EnglishTextNormalizer` | the normaliser the Open ASR Leaderboard applies |
-| Non-speech segments dropped | 26 of 179, such as `[Breathing]` and `[Music]`; AMI does not transcribe these and each would otherwise count as an inserted word |
+| `EnglishTextNormalizer` | Open ASR Leaderboard가 적용하는 정규화기 |
+| 비음성 구간 제외 | 179개 중 26개. `[Breathing]`, `[Music]` 같은 것으로, AMI는 이를 전사하지 않으므로 남겨두면 각각 삽입된 단어로 채점된다 |
 
-### Published RTFx is not this table's RTF
+### 공개된 RTFx는 이 표의 RTF가 아니다
 
-The leaderboard's RTFx 51.80 is the reciprocal of RTF 0.0193. The 4090 here measures
-RTF 0.223, which is RTFx 4.49 — twelve times apart, on conditions that share almost
-nothing: short pre-segmented clips against a 17.5-minute single pass, batched
-throughput against `batch: 1`, their hardware against ours. The two belong in the same
-report and not in the same column.
+리더보드의 RTFx 51.80은 RTF 0.0193의 역수다. 여기서 4090은 RTF 0.223, 즉 RTFx 4.49를
+기록했다. 12배 차이지만 조건이 거의 겹치지 않는다. 짧게 잘린 클립과 17.5분 단일 처리, 배치
+처리량과 `batch: 1`, 그들의 하드웨어와 우리의 하드웨어. 두 수치는 같은 리포트에 있어야 하지만
+같은 열에 있어서는 안 된다.
 
-## 5. Limits
+## 5. 한계
 
-**Sixty minutes is a context-window claim, not a memory claim.** 17.5 minutes already
-peaked at 22134 MB on a 24564 MB card. The key-value cache grows at 57.3 KB per token,
-so an hour of audio at 27000 acoustic tokens plus text will not fit in 24 GB. Whether
-this machine can do what the model card says it can do is an open question this run
-does not settle.
+**60분은 컨텍스트 윈도우에 대한 주장이지 메모리에 대한 주장이 아니다.** 17.5분에서 이미
+24564 MB 카드의 22134 MB를 썼다. key-value 캐시가 토큰당 57.3 KB씩 늘어나므로, 27000개
+음향 토큰에 텍스트까지 더한 한 시간 분량은 24 GB에 들어가지 않는다. 이 머신이 모델 카드가
+말하는 일을 해낼 수 있는지는 이번 실행으로 결론 나지 않은 질문이다.
 
-**A 6 GB card cannot run it, quantized or not.** An RTX 4050 Laptop with 6141 MiB was
-measured out of the table by arithmetic rather than by a failed run: `nf4` on the
-backbone leaves 3.65 GB, the modules that cannot be quantized without wrecking waveform
-reconstruction add 3.21 GB, and 6.86 GB of weights does not fit in 6.00 GB before a
-single activation. Quantizing `lm_head` as well still lands at 6.05 GB. The only
-configuration that fits offloads to system memory, which measures the offload rather
-than the machine.
+**6 GB 카드로는 양자화해도 돌릴 수 없다.** 6141 MiB의 RTX 4050 Laptop은 실행 실패가 아니라
+계산으로 표에서 빠졌다. 백본을 `nf4`로 양자화하면 3.65 GB가 남고, 양자화하면 파형 복원이
+망가지는 모듈이 3.21 GB를 더해, 활성값 하나 올리기 전에 가중치만 6.86 GB로 6.00 GB를 넘는다.
+`lm_head`까지 양자화해도 6.05 GB다. 들어가는 구성은 시스템 메모리로 오프로드하는 것뿐인데,
+그러면 머신이 아니라 오프로드를 재게 된다.
 
-**A 16 GB Mac needs a converted build.** `mlx-community` publishes 17.35 GB at
-`bf16`, 9.52 GB at 8-bit and 5.71 GB at 4-bit; the 4-bit build ran here with 332 MB of
-swap. bitsandbytes cannot produce that build — it compiles CUDA kernels only — so the
-route is MLX and the row that results is not directly comparable to the CUDA rows.
+**16 GB Mac에는 변환 빌드가 필요하다.** `mlx-community`는 `bf16` 17.35 GB, 8-bit 9.52 GB,
+4-bit 5.71 GB 빌드를 공개한다. 여기서는 4-bit 빌드가 332 MB 스왑으로 돌아갔다.
+bitsandbytes는 CUDA 커널만 컴파일하므로 이 빌드를 만들 수 없다. 그래서 경로는 MLX이고, 그
+결과로 나온 행은 CUDA 행과 직접 비교할 수 없다.
 
-**The two machines cannot run the same PyTorch.** GB10 is `sm_121` and needs CUDA 13;
-no cu128 wheel is published for aarch64. Part of the 1.6 GB memory difference between
-the 4090 and the Spark belongs to the build rather than the hardware, and this run does
-not separate them.
+**두 머신은 같은 PyTorch를 돌릴 수 없다.** GB10은 `sm_121`이라 CUDA 13이 필요하고, aarch64용
+cu128 휠은 공개되지 않았다. 4090과 Spark 사이 1.6 GB 메모리 차이의 일부는 하드웨어가 아니라
+빌드 몫이며, 이번 실행은 둘을 분리하지 않는다.
 
-**Licence and usage scope.** The model card states: *"This project is licensed under
-the MIT License."* It states no out-of-scope use, no deployment restriction and no
-responsible-AI limitation. That absence is worth naming rather than passing over — an
-unchecked field and a checked, clean field read identically otherwise.
+**라이선스와 사용 범위.** 모델 카드는 다음과 같이 밝힌다.
 
-## 6. Links
+> "This project is licensed under the MIT License."
+>
+> 번역: "이 프로젝트는 MIT 라이선스로 배포된다."
 
-| What | Where |
+사용 범위 밖의 용도, 배포 제한, 책임 있는 AI 관련 제약은 명시하지 않는다. 확인하지 않은
+항목과 확인했더니 비어 있던 항목은 밝히지 않으면 똑같이 읽히므로, 그 부재를 여기에 적어 둔다.
+
+## 6. 링크
+
+| 항목 | 위치 |
 |---|---|
-| Example | `releases/speaker-diarization-vibevoice` |
-| Model card | https://huggingface.co/microsoft/VibeVoice-ASR |
-| Leaderboard figures | https://huggingface.co/microsoft/VibeVoice-ASR-HF |
-| Technical report | https://arxiv.org/abs/2601.18184 |
+| 예제 | `releases/speaker-diarization-vibevoice` |
+| 모델 카드 | https://huggingface.co/microsoft/VibeVoice-ASR |
+| 리더보드 수치 | https://huggingface.co/microsoft/VibeVoice-ASR-HF |
+| 기술 리포트 | https://arxiv.org/abs/2601.18184 |
 | Open ASR Leaderboard | https://arxiv.org/abs/2510.06961 |
 | MeetEval | https://github.com/fgnt/meeteval |
-| AMI corpus | https://groups.inf.ed.ac.uk/ami/corpus/ |
-| X thread drafted from this report | `releases/speaker-diarization-vibevoice/social.md` |
+| AMI 코퍼스 | https://groups.inf.ed.ac.uk/ami/corpus/ |
+| 이 리포트로 작성한 X 포스트 | `releases/speaker-diarization-vibevoice/social.md` |
