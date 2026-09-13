@@ -95,7 +95,7 @@ the only one that gets the hover tint); nothing else keys off it.
 
 | Style | Classes | Look |
 |---|---|---|
-| Filled | `.action-primary`, `.action-resume` | accent background, `--background` text — reserved for the one constructive action a screen offers at a time |
+| Filled | `.action-primary`, `.action-resume` | `--accent-text` background, `--background` text — reserved for the one constructive action a screen offers at a time. `--accent` behind that text measures 3.61:1, under the 4.5:1 text needs |
 | Outlined | `.action-add`, `.action-cancel` | transparent background, accent border and text |
 
 A screen showing both a filled and an outlined action is choosing which one it wants the
@@ -111,6 +111,10 @@ flight ("Cancel" → "Cancelling…", disabled) rather than being replaced by a 
 element or hidden in favour of a spinner. The header's `.action-primary` and the
 footer's mirror it are two elements with the same job at two breakpoints, not a primary
 button and a secondary one.
+
+A disabled `.action-cancel` or `.action-resume` dims to `opacity: 0.5` through one shared
+`:disabled` rule. It keeps its own colours rather than repainting in `--disabled`, so a
+button that is only waiting reads as the same button, paused.
 
 ## Caption warning — `.caption-warning`
 
@@ -199,6 +203,10 @@ heavier than the 1px the hand-drawn icons it replaces had. 1.5 × 16/24 = 1.0px 
 that weight. This is arithmetic tied to the specific 24-to-16 scale-down, not a taste
 preference, and does not move if the render size ever changes without recomputing it.
 ```
+
+`ICONS` maps each name to `{ paths: [ ... ], viewBox: "0 0 24 24" }`, with every `d`
+attribute of the icon in `paths`. `build-model-release`'s portable check reads `viewBox`
+off each entry, so a bare array of paths fails it even when the geometry is right.
 
 Take the path data from the upstream SVG file for each icon, not from lucide.dev: the
 site is a JavaScript application with no static markup to read, and a fetch that

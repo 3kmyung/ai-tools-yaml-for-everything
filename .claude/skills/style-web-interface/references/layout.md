@@ -151,6 +151,7 @@ scroll position with no JavaScript scroll listener:
 }
 
 #region {
+  scrollbar-width: none;
   scroll-timeline: --scroll-fade block;
 }
 ```
@@ -159,8 +160,11 @@ scroll position with no JavaScript scroll listener:
 properties (a plain custom property cannot be interpolated). The region names its own
 scroll position with `scroll-timeline: --scroll-fade block|inline` — `block` for a
 vertical scroller, `inline` for a horizontal one — and the wrapper's `timeline-scope` lifts
-that name up to where the mask's animation can read it. Each wrapper holds exactly one
-scrolling region, so a nested wrapper's scope never sees two timelines of the same name.
+that name up to where the mask's animation can read it. A region attaches its timeline to
+the nearest wrapper above it, so wrappers nest freely: `main`'s wrapper reads `main` and
+the `#workspace` wrapper inside `main` reads `#workspace`, both measured in Chrome. What
+breaks is two scrolling regions under one wrapper with no wrapper of their own between —
+that scope sees two timelines of one name and attaches neither, so both fades stop.
 Per region, only two things change: `--scroll-fade-direction` on the wrapper and the axis
 of `scroll-timeline` on the region, and a breakpoint that turns a vertical list horizontal
 flips both. Whatever places the region in its parent — `flex`, `min-height: 0`, grid

@@ -21,12 +21,16 @@ reading as a style, which invites a third.
 ```
 
 ```
-✗ JavaScript toggling a class to express visual state.
+✗ JavaScript toggling a class for a fact the DOM already states — an attribute's value,
+  a popover's open state, an input's checkedness.
 → Read the DOM directly from CSS: body:has(#control[data-value="x"]) ... , the same
-  pattern layout.css already uses for aspect ratios.
-Why: a class toggled by JS is a second source of truth for a fact the DOM already
-states directly (an attribute's value, a popover's open state, an input's checkedness).
-Two sources of truth for one fact drift the moment one update path is missed.
+  pattern layout.css already uses for aspect ratios. A state no attribute or pseudo-class
+  carries, such as which list item is selected, keeps its class: .is-selected,
+  .is-default.
+Why: a class toggled for a fact the DOM already states is a second source of truth, and
+two sources of truth for one fact drift the moment one update path is missed. A
+selection lives only in the script's state, so its class is the one place the DOM states
+it at all.
 ```
 
 ```
@@ -188,6 +192,10 @@ exempt from focus indication — it simply has no line of its own to recolour, s
 `base.css` default inward ring already covers it correctly with no override needed. That
 is why `.item-select` needs no entry in the middle block: it has no outer line, so the
 default ring is already correct for it.
+
+A text input inside `.field-line` keeps that default ring too. The parent's underline
+turning `--accent` through `:has(:focus-visible)` is added beside the ring, not a
+replacement for it, so no rule turns the input's own outline off.
 
 `.item` itself — the `<li>` — takes no rule here, because it cannot take focus. It is a
 plain container; the row's clickable, focusable surface is the `<button class=
