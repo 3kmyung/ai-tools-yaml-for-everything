@@ -108,16 +108,24 @@ a reshoot.
 ```
 ✗ Summarising a usage-scope restriction in the report's own words — "the authors suggest
   caution before production use."
-→ Quote the restriction verbatim, exactly as `build-model-release`'s research step recorded
-  it in the research table.
+→ Quote the restriction verbatim from its source, and name the page it came from.
 Why: a permissive licence and an author writing "do not ship this without further
 testing" are both true of the same model at once. A paraphrase can round the second one
 away without anyone noticing it happened.
 ```
 
-When the research table carries no usage-scope statement at all, section 5 says so
-plainly rather than staying silent about the absence — an unchecked field and a checked,
-clean field read identically to a reader unless the report distinguishes them.
+Where the quote comes from depends on what exists:
+
+| What exists | Quote from |
+|---|---|
+| `build-model-release`'s research table with a usage-scope row | that row, verbatim |
+| no research table | the model card, then the model's own repository README and docs, each read as raw text rather than through a summarising fetch |
+
+When a passage covers more than the model — a repository-wide notice naming other
+checkpoints — section 5 says which products it names. When every source was read and
+none states a restriction, section 5 lists the pages checked and says so plainly rather
+than staying silent — an unchecked field and a checked, clean field read identically to
+a reader unless the report distinguishes them.
 
 ## What does not belong in the report
 

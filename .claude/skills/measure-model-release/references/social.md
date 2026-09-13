@@ -103,9 +103,9 @@ text before handing the post over.
 ```
 ✗ The post reads as advice to deploy the model — "빠르고 정확해서 바로 프로덕션에 써도
   됩니다" or anything with that shape.
-→ The post describes what the demo did and stops there. When `build-model-release`'s
-  research step recorded a usage-scope restriction, the report in the linked directory
-  carries it verbatim.
+→ The post describes what the demo did and stops there. When the report's section 5
+  quotes a usage-scope restriction, the report in the linked directory carries it
+  verbatim.
 Why: a one-post format has no room for the usage-scope quote, so the post must not make
 the claim that quote exists to qualify. Giving shipping advice the model's own authors
 decline to give is the one way this post can do real harm, and it costs nothing to avoid.
