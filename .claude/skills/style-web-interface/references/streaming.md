@@ -65,12 +65,10 @@ this file and say so, not as a mistake in the example to quietly fix.
    no direction for the reader's eye to track, so it does not compound as arrivals speed
    up.
    ```
-   This is deliberately stricter than the footer's own reveal in `layout.md`, which pairs
-   `opacity` with `translate: 0 100%`. That combination is fine there because the footer
-   appears once per render, not once per arrival — a translate that can never repeat
-   faster than an operation finishing has no rate to compound at. An item entering a
-   streaming list has no such floor; the footer is the contrast that shows why one-off
-   reveals get to keep translate and per-arrival ones do not.
+   A one-off reveal — a panel that appears once per render — may still pair `opacity`
+   with a `translate`, because a translate that can never repeat faster than an operation
+   finishing has no rate to compound at. An item entering a streaming list has no such
+   floor, which is why per-arrival entries get opacity alone.
 5. A number that changes while the reader is looking at it — a timecode, a running
    counter — uses `font-variant-numeric: tabular-nums`, the property
    `.color-picker-readout` already sets.

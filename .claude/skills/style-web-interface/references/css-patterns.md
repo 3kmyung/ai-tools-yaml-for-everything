@@ -163,6 +163,7 @@ already has, to `--accent`. An element with no such line, or whose line is alrea
 | `.item-select`, `.item-remove`, `.revert-field` | none | inward ring |
 | `.dropdown-option` | none | inward ring |
 | `footer a` | an underline already at `--border-width` | inward ring — the underline has no heavier weight to move to |
+| a marker filled with a `--category-*` token | none; the fill changes per category | outward ring in `--text` |
 
 `base.css` supplies the default that anything without its own indicator gets:
 
@@ -196,6 +197,19 @@ exempt from focus indication — it simply has no line of its own to recolour, s
 `base.css` default inward ring already covers it correctly with no override needed. That
 is why `.item-select` needs no entry in the middle block: it has no outer line, so the
 default ring is already correct for it.
+
+A focusable marker painted with a category colour — a timeline block — is the one place
+the ring moves outside the element and changes colour:
+
+```
+✗ An --accent ring or an --accent border as the focus indicator on an element filled with
+  a --category-* token.
+→ outline: var(--border-width) solid var(--text); outline-offset: var(--border-width);
+  so the ring sits outside the fill, against the track behind it.
+Why: --category-1 is Okabe–Ito blue, close enough to --accent that an accent ring on or
+inside a speech block disappears. A ring outside the fill contrasts with the one surface
+behind every block, not with a fill that changes from block to block.
+```
 
 A text input inside `.field-line` keeps that default ring too. The parent's underline
 turning `--accent` through `:has(:focus-visible)` is added beside the ring, not a
@@ -233,10 +247,10 @@ stylesheet rules, not whether any element in the DOM can ever reach them.
 }
 ```
 
-The `!important` is load-bearing, not defensive: `footer` carries its own `transition`
-declaration, and a type selector beats the universal `*, *::before, *::after` in the
-cascade, so without the flag this override loses to `footer`'s own rule and the footer
-keeps sliding under reduced motion.
+The `!important` is load-bearing, not defensive: `footer > *` carries its own `transition`
+declaration, and that selector beats the universal `*, *::before, *::after` in the
+cascade, so without the flag this override loses to it and the footer's children keep
+fading under reduced motion.
 
 This block does not reach the scroll-driven fades, and that is correct rather than a
 gap. Every element using `animation-timeline: scroll(...)` has its animation progress

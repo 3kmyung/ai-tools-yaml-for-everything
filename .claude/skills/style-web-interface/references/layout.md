@@ -39,7 +39,7 @@ is `base.css`'s own.
 ```
 header   settings row, scrolls horizontally, primary action at the right
 main     list column beside a workspace
-footer   log, hides itself when there is nothing to show
+footer   log and narrow-width actions, collapses when none of its children shows
 ```
 
 - `header` is a flex row. The settings controls (`.dropdown`, `.setting` labels) sit in
@@ -48,7 +48,8 @@ footer   log, hides itself when there is nothing to show
 - `main` is a two-column grid: the list column beside the workspace. Deciding which of
   the example's two moving parts is "the list" and which is "the workspace" is the
   layout decision every generated UI has to make; the grid itself does not change.
-- `footer` carries the running log and is the one region allowed to disappear entirely.
+- `footer` carries the running log, and below the narrow breakpoint the primary action. It
+  is the one region allowed to disappear entirely.
 
 ## The list column
 
@@ -66,35 +67,62 @@ The workspace takes the rest with a `16rem` floor of its own.
 
 ## The footer's self-hiding
 
-The footer is present in the DOM at all times and hides itself purely through CSS reading
-the log's own state — no JavaScript toggles a class:
+The footer is present in the DOM at all times and is never hidden itself. It has no
+vertical padding; its children carry the vertical space, so when no child renders the
+footer is zero pixels tall, whatever the reason each child is not rendering:
 
 ```css
-footer:not(:has(#log:not([hidden]):not(:empty))) {
-  display: none;
-  opacity: 0;
-  translate: 0 100%;
+footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-inline: var(--space-3);
+  background: var(--background-panel);
+}
+
+footer > * {
+  margin-block: var(--space-2);
+  transition: opacity var(--duration-base) ease;
+}
+
+footer > :is([hidden], :empty) {
+  display: none !important;
 }
 
 @starting-style {
-  footer:has(#log:not([hidden]):not(:empty)) {
+  footer > * {
     opacity: 0;
-    translate: 0 100%;
   }
 }
 ```
 
-`:has(#log:not([hidden]):not(:empty))` is true exactly when the log region has content to
-show. The default `footer` rule keeps it visible; this rule overrides that back to
-`display: none` the moment the log is empty or hidden, and `@starting-style` supplies the
-"before" frame so the reappearance transitions in (slides up, fades in) rather than
-snapping. `display` can transition here only because `footer`'s own `transition` lists
-`display var(--duration-base) allow-discrete`.
+A child can stop rendering three ways — its `hidden` attribute, having no content, or a
+`@media` rule such as the one that shows the primary action only below `600px` — and the
+footer reads none of them. It collapses because nothing inside it takes up height, which
+covers every child a future screen adds without a new selector. Measured in Chrome at
+976px and 518px: an empty or hidden log collapses the footer to 0px at the wide width, and
+at the narrow width the primary action alone keeps it 45px tall.
+
+The `!important` is load-bearing. A child's own layout rule is usually an ID selector —
+`#log { display: flex; }` — which outranks `footer > :is([hidden], :empty)` and would put
+an empty log back on screen. A child fades in through `@starting-style` when it starts
+rendering, and leaves without a transition, since an important `display: none` is not
+transitioned.
+
+```
+✗ Hiding the footer through a selector that names one child, such as
+  footer:not(:has(#log:not([hidden]):not(:empty))) { display: none; }.
+→ Put the footer's vertical space on its children and collapse each child that is hidden
+  or empty, so the footer is as tall as whatever inside it renders.
+Why: a selector cannot see a child a @media rule has set to display: none, so a rule
+keyed to the log hides the footer whenever the log is empty — including below 600px,
+where the primary action lives in the footer and disappears with it.
+```
 
 ```
 ✗ log.classList.add("has-content") / element.style.display = "flex" from JavaScript.
-→ Let :has() read the log's own [hidden] attribute and :empty state.
-Why: the footer's visibility is a pure function of what is already in the DOM. A second,
+→ Let the log's own [hidden] attribute and :empty state collapse it.
+Why: the footer's height is a pure function of what is already in the DOM. A second,
 JS-owned source of truth for the same fact is one more place for the two to disagree.
 ```
 

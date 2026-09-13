@@ -76,8 +76,8 @@ Hide an element with its `hidden` attribute, never `element.style.display`.
 → element.hidden = true; / element.hidden = false;
 Why: style.display is a second, inline source of truth that overrides whatever
 components.css or layout.css decided for that element, and CSS cannot read it back the
-way it can read the hidden attribute with a plain :not([hidden]) selector — which is how
-the footer's own self-hiding rule in layout.md works.
+way it can read the hidden attribute with a plain [hidden] selector — which is how the
+footer's children collapse in layout.md.
 ```
 
 ## Naming
