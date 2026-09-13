@@ -6,14 +6,14 @@ limit, and exactly one reply to it that holds the GitHub link and nothing else.
 ## Voice
 
 The post is friendly SNS Korean in 합니다체: short sentences, spoken to the reader,
-ending in -습니다, -입니다, -ㅂ니다, or -ㄹ까요? for a question, with two or three emoji
-placed where a speaker would smile or point. The post is plain text — X renders `**`,
-`#`, `-` lists and `|` tables as the literal characters.
+ending in -습니다, -입니다, -ㅂ니다, or -ㄹ까요? for a question, with one or two emoji in
+the whole post. Every sentence is about the model or the run; the attachments sit
+directly under the text, so no sentence points at them. The post is plain text — X
+renders `**`, `#`, `-` lists and `|` tables as the literal characters.
 
 ```
 VibeVoice-ASR로 한 시간짜리 회의 녹음을 N분 만에 받아 적었습니다 🎙️
-누가 언제 무슨 말을 했는지까지 한 번에 나옵니다 ✨
-머신별 속도는 표로 붙였습니다 👇
+누가 언제 무슨 말을 했는지까지 한 번에 나옵니다.
 ```
 
 ## The template
@@ -22,7 +22,7 @@ VibeVoice-ASR로 한 시간짜리 회의 녹음을 N분 만에 받아 적었습�
 Post (≤280 weighted characters, Korean)
   - one line on the model
   - exactly one performance number in the text
-  - two or three emoji
+  - one or two emoji
   - attached: the demo media and the RTF table image
 
 Reply to the post
