@@ -9,6 +9,19 @@ and the two documents that carry those numbers to a reader. It starts after
 `build-model-release`'s step 6 real run has already succeeded — there is nothing to measure
 before that.
 
+## Where to start
+
+Look in `releases/<example>/benchmarks/` before doing anything else.
+
+| What is there | Start at |
+|---|---|
+| no `results/*.json` | measurement — `references/benchmark.md` and both gates below |
+| `results/*.json` with every run `valid: true`, but no `accuracy/*.json` | the accuracy run alone — `references/benchmark.md`'s accuracy section and both gates |
+| `results/*.json` with every run `valid: true`, and `accuracy/*.json` | writing — `references/report.md`, then `references/social.md`. No runner is started and no machine is asked for |
+
+Writing produces three files in `releases/<example>/`: `report.md`, `social.md`, and
+`media/rtf-table.png`.
+
 ## Two axes
 
 | Axis | Where | What varies | Reference data |
@@ -52,8 +65,8 @@ land in one table.
 > **STOP — hardware and data gate.** Every row of the table, and the accuracy run, needs
 > a physical machine this skill cannot reach on its own, plus a reference dataset for the
 > accuracy run. Hand the matching runner and the external accuracy harnesses to a human
-> on that hardware, then read back `benchmarks/<example>/results/*.json` and
-> `benchmarks/<example>/accuracy/*.json`. Never invent a figure for a machine that has
+> on that hardware, then read back `releases/<example>/benchmarks/results/*.json` and
+> `releases/<example>/benchmarks/accuracy/*.json`. Never invent a figure for a machine that has
 > not actually run.
 
 > **STOP — self-test gate.** Before a single measured figure goes into the report, check
