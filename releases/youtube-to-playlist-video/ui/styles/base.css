@@ -12,6 +12,15 @@
   --icon: var(--text-caption);
   --link: var(--accent-text);
 
+  --category-1: #807eb3;
+  --category-2: #885c83;
+  --category-3: #b07174;
+  --category-4: #8f623b;
+  --category-5: #8b884d;
+  --category-6: #497a55;
+  --category-7: #419494;
+  --category-8: #3f7397;
+
   --alpha-1: 6%;
   --alpha-2: 12%;
   --alpha-3: 18%;
@@ -30,6 +39,8 @@
   --radius-base: 0.5rem;
   --radius-lg: 0.75rem;
   --radius-full: 999px;
+
+  --border-width: 1px;
 
   --duration-fast: .24s;
   --duration-base: .32s;
@@ -55,8 +66,8 @@ button {
 }
 
 :is(button, a, input, select):focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
+  outline: var(--border-width) solid var(--accent);
+  outline-offset: calc(-1 * var(--border-width));
 }
 
 @media (prefers-reduced-motion: reduce) {
