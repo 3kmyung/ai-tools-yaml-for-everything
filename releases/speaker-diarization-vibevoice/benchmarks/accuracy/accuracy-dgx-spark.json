@@ -1,7 +1,7 @@
 {
   "session": "ES2004a",
-  "reference": "/home/user/bench-audio/ES2004a.reference.json",
-  "hypothesis": "/home/user/bench-results/ES2004a.hypothesis.json",
+  "reference": "../transcripts/ES2004a.reference.json",
+  "hypothesis": "../transcripts/dgx-spark.json",
   "scorer": "meeteval",
   "normaliser": "transformers EnglishTextNormalizer",
   "collar_seconds": 5.0,

@@ -1,7 +1,7 @@
 {
   "session": "ES2004a",
-  "reference": "/Users/unknoown/bench-audio/ES2004a.reference.json",
-  "hypothesis": "/Users/unknoown/bench-results/ES2004a.hypothesis.json",
+  "reference": "../transcripts/ES2004a.reference.json",
+  "hypothesis": "../transcripts/macbook-m1.json",
   "scorer": "meeteval",
   "normaliser": "transformers EnglishTextNormalizer",
   "collar_seconds": 5.0,

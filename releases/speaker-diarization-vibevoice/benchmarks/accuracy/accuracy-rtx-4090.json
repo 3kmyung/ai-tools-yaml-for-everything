@@ -1,7 +1,7 @@
 {
   "session": "ES2004a",
-  "reference": "/home/astaria/bench-audio/ES2004a.reference.json",
-  "hypothesis": "/home/astaria/bench-results/ES2004a.hypothesis.json",
+  "reference": "../transcripts/ES2004a.reference.json",
+  "hypothesis": "../transcripts/rtx-4090.json",
   "scorer": "meeteval",
   "normaliser": "transformers EnglishTextNormalizer",
   "collar_seconds": 5.0,
