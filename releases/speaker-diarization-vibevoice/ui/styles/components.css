@@ -15,7 +15,6 @@
 [data-category="5"] { --category-color: var(--category-5); }
 [data-category="6"] { --category-color: var(--category-6); }
 [data-category="7"] { --category-color: var(--category-7); }
-[data-category="8"] { --category-color: var(--category-8); }
 
 .category-swatch {
   display: inline-block;

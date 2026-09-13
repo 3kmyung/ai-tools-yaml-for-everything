@@ -12,14 +12,13 @@
   --icon: var(--text-caption);
   --link: var(--accent-text);
 
-  --category-1: #807eb3;
-  --category-2: #885c83;
-  --category-3: #b07174;
-  --category-4: #8f623b;
-  --category-5: #8b884d;
-  --category-6: #497a55;
-  --category-7: #419494;
-  --category-8: #3f7397;
+  --category-1: #0072b2;
+  --category-2: #e69f00;
+  --category-3: #009e73;
+  --category-4: #d55e00;
+  --category-5: #cc79a7;
+  --category-6: #56b4e9;
+  --category-7: #f0e442;
 
   --alpha-1: 6%;
   --alpha-2: 12%;

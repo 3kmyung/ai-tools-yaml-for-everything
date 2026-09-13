@@ -1,4 +1,4 @@
-const CATEGORY_COUNT = 8;
+const CATEGORY_COUNT = 7;
 
 const NON_SPEECH_TAG = /^\s*[\[(][^\])]*[\])]\s*$/;
 
