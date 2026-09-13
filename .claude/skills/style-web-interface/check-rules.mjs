@@ -56,10 +56,10 @@ const RULES = [
     },
   },
   {
-    name: "layout.md states both width breakpoints",
+    name: "layout.md keeps the one-column narrow width",
     run: async () => {
       const source = await readFile(join(here, "references/layout.md"), "utf8");
-      const missing = [ "@media (width < 900px)", "@media (width < 600px)" ].filter((breakpoint) => !source.includes(breakpoint));
+      const missing = [ "@media (width < 600px)" ].filter((breakpoint) => !source.includes(breakpoint));
 
       return missing.length === 0 ? true : missing.join(", ");
     },

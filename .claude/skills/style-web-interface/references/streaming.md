@@ -3,10 +3,10 @@
 Read this whenever the model produces incremental output or consumes live input — audio,
 tokens, transcript lines, frames. Decide batch or streaming before opening `layout.md`: a
 list that fills once and a list that keeps growing while the reader watches want
-different skeletons, and the wrong one does not fail loudly, it just quietly picks up the
+different layouts, and the wrong one does not fail loudly, it just quietly picks up the
 other file's assumptions.
 
-Streaming is not one more component dropped into the fixed skeleton. It is a layout that
+Streaming is not one more component dropped into a batch layout. It is a layout that
 changes along a time axis, and the batch rules the rest of this house style assumes can
 actively harm it: a `translate` entry animation that looks perfectly fine on a dozen items
 rendered once induces motion sickness at ten arrivals a second — same code, same easing,
@@ -22,7 +22,7 @@ this file and say so, not as a mistake in the example to quietly fix.
 ## Output streaming
 
 1. A growing list of arrivals gets a fixed-height container that scrolls inside itself —
-   `overflow-y: auto`, `min-height: 0` — the same shape the list column's scroller uses.
+   `overflow-y: auto`, `min-height: 0` — the same shape every scrolling region uses.
    The page itself does not grow with every arrival.
 2. Auto-scroll to the newest arrival only while the scroller is pinned to its bottom edge.
    The moment the reader scrolls up, tracking stops until they scroll back down
@@ -170,9 +170,9 @@ this file and say so, not as a mistake in the example to quietly fix.
     ✗ A separate "Stop" button placed beside the existing record control.
     → Swap the one control's own `textContent` and behaviour in place — "Record" becomes
       "Stop" the way `.action-cancel` already swaps between "Cancel" and "Cancelling…".
-    Why: `layout.md` gives the header's right edge exactly one action slot. A second
-    button for the opposite phase of the same action asks for a slot the skeleton only
-    budgeted once.
+    Why: a screen has one primary action at a time. A second button for the opposite
+    phase of the same action gives the reader two controls for one thing and a slot to
+    find for each.
     ```
 13. Play PCM audio through WebAudio, scheduling buffers on an `AudioContext`.
     ```

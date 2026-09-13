@@ -1,7 +1,9 @@
 # layout.md
 
-The page skeleton is fixed across every generated example. Only the inside of `main`
-changes per example — what the list is, what the workspace shows.
+The page layout is each example's own decision. What is fixed is the directory, the
+stylesheet order, and three mechanisms that apply whenever a layout uses what they cover:
+a scrolling region gets the scroll fade, a footer collapses by its children, and every
+width reflows without a sideways scroll.
 
 ## The directory the check suite hardcodes
 
@@ -33,7 +35,29 @@ not tolerate a different shape.
 first `prefers-reduced-motion` media block across every linked stylesheet and assumes it
 is `base.css`'s own.
 
-## The three-region skeleton
+## Choosing a layout
+
+Start from what the model gives the reader, not from a previous screen. A single result
+to read, a before-and-after comparison, a canvas with a properties panel, a form that
+returns one file, a list of items to edit one at a time — each wants its own arrangement,
+and any of them is in the house style as long as it keeps the tokens, the patterns in
+`css-patterns.md`, and the mechanisms in this file.
+
+```
+✗ Opening every screen as a settings header, a list column beside a workspace, and a log
+  footer, because that is the pattern written down below.
+→ Decide what the reader does first and what the screen must show at once, then pick the
+  regions that serves. Use the list-and-workspace pattern only when the example really is
+  a set of items edited one at a time.
+Why: the pattern fits one kind of task. Laid over a model that returns a single output,
+it leaves an empty list column and a workspace with one thing in it, and every release
+starts to look like the same app with a different label.
+```
+
+## A worked pattern: list and workspace
+
+For an example that is a set of items edited one at a time, this arrangement is already
+solved:
 
 ```
 header   settings row, scrolls horizontally, primary action at the right
@@ -44,13 +68,8 @@ footer   log and narrow-width actions, collapses when none of its children shows
 - `header` is a flex row. The settings controls (`.dropdown`, `.setting` labels) sit in
   a horizontally scrolling `#settings` region so the row never wraps; the primary action
   (`.action-primary`) is pinned to the far right with `margin-left: auto`.
-- `main` is a two-column grid: the list column beside the workspace. Deciding which of
-  the example's two moving parts is "the list" and which is "the workspace" is the
-  layout decision every generated UI has to make; the grid itself does not change.
-- `footer` carries the running log, and below the narrow breakpoint the primary action. It
-  is the one region allowed to disappear entirely.
-
-## The list column
+- `main` is a two-column grid: the list column beside the workspace.
+- `footer` carries the running log, and below the narrow breakpoint the primary action.
 
 ```css
 grid-template-columns: clamp(13rem, 22vw, 20rem) minmax(16rem, 1fr);
@@ -62,11 +81,15 @@ grid-template-columns: clamp(13rem, 22vw, 20rem) minmax(16rem, 1fr);
 | Fluid | `22vw` | scales with the viewport instead of jumping between two fixed widths |
 | Maximum | `20rem` | past this it steals space from the workspace for no benefit |
 
-The workspace takes the rest with a `16rem` floor of its own.
+The workspace takes the rest with a `16rem` floor of its own. Below `900px` the list lies
+down as a horizontal rail above the workspace; below `600px` list and workspace become
+alternating views, the primary action moves to the footer, and a `.action-back` button
+returns from the workspace to the list.
 
 ## The footer's self-hiding
 
-The footer is present in the DOM at all times and is never hidden itself. It has no
+A layout does not need a footer. When it has one, the footer is present in the DOM at all
+times and is never hidden itself. It has no
 vertical padding; its children carry the vertical space, so when no child renders the
 footer is zero pixels tall, whatever the reason each child is not rendering:
 
@@ -96,7 +119,7 @@ footer > :is([hidden], :empty, .scroll-fade:has(> :is([hidden], :empty))) {
 ```
 
 A child can stop rendering three ways — its `hidden` attribute, having no content, or a
-`@media` rule such as the one that shows the primary action only below `600px` — and the
+`@media` rule such as one that shows the primary action only on narrow screens — and the
 footer reads none of them. It collapses because nothing inside it takes up height, which
 covers every child a future screen adds without a new selector. `#log` scrolls, so it sits
 inside a `.scroll-fade` wrapper and the wrapper is the footer's actual child; the third
@@ -130,8 +153,8 @@ JS-owned source of truth for the same fact is one more place for the two to disa
 
 ## The scroll-fade mechanism
 
-Every scrolling region in the skeleton (`#settings`, the list column's scroller, `#log`,
-`main`, `#workspace`) sits inside its own `.scroll-fade` wrapper, which masks the
+Every scrolling region, whatever the layout, sits inside its own `.scroll-fade` wrapper,
+which masks the
 region's edges so content fades out before the frame cuts it off, and the fade tracks
 scroll position with no JavaScript scroll listener:
 
@@ -212,8 +235,8 @@ sideways scroll.
 
 ```
 ✗ A scroll event listener that measures scrollTop/scrollLeft and sets an inline mask.
-→ @property plus a named scroll-timeline read through timeline-scope, as every scrolling
-  region in this skeleton already does.
+→ @property plus a named scroll-timeline read through timeline-scope, on every scrolling
+  region.
 Why: a scroll listener runs on the main thread on every frame of scrolling; the
 timeline-driven mask is composited and costs nothing per frame.
 ```
@@ -241,42 +264,23 @@ still reads as not quite there.
 
 ## Breakpoints
 
-Two fixed breakpoints, both in `layout.css`, both stated here because a future rename of
-this document must not lose either number:
+Each layout picks the widths where it reflows. Two things hold for all of them:
 
-```
->= 900px    unchanged. main: [list clamp(13rem, 22vw, 20rem) | workspace]
+- No width scrolls sideways. `main` never grows wider than the viewport.
+- Below `@media (width < 600px)` the page reads as one column. Side-by-side regions stack
+  or become alternating views; nothing sits beside anything else at phone width.
 
-600–900px   main collapses to one column; the list lies down as a horizontal rail
-            above the workspace.
-            grid-template-columns: 1fr;
-            grid-template-rows: auto minmax(0, 1fr);
-
-< 600px     list and workspace become alternating views; selecting an item switches
-            to the workspace. The header settings row already scrolls horizontally
-            with a mask fade and stays as is. The primary action moves from header
-            to footer for thumb reach, and a `.action-back` button — `.action-cancel`'s
-            look, hidden above this width — appears in the header to return from the
-            workspace to the list.
-```
-
-`@media (width < 900px)` and `@media (width < 600px)` govern the page skeleton, because
-the viewport itself is the condition being tested. Components inside the skeleton (fields,
-dropdowns, list items) instead adapt with `@container`, because the same component must
-work correctly in whatever slot it lands in regardless of the viewport — `.field-body:has(
-.thumbnail)` switching to a stacked layout under `@container (width < 20rem)` is the
-existing example of this.
-
-## Why breakpoints are not tokenised
-
-`900` and `600` are not custom properties, and they are not going to become any:
+The page layout adapts with `@media`, because the viewport itself is the condition being
+tested. Components (fields, dropdowns, list items) instead adapt with `@container`,
+because the same component must work in whatever slot it lands in regardless of the
+viewport — `.field-body:has(.thumbnail)` switching to a stacked layout under
+`@container (width < 20rem)` is the existing example of this.
 
 ```
 ✗ @media (width < var(--breakpoint-main));
-→ @media (width < 900px); with the literal number, written down in this document, the
-  one place it lives.
+→ @media (width < 900px); with the literal number, kept the same everywhere layout.css
+  uses it.
 Why: custom properties cannot be used inside an @media condition — the CSS Custom
 Properties specification resolves var() at computed-value time, which is after media
-queries have already been evaluated. There is no token to invent here; the fix is keeping
-the two numbers consistent by writing them down in one place.
+queries have already been evaluated. There is no token to invent here.
 ```

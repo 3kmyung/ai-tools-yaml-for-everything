@@ -65,7 +65,7 @@ duplicating them.
 | Focus | `base.css` declares a default `:focus-visible` ring (`var(--border-width) solid`, `calc(-1 * var(--border-width))` offset, coloured `--accent`); no rule turns an outline off without a replacement indicator in the same declaration |
 | Motion | `base.css` collapses `transition-duration` and `animation-duration` under `prefers-reduced-motion`, with `!important` on both |
 | Component hygiene | `components.css` carries no ID selectors |
-| Responsive | no sideways scroll at the current width; `main` is single-column below 900px |
+| Responsive | no sideways scroll at the current width; `main` is single-column below 600px |
 | Icons | every entry in `ICONS` keeps Lucide's 24-unit `viewBox` |
 | Harness | the rendered viewport is the width the harness asked for |
 
@@ -114,7 +114,7 @@ being committed. A per-example file that is generated instead of tracked, or tha
 | 10 | `components.css` carries no domain nouns | `ui/checks.local.js` | banned word list is that interface's own domain nouns |
 | 11 | the component vocabulary is present | `ui/checks.local.js` | required list trimmed to the roles that interface actually has; never rename or invent a replacement class — these are the design system's own fixed names, not domain nouns |
 | 12 | no sideways scroll at the current width | `assets/checks.js` | identical everywhere |
-| 13 | `main` is single-column below 900px | `assets/checks.js` | identical everywhere |
+| 13 | `main` is single-column below 600px | `assets/checks.js` | identical everywhere |
 | 14 | field bodies are container-queried | `ui/checks.local.js` | omitted from the file if the interface has no `.field`/`.field-body` construct |
 | 15 | icons keep Lucide's 24-unit `viewBox` | `assets/checks.js` | identical everywhere |
 | 16 | a rendered icon is 16px with `aria-hidden` | `ui/checks.local.js`, when an interface has a dropdown | absent from both current examples' files — neither ships a dropdown whose selected option needs a check icon; a future interface with one adds this slot to its own file, not to `assets/checks.js` |

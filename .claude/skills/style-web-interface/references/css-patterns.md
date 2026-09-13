@@ -139,9 +139,8 @@ review and unusable for anyone tabbing through the page. A rule that turns the r
 without also turning something else on has silently deleted focus indication.
 ```
 
-`layout.css` keeps its ID selectors on the skeleton's singleton page regions —
-`#settings`, `#workspace`, `#log`, `#hint`, and each example's own list and workspace
-regions such as the list column's scroller. Those are not components, and
+`layout.css` keeps its ID selectors on the layout's singleton page regions — whatever the
+page has, such as `#settings`, `#workspace`, `#log`, or `#hint`. Those are not components, and
 unlike a component's class name they are allowed to be per-example — the ban above is
 about a reusable component leaking a per-example identity, not about IDs as a mechanism.
 
@@ -260,9 +259,8 @@ this page that is actually clock-driven is caught by the block above.
 
 ## Responsive
 
-The page skeleton (`header` / `main` / `footer`) adapts with `@media`, because the
-viewport itself is the condition being tested. Components inside the skeleton (fields,
-dropdowns, list items) instead adapt with `@container`, because the same component has
-to work correctly in whatever slot it lands in, regardless of the viewport. `layout.md`
-carries the breakpoint numbers, the collapse diagram, and the `.field-body` container
-example — read it there; this file does not repeat it.
+The page layout adapts with `@media`, because the viewport itself is the condition being
+tested. Components (fields, dropdowns, list items) instead adapt with `@container`,
+because the same component has to work correctly in whatever slot it lands in,
+regardless of the viewport. `layout.md` carries the rules every layout's breakpoints keep
+and the `.field-body` container example — read it there; this file does not repeat it.

@@ -118,9 +118,9 @@ Home/End handling already follows.
 A screen showing both a filled and an outlined action is choosing which one it wants the
 eye to land on first — do not fill two buttons in the same view.
 
-Below the narrow breakpoint, the header's own Back button is `.action-cancel` for its
-look plus a second, layout.css-owned visibility class that hides it above that width;
-`layout.md`'s breakpoint section owns when it shows, not this file.
+In a layout with alternating views at narrow width, the Back button is `.action-cancel`
+for its look plus a second, layout.css-owned visibility class that hides it above that
+width; the layout owns when it shows, not this file.
 
 A button's label is not fixed text; it is state. `.action-cancel` and `.action-resume`
 swap their own `textContent` and `disabled` attribute in place while an operation is in
@@ -155,13 +155,39 @@ The log region carries exactly one of these three states:
 |---|---|
 | Message only | `.status-message` span, plain text |
 | Message with actions | `.status-message` beside a `.status-trailing` group of trailing action buttons, such as `.action-cancel` during a render |
-| Finished | a `.status-video` element once a render finishes |
+| Finished | the result — a `.status-video` element, or a message — beside a `.status-trailing` group holding its download links |
 
 Replace the region's children wholesale with `replaceChildren()` for each state change;
 do not leave a stale trailing group behind an updated message. The region's own
 appearance and disappearance is `layout.md`'s footer self-hiding mechanism and is not
 repeated here — a status widget only ever sets the log's `hidden` attribute and content,
 never its visibility.
+
+## Download — `a.action-add[download]`
+
+Every output the model produces can be saved, in every format the example offers. A
+download is a link, not a button: `<a class="action-add" href="…" download="name.ext">`,
+labelled with the format alone (`JSON`, `SRT`, `MP4`), one link per format, grouped where
+the finished result is shown. The link keeps `.action-add`'s look with
+`text-decoration: none`.
+
+| Output comes from | `href` |
+|---|---|
+| Text or data the page already holds — segments, a transcript, JSON the model returned | a `Blob` of that content through `URL.createObjectURL`; revoke the previous URL with `URL.revokeObjectURL` whenever the result is replaced |
+| A file the server wrote, on the page's own origin | the file's URL directly |
+| A file the server wrote, on another origin | the file fetched into a `Blob` first, because a browser ignores `download` on a cross-origin link and navigates to it instead |
+
+The file name comes from the input — `meeting.wav` saves as `meeting.srt` — falling back
+to the example's own name when there is no input file.
+
+```
+✗ A result the reader can watch or read but not save — a <video controls> alone, text on
+  screen alone.
+→ A download link per format beside the result, as above.
+Why: a demo whose output cannot leave the page is a demo of a screen, not of a model.
+Browser video menus hide their save option or lack one, and copying a transcript out of a
+scrolling list is not saving it.
+```
 
 ### Punctuation is not layout
 

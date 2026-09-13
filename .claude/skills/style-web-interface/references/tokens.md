@@ -148,7 +148,7 @@ the seventeen colour custom properties above — the ten base colours and the se
 `--accent` (`#007ffb`) and `--accent-text` (`#0a6bd4`) are not interchangeable, and
 `--link` is not a third colour — it aliases `--accent-text`.
 
-The skeleton's `header`, list column, and `footer` paint `--background-panel`, not
+Panels — a header, a side column, a footer, a card — paint `--background-panel`, not
 `--background` — a text token has to clear 4.5:1 on both surfaces, and
 `--background-panel` is the tighter of the two.
 

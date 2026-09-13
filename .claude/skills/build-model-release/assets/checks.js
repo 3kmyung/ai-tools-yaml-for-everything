@@ -400,18 +400,14 @@ export const CHECKS = [
     },
   },
   {
-    name: "main is single-column below 900px",
+    name: "main is single-column below 600px",
     run: (frameDocument, frameWindow) => {
       const main = frameDocument.querySelector("main");
       const style = frameWindow.getComputedStyle(main);
       const isGrid = style.display === "grid" || style.display === "inline-grid";
       const columns = isGrid ? gridTrackCount(style.gridTemplateColumns) : 1;
 
-      if (frameWindow.innerWidth >= 900) {
-        if (!isGrid) return `display is ${style.display} at wide width`;
-
-        return columns === 2 ? true : `${columns} columns at wide width`;
-      }
+      if (frameWindow.innerWidth >= 600) return true;
 
       return columns <= 1 ? true : `${columns} columns at ${frameWindow.innerWidth}px`;
     },
