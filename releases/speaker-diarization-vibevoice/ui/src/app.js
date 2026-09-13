@@ -13,6 +13,7 @@ const TASK_STORAGE_KEY = "speaker-diarization-vibevoice/task";
 const api = createApi();
 
 let selectedFile = null;
+let transcribedFileName = null;
 let segments = [];
 let selectedIndex = null;
 let activeTaskId = null;
@@ -152,7 +153,7 @@ async function follow(reattaching) {
 
     if (status === "completed") {
       applyTranscription(finalState.output);
-      showFinished("Transcription complete.", resetForNewFile);
+      showFinished("Transcription complete.", resetForNewFile, { segments: segments, fileName: transcribedFileName });
     } else if (status === "cancelled") {
       showStatus("Transcription cancelled.");
     } else {
@@ -179,6 +180,7 @@ async function start() {
   segments = [];
   selectedIndex = null;
   cancelRequested = false;
+  transcribedFileName = selectedFile.name;
 
   renderResults();
   setTranscribeDisabled(true);
@@ -219,7 +221,7 @@ async function loadFixtureIfBackendUnreachable() {
     if (!response.ok) return;
 
     applyTranscription(await response.json());
-    showFinished("Showing sample output.", resetForNewFile);
+    showFinished("Showing sample output.", resetForNewFile, { segments: segments, fileName: null });
   } catch (fixtureFailure) {}
 }
 
