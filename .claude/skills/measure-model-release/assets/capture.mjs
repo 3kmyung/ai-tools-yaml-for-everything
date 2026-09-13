@@ -3,8 +3,8 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { promisify } from "node:util";
-import { serve } from "../../build-model-release/assets/serve.mjs";
-import { screenInfoFlag } from "../../build-model-release/assets/viewport.mjs";
+import { serve } from "./serve.mjs";
+import { screenInfoFlag } from "./viewport.mjs";
 
 const CHROME = "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const FFMPEG = "ffmpeg";
