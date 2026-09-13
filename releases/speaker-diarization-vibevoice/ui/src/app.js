@@ -1,9 +1,11 @@
 import { createApi } from "./api.js";
 import { createDropzone } from "./dropzone.js";
 import { readHotwords } from "./hotwords.js";
-import { firstSpokenIndex, markSelectedListItem, renderSegmentDetail, renderSegmentList, segmentsFromResponse } from "./segments.js";
-import { markSelectedTimelineBlock, renderTimeline } from "./timeline.js";
+import { renderSegmentDetail } from "./segment-detail.js";
+import { markSelectedListItem, renderSegmentList } from "./segment-list.js";
+import { firstSpokenIndex, segmentsFromResponse } from "./segments.js";
 import { errorMessage, hideStatus, showFinished, showProgress, showStatus } from "./status.js";
+import { markSelectedTimelineBlock, renderTimeline } from "./timeline.js";
 
 const HEAVY_DURATION_SECONDS = 30 * 60;
 const TASK_STORAGE_KEY = "speaker-diarization-vibevoice/task";
@@ -40,9 +42,17 @@ function rememberedTask() {
   }
 }
 
+function setTranscribeDisabled(disabled) {
+  const buttons = document.querySelectorAll("#transcribe, #transcribe-compact");
+
+  buttons.forEach((button) => {
+    button.disabled = disabled;
+  });
+}
+
 function showSelection() {
-  markSelectedListItem(document.querySelector("#segments ol"), selectedIndex);
-  markSelectedTimelineBlock(document.getElementById("timeline"), selectedIndex);
+  markSelectedListItem(document.getElementById("segment-list"), selectedIndex);
+  markSelectedTimelineBlock(document.getElementById("timeline-scroller"), selectedIndex);
   renderSegmentDetail(document.getElementById("detail"), segments, selectedIndex);
 }
 
@@ -52,30 +62,28 @@ function selectSegment(index) {
   showSelection();
 }
 
-function deselectSegment() {
+function returnToList() {
+  const previousItem = document.querySelectorAll("#segment-list .item-select")[selectedIndex];
+
   selectedIndex = null;
 
   showSelection();
+
+  if (previousItem) previousItem.focus();
 }
 
 function renderResults() {
-  const hint = document.getElementById("hint");
-  const segmentsHint = document.getElementById("segments-hint");
-  const dropzoneSection = document.getElementById("dropzone");
-  const timelineSection = document.getElementById("timeline");
-  const segmentList = document.querySelector("#segments ol");
-
   const hasResults = segments.length > 0;
+  const selection = { selectedIndex: selectedIndex, onSelect: selectSegment };
 
-  hint.hidden = selectedFile != null || hasResults;
-  segmentsHint.hidden = hasResults;
-  dropzoneSection.hidden = hasResults;
-  timelineSection.hidden = !hasResults;
+  document.getElementById("hint").hidden = selectedFile !== null || hasResults;
+  document.getElementById("segments-hint").hidden = hasResults;
+  document.getElementById("dropzone").hidden = hasResults;
+  document.getElementById("timeline").hidden = !hasResults;
 
-  renderSegmentList(segmentList, segments, { selectedIndex: selectedIndex, onSelect: selectSegment });
+  renderSegmentList(document.getElementById("segment-list"), segments, selection);
+  renderTimeline(document.getElementById("timeline-scroller"), document.getElementById("timeline-legend"), segments, selection);
   renderSegmentDetail(document.getElementById("detail"), segments, selectedIndex);
-
-  if (hasResults) renderTimeline(timelineSection, segments, { selectedIndex: selectedIndex, onSelect: selectSegment });
 }
 
 function applyTranscription(output) {
@@ -89,8 +97,8 @@ function updateDurationWarning(durationSeconds) {
   const warning = document.getElementById("warning");
   const heavy = durationSeconds != null && durationSeconds > HEAVY_DURATION_SECONDS;
 
-  warning.hidden = !heavy;
   warning.textContent = heavy ? "Expect a long transcription for a recording this size." : "";
+  warning.hidden = !heavy;
 }
 
 function setFile(file) {
@@ -110,45 +118,44 @@ function resetForNewFile() {
   renderResults();
 }
 
-function reportProgress(state) {
-  const cancel = async () => {
-    cancelRequested = true;
-    reportProgress(state);
+function reportProgress() {
+  showProgress({ cancelling: cancelRequested, onCancel: requestCancel });
+}
 
-    try {
-      if (activeTaskId) await api.cancelTask(activeTaskId);
-    } catch (cancelFailure) {
-      cancelRequested = false;
-      reportProgress(state);
-    }
-  };
+async function requestCancel() {
+  cancelRequested = true;
 
-  showProgress({ cancelling: cancelRequested, onCancel: cancel });
+  reportProgress();
+
+  try {
+    if (activeTaskId) await api.cancelTask(activeTaskId);
+  } catch (cancelFailure) {
+    cancelRequested = false;
+    reportProgress();
+  }
 }
 
 async function follow(reattaching) {
-  const transcribe = document.getElementById("transcribe");
   let reported = false;
+  const onState = () => {
+    reported = true;
+    reportProgress();
+  };
 
-  transcribe.disabled = true;
+  setTranscribeDisabled(true);
 
   try {
-    const final = await api.watchTask(activeTaskId, (state) => {
-      reported = true;
-      reportProgress(state);
-    });
+    const finalState = await api.watchTask(activeTaskId, onState);
+    const status = String(finalState.status).toLowerCase();
 
-    const status = String(final.status).toLowerCase();
+    forgetTask();
 
     if (status === "completed") {
-      forgetTask();
-      applyTranscription(final.output);
+      applyTranscription(finalState.output);
       showFinished("Transcription complete.", resetForNewFile);
     } else if (status === "cancelled") {
-      forgetTask();
       showStatus("Transcription cancelled.");
     } else {
-      forgetTask();
       showStatus("Transcription failed.");
     }
   } catch (followFailure) {
@@ -157,12 +164,12 @@ async function follow(reattaching) {
     if (reported || !reattaching) showStatus(errorMessage(followFailure, "The transcription could not be completed."));
   } finally {
     cancelRequested = false;
-    transcribe.disabled = false;
+    setTranscribeDisabled(false);
   }
 }
 
 async function start() {
-  const transcribe = document.getElementById("transcribe");
+  const hotwords = readHotwords(document.getElementById("hotwords"));
 
   if (!selectedFile) {
     showStatus("Choose an audio file before transcribing.");
@@ -171,23 +178,21 @@ async function start() {
 
   segments = [];
   selectedIndex = null;
-  renderResults();
-
-  transcribe.disabled = true;
   cancelRequested = false;
 
-  let started = null;
+  renderResults();
+  setTranscribeDisabled(true);
 
   try {
-    started = await api.startTranscription(selectedFile, readHotwords(document.getElementById("hotwords")));
+    const started = await api.startTranscription(selectedFile, hotwords);
+
+    rememberTask(started.task_id);
+    reportProgress();
   } catch (startFailure) {
     showStatus(errorMessage(startFailure, "The transcription could not be started."));
-    transcribe.disabled = false;
+    setTranscribeDisabled(false);
     return;
   }
-
-  rememberTask(started.task_id);
-  reportProgress(started);
 
   await follow(false);
 }
@@ -210,6 +215,7 @@ async function loadFixtureIfBackendUnreachable() {
 
   try {
     const response = await fetch("./fixture.json");
+
     if (!response.ok) return;
 
     applyTranscription(await response.json());
@@ -222,12 +228,11 @@ const dropzoneController = createDropzone(document.getElementById("dropzone"), {
   onDuration: updateDurationWarning,
 });
 
-document.getElementById("transcribe").addEventListener("click", start);
-document.getElementById("transcribe-compact").addEventListener("click", () => {
-  document.getElementById("transcribe").click();
-});
-document.getElementById("back-to-segments").addEventListener("click", deselectSegment);
+document.getElementById("transcribe").addEventListener("click", () => start());
+document.getElementById("transcribe-compact").addEventListener("click", () => document.getElementById("transcribe").click());
+document.getElementById("back-to-segments").addEventListener("click", () => returnToList());
 
 renderResults();
+
 await reattach();
 await loadFixtureIfBackendUnreachable();

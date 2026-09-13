@@ -14,31 +14,48 @@
 <body>
   <header>
     <button id="back-to-segments" class="action-cancel action-back" type="button">Back</button>
-    <div id="settings">
-      <span class="setting">
-        <span id="hotwords-label">Hotwords</span>
-        <input type="text" id="hotwords" aria-labelledby="hotwords-label" placeholder="Microsoft, VibeVoice" />
-      </span>
-      <span id="warning" class="caption-warning" hidden></span>
+    <div class="scroll-fade">
+      <div id="settings">
+        <div class="setting">
+          <label class="field-label" for="hotwords">Hotwords</label>
+          <div class="field-line">
+            <input type="text" id="hotwords" placeholder="Microsoft, VibeVoice" />
+          </div>
+        </div>
+        <span id="warning" class="caption-warning" hidden></span>
+      </div>
     </div>
     <button id="transcribe" class="action-primary" type="button">Transcribe</button>
   </header>
-  <main>
-    <section id="segments">
-      <div id="segment-scroller">
-        <p id="segments-hint">Segments will appear here once a file is transcribed.</p>
-        <ol></ol>
+  <div class="scroll-fade">
+    <main>
+      <section id="segments" aria-label="Segments">
+        <div class="scroll-fade">
+          <div id="segment-scroller">
+            <p id="segments-hint">Segments will appear here once a file is transcribed.</p>
+            <ol id="segment-list"></ol>
+          </div>
+        </div>
+      </section>
+      <div class="scroll-fade">
+        <div id="workspace">
+          <p id="hint">No transcription yet.</p>
+          <section id="dropzone" class="dropzone"></section>
+          <section id="timeline" hidden>
+            <div class="scroll-fade">
+              <div id="timeline-scroller"></div>
+            </div>
+            <ol id="timeline-legend" class="timeline-legend"></ol>
+          </section>
+          <section id="detail" hidden></section>
+        </div>
       </div>
-    </section>
-    <div id="workspace">
-      <p id="hint">No transcription yet.</p>
-      <section id="dropzone"></section>
-      <section id="timeline" hidden></section>
-      <section id="detail" hidden></section>
-    </div>
-  </main>
+    </main>
+  </div>
   <footer>
-    <div id="log"></div>
+    <div class="scroll-fade">
+      <div id="log" role="status" hidden></div>
+    </div>
     <button id="transcribe-compact" class="action-primary" type="button">Transcribe</button>
   </footer>
   <script type="module" src="./src/app.js"></script>

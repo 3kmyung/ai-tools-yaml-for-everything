@@ -1,86 +1,67 @@
-function statusElement() {
+function logElement() {
   return document.getElementById("log");
 }
 
-function trailingGroup() {
-  const trailing = document.createElement("div");
-  trailing.className = "status-trailing";
+function createMessage(message) {
+  return Object.assign(document.createElement("span"), { className: "status-message", textContent: message });
+}
+
+function createAction(label, onClick) {
+  const button = Object.assign(document.createElement("button"), {
+    type: "button",
+    className: "action-cancel",
+    textContent: label,
+  });
+
+  if (onClick) button.addEventListener("click", () => onClick());
+
+  return button;
+}
+
+function createTrailing(action) {
+  const trailing = Object.assign(document.createElement("div"), { className: "status-trailing" });
+
+  trailing.append(action);
 
   return trailing;
 }
 
 export function showStatus(message) {
-  const status = statusElement();
-  status.hidden = false;
+  const log = logElement();
 
-  status.replaceChildren(Object.assign(document.createElement("span"), {
-    className: "status-message",
-    textContent: message,
-  }));
+  log.replaceChildren(createMessage(message));
+  log.hidden = false;
 }
 
 export function hideStatus() {
-  const status = statusElement();
-  status.hidden = true;
+  const log = logElement();
 
-  status.replaceChildren();
+  log.replaceChildren();
+  log.hidden = true;
 }
 
 export function showProgress(options) {
-  const cancelling = options && options.cancelling !== undefined ? options.cancelling : false;
+  const log = logElement();
+  const cancelling = Boolean(options && options.cancelling);
   const onCancel = options ? options.onCancel : null;
+  const cancel = createAction(cancelling ? "Cancelling…" : "Cancel", cancelling ? null : onCancel);
 
-  const status = statusElement();
-  status.hidden = false;
+  cancel.disabled = cancelling;
 
-  const label = document.createElement("span");
-  label.className = "status-message";
-  label.textContent = "Transcribing…";
-
-  const cancel = document.createElement("button");
-  cancel.type = "button";
-  cancel.className = "action-cancel";
-
-  if (cancelling) {
-    cancel.textContent = "Cancelling…";
-    cancel.disabled = true;
-  } else {
-    cancel.textContent = "Cancel";
-    cancel.addEventListener("click", () => {
-      if (onCancel) onCancel();
-    });
-  }
-
-  const trailing = trailingGroup();
-  trailing.append(cancel);
-
-  status.replaceChildren(label, trailing);
+  log.replaceChildren(createMessage("Transcribing…"), createTrailing(cancel));
+  log.hidden = false;
 }
 
 export function showFinished(message, onReset) {
-  const status = statusElement();
-  status.hidden = false;
+  const log = logElement();
+  const reset = createAction("New file", onReset);
 
-  const label = document.createElement("span");
-  label.className = "status-message";
-  label.textContent = message;
-
-  const reset = document.createElement("button");
-  reset.type = "button";
-  reset.className = "action-cancel";
-  reset.textContent = "New file";
-  reset.addEventListener("click", onReset);
-
-  const trailing = trailingGroup();
-  trailing.append(reset);
-
-  status.replaceChildren(label, trailing);
+  log.replaceChildren(createMessage(message), createTrailing(reset));
+  log.hidden = false;
 }
 
 export function errorMessage(error, fallback) {
-  if (error instanceof TypeError) {
-    return "Lost connection to the transcription server.";
-  }
+  if (error instanceof TypeError) return "Lost connection to the transcription server.";
 
   return fallback;
 }

@@ -5,7 +5,7 @@
 This example transcribes a long recording — a meeting, an interview, a podcast — with
 Microsoft's `VibeVoice-ASR`, a non-streaming speech-to-text checkpoint built to process up
 to an hour of audio in a single pass rather than in externally chunked windows. The
-purpose-built screen is a speaker-coloured timeline sitting above a segment list: dropping
+purpose-built screen is a speaker-coloured timeline sitting beside a segment list: dropping
 one audio file in produces a set of `{ text, start_time, end_time, speaker_id }` segments,
 and the screen renders each speaker as its own colour across both the timeline and the
 list so a reader can see who spoke when without reading a single line of the transcript.
