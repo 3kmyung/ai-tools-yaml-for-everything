@@ -127,6 +127,23 @@ none states a restriction, section 5 lists the pages checked and says so plainly
 than staying silent — an unchecked field and a checked, clean field read identically to
 a reader unless the report distinguishes them.
 
+## The example link
+
+Section 6 and the post's reply carry the same URL:
+
+```
+https://github.com/<owner>/<repository>/tree/<branch>/releases/<example>
+```
+
+| Part | Read from |
+|---|---|
+| `<owner>/<repository>` | `git remote get-url origin`, the fork the release is pushed to. Never `upstream`, whose tree holds no `releases/` |
+| `<branch>` | the branch on `origin` whose tree holds the directory, checked with `git ls-tree -d origin/<branch> releases/<example>` |
+
+When the caller names the repository or the branch, or asks for placeholders, the URL
+uses what was given. A part that neither git nor the caller supplies stays a placeholder
+rather than a guess read from a README.
+
 ## What does not belong in the report
 
 Any figure without a stated source and a stated condition (`conditions.numerics`, batch
