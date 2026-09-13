@@ -85,7 +85,7 @@ footer > * {
   transition: opacity var(--duration-base) ease;
 }
 
-footer > :is([hidden], :empty) {
+footer > :is([hidden], :empty, .scroll-fade:has(> :is([hidden], :empty))) {
   display: none !important;
 }
 
@@ -99,7 +99,10 @@ footer > :is([hidden], :empty) {
 A child can stop rendering three ways — its `hidden` attribute, having no content, or a
 `@media` rule such as the one that shows the primary action only below `600px` — and the
 footer reads none of them. It collapses because nothing inside it takes up height, which
-covers every child a future screen adds without a new selector. Measured in Chrome at
+covers every child a future screen adds without a new selector. `#log` scrolls, so it sits
+inside a `.scroll-fade` wrapper and the wrapper is the footer's actual child; the third
+branch of the selector collapses a wrapper whose region is hidden or empty, since the
+wrapper itself is never either. Measured in Chrome at
 976px and 518px: an empty or hidden log collapses the footer to 0px at the wide width, and
 at the narrow width the primary action alone keeps it 45px tall.
 
