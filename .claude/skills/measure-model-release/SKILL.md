@@ -46,7 +46,7 @@ land in one table.
 | File | Read it when |
 |---|---|
 | `references/benchmark.md` | measuring anything — what belongs on which axis, the precision trap, quantizing a machine that cannot hold the weights, delegating accuracy rather than scoring it here |
-| `references/report.md` | writing the six-section report, especially section 4's mandatory interpretation and section 5's verbatim usage-scope quote |
+| `references/report.md` | writing the six-section report in Korean, especially section 4's mandatory interpretation and section 5's verbatim usage-scope quote |
 | `references/social.md` | writing the X thread — the one template, the four required elements, the one prohibition |
 
 > **STOP — hardware and data gate.** Every row of the table, and the accuracy run, needs

@@ -3,6 +3,14 @@
 The six sections a report needs, and the two where reports usually fail: section 4's
 interpretation, and section 5's verbatim usage-scope quote.
 
+## Language
+
+| Part | Written as |
+|---|---|
+| Prose, headings, table headers, captions | Korean, in the 한다체 of a technical report |
+| Model names, repository ids, identifiers, metric names (`RTF`, `tcpWER`) | unchanged, in their source spelling |
+| Section 5's usage-scope quote | the source language verbatim, followed by a Korean translation labelled 번역 |
+
 ## Structure
 
 | Section | Carries |
@@ -18,8 +26,8 @@ interpretation, and section 5's verbatim usage-scope quote.
 
 ```
 ✗ A performance table with no prose around it.
-→ At least one interpretation sentence per table — for example, "the 4090 leads at RTF
-  0.08, but the MacBook's 0.4 is still 2.5× real time, so a laptop is practical."
+→ At least one interpretation sentence per table — for example, "RTF는 4090이 0.08로
+  가장 빠르지만, 맥북의 0.4도 실시간보다 2.5배 빠르므로 노트북에서도 충분히 쓸 만하다."
 Why: a bare table goes unread. The sentence is what carries the result to a reader who
 will not do the division themselves.
 ```
@@ -29,7 +37,7 @@ is not left to prose: `conditions.runtime`, `conditions.build` and `conditions.n
 are three columns, and they come immediately after the machine so that the reader meets
 them before the numbers.
 
-| Machine | Runtime | Build | Numerics | Cold start | TTFO | E2E | RTF | Peak video memory |
+| 머신 | 런타임 | 빌드 | 수치 형식 | 콜드 스타트 | TTFO | E2E | RTF | 최대 VRAM |
 |---|---|---|---|---|---|---|---|---|
 | RTX 4090 | `model-compose + pytorch` | `microsoft/VibeVoice-ASR` | `float16` | | | | | |
 | DGX Spark | `model-compose + pytorch` | `microsoft/VibeVoice-ASR` | `float16` | | | | | |
@@ -55,10 +63,9 @@ says so once rather than leaving each reader to work it out:
 | Accuracy | not comparable — a different implementation, not the same one running slower |
 
 ```
-✗ "The Mac is 6× slower than the 4090."
-→ "The Mac, running a 4-bit MLX conversion, is 6× slower than the 4090 running the
-  PyTorch checkpoint at float16 — a gap that is part hardware and part build, which this
-  table cannot separate."
+✗ "맥은 4090보다 6배 느리다."
+→ "4-bit MLX 변환본을 돌린 맥은 float16 PyTorch 체크포인트를 돌린 4090보다 6배
+  느리다. 이 차이에는 하드웨어와 빌드가 함께 섞여 있고, 이 표로는 둘을 분리할 수 없다."
 Why: the first sentence attributes to the machine a difference the table never isolated.
 ```
 
