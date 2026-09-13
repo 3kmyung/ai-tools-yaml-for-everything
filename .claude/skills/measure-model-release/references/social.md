@@ -23,7 +23,7 @@ Post (≤280 weighted characters, Korean)
   - one line on the model
   - exactly one performance number in the text
   - one or two emoji
-  - attached: the demo media and the RTF table image
+  - attached: the demo media, rtf-reference.png, and rtf-builds.png when it exists
 
 Reply to the post
   - the GitHub URL of the example's directory, alone
@@ -40,28 +40,36 @@ the reader is looking at; the link is one tap away.
 | One line on the model | post | states what it is, not a pitch |
 | Exactly one performance number | post text | RTF, or "an hour in N minutes" |
 | The demo media | post | attached directly |
-| The RTF table image | post | attached directly, rendered by `assets/rtf-table.mjs` |
+| The RTF table images | post | attached directly, rendered by `assets/rtf-table.mjs` |
 | The GitHub URL | reply | the URL and no other character |
 
 ```
 ✗ Two performance numbers in the post text — for example RTF and peak video memory
   together.
-→ One number in the text. The table image carries that same metric for every machine,
+→ One number in the text. The table images carry that same metric for every machine,
   and nothing else.
 Why: the post has one thing to say, not the whole report. A second metric competes with
 the first for the reader's five seconds of attention and both lose.
 ```
 
-## The RTF table image
+## The RTF table images
 
 `assets/rtf-table.mjs` reads result files, or every `*.json` in a results directory, and
-renders one row per valid result on a white background: the machine, its RTF, and a note
-on any row whose runtime or quantization differs from the `model-compose` baseline. Rows
-are sorted fastest first; an invalid run is skipped and named on standard error.
+renders two tables on a white background in Noto Sans, Noto Sans KR, Noto Sans SC and
+Noto Sans JP, loaded from Google Fonts at render time. Each image holds a header row and
+the measured rows, fastest first, and nothing else.
+
+| Image | Rows | Columns |
+|---|---|---|
+| `rtf-reference.png` | the unquantized `model-compose` build only | 기기, RTF |
+| `rtf-builds.png` | every valid result, including quantized, converted or larger builds | 기기, 모델, RTF |
+
+`rtf-builds.png` is skipped when every row already runs the unquantized reference build.
+An invalid run is skipped and named on standard error.
 
 ```
 node assets/rtf-table.mjs releases/<example>/benchmarks/results/<machine>.json... \
-  --output=releases/<example>/media/rtf-table.png \
+  --output-directory=releases/<example>/media \
   --label=<machine>=<display name>
 ```
 

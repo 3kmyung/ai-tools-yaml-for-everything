@@ -19,8 +19,8 @@ Look in `releases/<example>/benchmarks/` before doing anything else.
 | `results/*.json` with every run `valid: true`, but no `accuracy/*.json` | the accuracy run alone — `references/benchmark.md`'s accuracy section and both gates |
 | `results/*.json` with every run `valid: true`, and `accuracy/*.json` | writing — `references/report.md`, then `references/social.md`. No runner is started and no machine is asked for |
 
-Writing produces three files in `releases/<example>/`: `report.md`, `social.md`, and
-`media/rtf-table.png`.
+Writing produces its files in `releases/<example>/`: `report.md`, `social.md`,
+`media/rtf-reference.png`, and `media/rtf-builds.png` when any row runs another build.
 
 ## Two axes
 
