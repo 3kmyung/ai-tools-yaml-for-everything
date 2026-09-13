@@ -155,7 +155,7 @@ The log region carries exactly one of these three states:
 |---|---|
 | Message only | `.status-message` span, plain text |
 | Message with actions | `.status-message` beside a `.status-trailing` group of trailing action buttons, such as `.action-cancel` during a render |
-| Finished | the result — a `.status-video` element, or a message — beside a `.status-trailing` group holding its download links |
+| Finished | the result — a `.status-video` element, or a message — beside a `.status-trailing` group holding its download links, or its Download dropdown when there are three or more formats |
 
 Replace the region's children wholesale with `replaceChildren()` for each state change;
 do not leave a stale trailing group behind an updated message. The region's own
@@ -179,6 +179,21 @@ the finished result is shown. The link keeps `.action-add`'s look with
 
 The file name comes from the input — `meeting.wav` saves as `meeting.srt` — falling back
 to the example's own name when there is no input file.
+
+One or two formats are links in a row. Three or more sit behind a single `Download`
+dropdown at every width: a `.dropdown` anchor with `aria-haspopup="menu"`, and a
+`.dropdown-menu` with `role="menu"` whose items are the `<a download>` links, one
+`role="menuitem"` per format, with no selection check mark. The menu follows the
+dropdown's placement, keyboard and reopen rules above.
+
+```
+✗ Four or more download links laid out in a row beside the result's other actions.
+→ One Download dropdown holding a link per format.
+Why: at 390px, four format links, a reset action and the primary action wrapped to three
+rows and took a quarter of the screen in a real release. The formats are alternatives to
+one another, so one control that opens onto them costs a row where a link each costs one
+row per two formats.
+```
 
 ```
 ✗ A result the reader can watch or read but not save — a <video controls> alone, text on
