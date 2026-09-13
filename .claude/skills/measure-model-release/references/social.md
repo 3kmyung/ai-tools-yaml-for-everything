@@ -28,7 +28,7 @@ VibeVoice-ASR로 한 시간짜리 회의 녹음을 N분 만에 받아 적었습�
 ```
 Post (≤280 weighted characters, Korean)
   - one line on the model
-  - exactly one performance number in the text
+  - exactly one figure in the text: the reference run's time against the audio length
   - one or two emoji
   - attached: the demo media, rtf-reference.png, and rtf-builds.png when it exists
 
@@ -45,7 +45,7 @@ the reader is looking at; the link is one tap away.
 | Element | Where | Rule |
 |---|---|---|
 | One line on the model | post | states what it is, not a pitch |
-| Exactly one performance number | post text | RTF, or "an hour in N minutes" |
+| Exactly one performance figure | post text | the fastest reference machine's end-to-end time against the audio length, in minutes |
 | The demo media | post | attached directly |
 | The RTF table images | post | attached directly, rendered by `assets/rtf-table.mjs` |
 | The GitHub URL | reply | the URL and no other character |
@@ -53,10 +53,12 @@ the reader is looking at; the link is one tap away.
 ```
 ✗ Two performance numbers in the post text — for example RTF and peak video memory
   together.
-→ One number in the text. The table images carry that same metric for every machine,
-  and nothing else.
+→ One figure in the text: the fastest reference machine's run as time against the
+  audio's length, "N분짜리 회의를 M분 만에". The table images carry RTF for every
+  machine.
 Why: the post has one thing to say, not the whole report. A second metric competes with
-the first for the reader's five seconds of attention and both lose.
+the first for the reader's five seconds of attention and both lose. A reader feels
+minutes and has to convert a ratio, and the images already carry the ratio.
 ```
 
 ## The RTF table images
