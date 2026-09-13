@@ -11,7 +11,7 @@ export function renderTrackList(tracks, options) {
   list.replaceChildren(
     ...tracks.map((track, index) => {
       const item = document.createElement("li");
-      item.className = track.id === selectedId ? "item is-selected" : "item";
+      item.className = "item";
       item.dataset.item = track.id;
 
       const select = document.createElement("button");
@@ -58,12 +58,20 @@ export function renderTrackList(tracks, options) {
       return item;
     })
   );
+
+  markSelectedTrack(selectedId);
 }
 
 export function markSelectedTrack(selectedId) {
   const list = document.querySelector("#tracks ol");
 
   Array.from(list.children).forEach((item) => {
-    item.classList.toggle("is-selected", item.dataset.item === selectedId);
+    const isSelected = item.dataset.item === selectedId;
+    const select = item.querySelector(".item-select");
+
+    item.classList.toggle("is-selected", isSelected);
+
+    if (isSelected) select.setAttribute("aria-current", "true");
+    else select.removeAttribute("aria-current");
   });
 }

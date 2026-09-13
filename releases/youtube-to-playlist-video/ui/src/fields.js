@@ -4,12 +4,12 @@ import { icon } from "./icons.js";
 
 let fieldIdSequence = 0;
 
-export function renderField(spec, trackField, handlers) {
+export function renderField(specification, trackField, handlers) {
   const row = document.createElement("div");
   row.className = "field";
-  row.dataset.field = spec.key;
+  row.dataset.field = specification.key;
 
-  const controlId = "field-" + spec.key + "-" + fieldIdSequence++;
+  const controlId = "field-" + specification.key + "-" + fieldIdSequence++;
 
   const body = document.createElement("div");
   body.className = "field-body";
@@ -18,7 +18,7 @@ export function renderField(spec, trackField, handlers) {
 
   const label = document.createElement("label");
   label.className = "field-label";
-  label.textContent = spec.label;
+  label.textContent = specification.label;
   label.htmlFor = controlId;
 
   body.appendChild(label);
@@ -31,7 +31,7 @@ export function renderField(spec, trackField, handlers) {
   const overridden = isOverridden(trackField);
   const value = effective(trackField);
 
-  if (spec.type === "image") {
+  if (specification.type === "image") {
     const picker = document.createElement("input");
     picker.type = "file";
     picker.id = controlId;
@@ -62,8 +62,8 @@ export function renderField(spec, trackField, handlers) {
     pickerLabel.appendChild(preview);
 
     control.appendChild(pickerLabel);
-  } else if (spec.type === "color") {
-    const current = value || spec.fallback || "#000000";
+  } else if (specification.type === "color") {
+    const current = value || specification.fallback || "#000000";
 
     const swatch = document.createElement("button");
     swatch.type = "button";
@@ -96,11 +96,11 @@ export function renderField(spec, trackField, handlers) {
     line.className = "field-line";
 
     const input = document.createElement("input");
-    input.type = spec.type === "url" ? "url" : "text";
+    input.type = specification.type === "url" ? "url" : "text";
     input.id = controlId;
     input.dataset.role = "input";
     input.value = value != null ? value : "";
-    input.placeholder = spec.placeholder || "";
+    input.placeholder = specification.placeholder || "";
 
     input.addEventListener("input", () => handlers.onInput(input.value));
 

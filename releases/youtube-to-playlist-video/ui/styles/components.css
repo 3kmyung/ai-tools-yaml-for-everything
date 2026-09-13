@@ -349,7 +349,7 @@ header .setting {
 }
 
 :is(.action-primary, .action-resume):is(:hover, :focus-visible) {
-  background: color-mix(in srgb, var(--accent-text) 85%, black);
+  background: color-mix(in srgb, var(--accent-text), var(--text) var(--alpha-3));
 }
 
 :is(.action-cancel, .action-resume):disabled {
@@ -458,7 +458,7 @@ header .setting {
 
 .field-body:has(.thumbnail):is(:hover, :has(:focus-visible)),
 :is(.dropdown, .dropdown-option):is(:hover, :focus-visible),
-.item:not(.is-selected):is(:hover, :focus-visible) {
+.item:not(.is-selected):hover {
   background: color-mix(in srgb, currentColor var(--alpha-1), transparent);
 }
 
@@ -476,11 +476,7 @@ header .setting {
   outline-offset: calc(-2 * var(--border-width));
 }
 
-:is(.action-add, .action-cancel):is(:hover, :focus-visible):not(:disabled) {
-  background: color-mix(in srgb, currentColor var(--alpha-2), transparent);
-}
-
-:is(.revert-field, .item-remove):is(:hover, :focus-visible):not(:disabled) {
+:is(.action-add, .action-cancel, .revert-field, .item-remove):is(:hover, :focus-visible):not(:disabled) {
   background: color-mix(in srgb, currentColor var(--alpha-2), transparent);
 }
 

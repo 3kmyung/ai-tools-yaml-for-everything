@@ -14,30 +14,40 @@
 <body>
   <header>
     <button id="back-to-tracks" class="action-cancel action-back" type="button">Back</button>
-    <div id="settings">
-      <span class="setting"><span id="style-label">Style</span><button class="dropdown" id="style" type="button" aria-labelledby="style-label style"></button></span>
-      <span class="setting"><span id="ratio-label">Ratio</span><button class="dropdown" id="ratio" type="button" aria-labelledby="ratio-label ratio"></button></span>
-      <span class="setting"><span id="resolution-label">Resolution</span><button class="dropdown" id="resolution" type="button" aria-labelledby="resolution-label resolution"></button></span>
-      <span class="setting"><span id="fps-label">FPS</span><button class="dropdown" id="fps" type="button" aria-labelledby="fps-label fps"></button></span>
-      <span id="warning" class="caption-warning" hidden></span>
+    <div class="scroll-fade">
+      <div id="settings">
+        <span class="setting"><span id="style-label">Style</span><button class="dropdown" id="style" type="button" aria-labelledby="style-label style"></button></span>
+        <span class="setting"><span id="ratio-label">Ratio</span><button class="dropdown" id="ratio" type="button" aria-labelledby="ratio-label ratio"></button></span>
+        <span class="setting"><span id="resolution-label">Resolution</span><button class="dropdown" id="resolution" type="button" aria-labelledby="resolution-label resolution"></button></span>
+        <span class="setting"><span id="fps-label">FPS</span><button class="dropdown" id="fps" type="button" aria-labelledby="fps-label fps"></button></span>
+        <span id="warning" class="caption-warning" hidden></span>
+      </div>
     </div>
     <button id="render-playlist" class="action-primary" type="button">Render</button>
   </header>
-  <main>
-    <section id="tracks">
-      <div id="track-scroller">
-        <ol></ol>
-        <button id="add-track" class="action-add" type="button">Add track</button>
+  <div class="scroll-fade">
+    <main>
+      <section id="tracks">
+        <div class="scroll-fade">
+          <div id="track-scroller">
+            <ol></ol>
+            <button id="add-track" class="action-add" type="button">Add track</button>
+          </div>
+        </div>
+      </section>
+      <div class="scroll-fade">
+        <div id="workspace">
+          <p id="hint" hidden>Add a track to begin</p>
+          <section id="editor"></section>
+          <section id="preview"></section>
+        </div>
       </div>
-    </section>
-    <div id="workspace">
-      <p id="hint" hidden>Add a track to begin</p>
-      <section id="editor"></section>
-      <section id="preview"></section>
-    </div>
-  </main>
+    </main>
+  </div>
   <footer>
-    <div id="log"></div>
+    <div class="scroll-fade">
+      <div id="log"></div>
+    </div>
     <button id="render-playlist-compact" class="action-primary" type="button">Render</button>
   </footer>
   <script src="./templates/render-settings.js"></script>
