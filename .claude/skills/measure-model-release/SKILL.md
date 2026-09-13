@@ -60,7 +60,7 @@ land in one table.
 |---|---|
 | `references/benchmark.md` | measuring anything — what belongs on which axis, the precision trap, quantizing a machine that cannot hold the weights, delegating accuracy rather than scoring it here |
 | `references/report.md` | writing the six-section report in Korean, especially section 4's mandatory interpretation and section 5's verbatim usage-scope quote |
-| `references/social.md` | writing the X post and its link reply in friendly 합니다체 — the one template, the five required elements, the RTF table image, the length check, the one prohibition |
+| `references/social.md` | writing the X post and its link reply in friendly 합니다체 mixed with 해요체 — the one template, the five required elements, the RTF table image, the length check, the one prohibition |
 
 > **STOP — hardware and data gate.** Every row of the table, and the accuracy run, needs
 > a physical machine this skill cannot reach on its own, plus a reference dataset for the

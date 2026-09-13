@@ -5,15 +5,22 @@ limit, and exactly one reply to it that holds the GitHub link and nothing else.
 
 ## Voice
 
-The post is friendly SNS Korean in 합니다체: short sentences, spoken to the reader,
-ending in -습니다, -입니다, -ㅂ니다, or -ㄹ까요? for a question, with one or two emoji in
-the whole post. Every sentence is about the model or the run; the attachments sit
-directly under the text, so no sentence points at them. The post is plain text — X
-renders `**`, `#`, `-` lists and `|` tables as the literal characters.
+The post is friendly SNS Korean in short sentences, spoken to the reader, with one or
+two emoji in the whole post. It mixes two registers, one per sentence:
+
+| Sentence | Ends in | Example ending |
+|---|---|---|
+| what the model is, and the measured figure | 합니다체 | -습니다, -입니다 |
+| what the reader sees or can do with it | 해요체 | -요, -네요, -까요? |
+
+Both registers appear in every post, and a single sentence never switches between them.
+Every sentence is about the model or the run; the attachments sit directly under the
+text, so no sentence points at them. The post is plain text — X renders `**`, `#`, `-`
+lists and `|` tables as the literal characters.
 
 ```
 VibeVoice-ASR로 한 시간짜리 회의 녹음을 N분 만에 받아 적었습니다 🎙️
-누가 언제 무슨 말을 했는지까지 한 번에 나옵니다.
+누가 언제 무슨 말을 했는지까지 한 번에 나와요.
 ```
 
 ## The template
