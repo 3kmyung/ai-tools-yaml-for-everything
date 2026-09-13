@@ -8,20 +8,27 @@
   stroke-linejoin: round;
 }
 
+[data-category="1"] { --category-color: var(--category-1); }
+[data-category="2"] { --category-color: var(--category-2); }
+[data-category="3"] { --category-color: var(--category-3); }
+[data-category="4"] { --category-color: var(--category-4); }
+[data-category="5"] { --category-color: var(--category-5); }
+[data-category="6"] { --category-color: var(--category-6); }
+[data-category="7"] { --category-color: var(--category-7); }
+[data-category="8"] { --category-color: var(--category-8); }
+
 .category-swatch {
   display: inline-block;
   flex: none;
   width: 0.625rem;
   height: 0.625rem;
   border-radius: var(--radius-full);
-  background: var(--accent);
-  filter: hue-rotate(var(--category-hue));
+  background: var(--category-color);
 }
 
 .category-swatch.is-unattributed {
   background: none;
-  border: 1px solid var(--text-caption);
-  filter: none;
+  border: var(--border-width) solid var(--text-caption);
 }
 
 header .setting, .caption-warning {
@@ -42,7 +49,7 @@ header .setting input[type="text"] {
   box-sizing: border-box;
   min-width: 12rem;
   padding: var(--space-1) var(--space-2);
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--radius-lg);
   background: none;
   color: var(--text);
@@ -73,7 +80,7 @@ header .setting input[type="text"]:focus-visible {
   box-sizing: border-box;
   width: min(100%, 28rem);
   padding: var(--space-5);
-  border: 1px dashed var(--border);
+  border: var(--border-width) dashed var(--border);
   border-radius: var(--radius-lg);
   background: var(--background-panel);
   transition: background-color var(--duration-fast) ease, border-color var(--duration-fast) ease;
@@ -118,10 +125,9 @@ header .setting input[type="text"]:focus-visible {
   top: 0;
   height: 100%;
   padding: 0;
-  border: 2px solid transparent;
+  border: var(--border-width) solid transparent;
   border-radius: var(--radius-sm);
-  background: var(--accent);
-  filter: hue-rotate(var(--category-hue));
+  background: var(--category-color);
   cursor: pointer;
   transition: border-color var(--duration-fast) ease;
 }
@@ -129,7 +135,6 @@ header .setting input[type="text"]:focus-visible {
 .timeline-segment.is-unattributed {
   background: none;
   border-color: var(--border);
-  filter: none;
 }
 
 .timeline-segment.is-selected {
@@ -182,7 +187,7 @@ header .setting input[type="text"]:focus-visible {
   gap: var(--space-3);
   padding: var(--space-1);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--border);
   background: none;
   transition: background-color var(--duration-slow) ease, border-color var(--duration-slow) ease;
 }
@@ -249,7 +254,7 @@ header .setting input[type="text"]:focus-visible {
   flex: none;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-5);
-  border: 1px solid var(--accent);
+  border: var(--border-width) solid var(--accent);
   border-radius: var(--radius-full);
   background: none;
   color: var(--accent-text);
@@ -280,7 +285,7 @@ header .setting input[type="text"]:focus-visible {
 
 .action-primary:focus-visible {
   outline-color: var(--background);
-  outline-offset: -3px;
+  outline-offset: calc(-2 * var(--border-width));
 }
 
 .status-message {

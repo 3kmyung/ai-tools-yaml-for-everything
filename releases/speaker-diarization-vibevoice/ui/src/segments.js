@@ -1,4 +1,4 @@
-export const SPEAKER_HUES = [ 0, 70, 125, 170, 205, 249 ];
+const CATEGORY_COUNT = 8;
 
 const NON_SPEECH_TAG = /^\s*[\[(][^\])]*[\])]\s*$/;
 
@@ -25,8 +25,8 @@ export function firstSpokenIndex(segments) {
   return index === -1 ? (segments.length ? 0 : null) : index;
 }
 
-export function speakerHue(speakerId) {
-  return hasSpeaker(speakerId) ? SPEAKER_HUES[speakerId % SPEAKER_HUES.length] : 0;
+export function speakerCategory(speakerId) {
+  return hasSpeaker(speakerId) ? String(speakerId % CATEGORY_COUNT + 1) : "";
 }
 
 export function speakerName(speakerId) {
@@ -44,7 +44,7 @@ export function formatTimestamp(seconds) {
 export function buildSwatch(speakerId) {
   const swatch = document.createElement("span");
   swatch.className = hasSpeaker(speakerId) ? "category-swatch" : "category-swatch is-unattributed";
-  swatch.style.setProperty("--category-hue", speakerHue(speakerId) + "deg");
+  swatch.dataset.category = speakerCategory(speakerId);
   swatch.setAttribute("aria-hidden", "true");
 
   return swatch;

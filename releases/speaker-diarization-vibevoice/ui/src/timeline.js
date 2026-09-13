@@ -1,4 +1,4 @@
-import { buildSwatch, hasSpeaker, speakerHue, speakerName } from "./segments.js";
+import { buildSwatch, hasSpeaker, speakerCategory, speakerName } from "./segments.js";
 
 const PIXELS_PER_SECOND = 36;
 const MINIMUM_SEGMENT_WIDTH = 6;
@@ -23,7 +23,7 @@ function buildTrack(segments, selectedIndex, onSelect) {
     ].filter(Boolean).join(" ");
     block.style.left = left + "px";
     block.style.width = width + "px";
-    block.style.setProperty("--category-hue", speakerHue(segment.speakerId) + "deg");
+    block.dataset.category = speakerCategory(segment.speakerId);
     block.title = speakerName(segment.speakerId) + "\n" + segment.text;
 
     block.addEventListener("click", () => onSelect(index));
