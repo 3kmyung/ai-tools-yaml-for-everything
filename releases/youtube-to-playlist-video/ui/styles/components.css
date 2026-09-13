@@ -52,7 +52,7 @@
   min-width: 0;
   display: flex;
   align-items: center;
-  border-bottom: 1px solid var(--border);
+  border-bottom: var(--border-width) solid var(--border);
   transition: border-color var(--duration-fast) ease;
 }
 
@@ -136,7 +136,7 @@ button.thumbnail, .color-picker-swatch {
 .color-picker-swatch {
   width: 1.75rem;
   height: 1.75rem;
-  border: 1px solid transparent;
+  border: var(--border-width) solid transparent;
 }
 
 .color-picker-swatch:is(:hover, :focus-visible) {
@@ -234,7 +234,7 @@ button.thumbnail, .color-picker-swatch {
   width: 0.875rem;
   height: 0.875rem;
   margin-top: -0.25rem;
-  border: 1px solid transparent;
+  border: var(--border-width) solid transparent;
   border-radius: var(--radius-full);
   background: var(--background);
   transition: border-color var(--duration-fast) ease;
@@ -244,7 +244,7 @@ button.thumbnail, .color-picker-swatch {
   box-sizing: border-box;
   width: 0.875rem;
   height: 0.875rem;
-  border: 1px solid transparent;
+  border: var(--border-width) solid transparent;
   border-radius: var(--radius-full);
   background: var(--background);
   transition: border-color var(--duration-fast) ease;
@@ -327,7 +327,7 @@ header .setting {
   flex: none;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-5);
-  border: 1px solid var(--accent);
+  border: var(--border-width) solid var(--accent);
   border-radius: var(--radius-full);
   background: none;
   color: var(--accent-text);
@@ -363,7 +363,7 @@ header .setting {
   align-items: center;
   gap: var(--space-1);
   padding: var(--space-1) var(--space-2);
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--radius-lg);
   background: none;
   color: var(--text);
@@ -429,7 +429,7 @@ header .setting {
   gap: var(--space-3);
   padding: var(--space-1);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--border);
   background: none;
   transition: background-color var(--duration-slow) ease, border-color var(--duration-slow) ease;
 }
@@ -473,12 +473,7 @@ header .setting {
 
 :is(.action-primary, .action-resume):focus-visible {
   outline-color: var(--background);
-  outline-offset: -3px;
-}
-
-footer a:focus-visible {
-  outline: none;
-  text-decoration-thickness: 2px;
+  outline-offset: calc(-2 * var(--border-width));
 }
 
 :is(.action-add, .action-cancel):is(:hover, :focus-visible):not(:disabled) {
