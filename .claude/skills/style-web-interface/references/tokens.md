@@ -18,14 +18,13 @@ every generated `ui/`; do not re-derive or re-order it.
   --icon: var(--text-caption);
   --link: var(--accent-text);
 
-  --category-1: #807eb3;
-  --category-2: #885c83;
-  --category-3: #b07174;
-  --category-4: #8f623b;
-  --category-5: #8b884d;
-  --category-6: #497a55;
-  --category-7: #419494;
-  --category-8: #3f7397;
+  --category-1: #0072b2;
+  --category-2: #e69f00;
+  --category-3: #009e73;
+  --category-4: #d55e00;
+  --category-5: #cc79a7;
+  --category-6: #56b4e9;
+  --category-7: #f0e442;
 
   --alpha-1: 6%;
   --alpha-2: 12%;
@@ -141,7 +140,7 @@ edge length.
 ```
 
 Do not invent colours outside `:root`. Every colour a component needs is already one of
-the eighteen colour custom properties above — the ten base colours and the eight
+the seventeen colour custom properties above — the ten base colours and the seven
 `--category-*` markers.
 
 ## The accent split
@@ -190,33 +189,33 @@ it for content that must be read fails contrast for no exemption WCAG actually g
 
 ## Category colours
 
-`--category-1` through `--category-8` tell apart a small enumerable set — speakers,
-labels — on a marker: a dot, a timeline bar. They are fixed, not derived: eight hues
-evenly spaced at OKLCH chroma 0.08, alternating two lightness steps (0.62 and 0.54) so
-neighbouring categories differ in lightness as well as hue. Past eight categories, cycle.
+`--category-1` through `--category-7` tell apart a small enumerable set — speakers,
+labels — on a marker: a dot, a timeline bar. They are the Okabe–Ito palette, chosen
+because its seven colours stay distinguishable under the common colour-vision
+deficiencies. The order is reshuffled so yellow, the one that nearly disappears on a
+light surface, comes last and is reached only by a seventh category. Past seven
+categories, cycle.
 
-| Token | Value | On `--background` | On `--background-panel` |
-|---|---|---|---|
-| `--category-1` | `#807eb3` | 3.53:1 | 3.31:1 |
-| `--category-2` | `#885c83` | 5.02:1 | 4.71:1 |
-| `--category-3` | `#b07174` | 3.59:1 | 3.37:1 |
-| `--category-4` | `#8f623b` | 4.93:1 | 4.62:1 |
-| `--category-5` | `#8b884d` | 3.43:1 | 3.21:1 |
-| `--category-6` | `#497a55` | 4.67:1 | 4.38:1 |
-| `--category-7` | `#419494` | 3.33:1 | 3.12:1 |
-| `--category-8` | `#3f7397` | 4.77:1 | 4.47:1 |
+| Token | Value | Okabe–Ito name | On `--background` | On `--background-panel` |
+|---|---|---|---|---|
+| `--category-1` | `#0072b2` | blue | 4.84:1 | 4.54:1 |
+| `--category-2` | `#e69f00` | orange | 2.10:1 | 1.97:1 |
+| `--category-3` | `#009e73` | bluish green | 3.20:1 | 2.99:1 |
+| `--category-4` | `#d55e00` | vermillion | 3.61:1 | 3.39:1 |
+| `--category-5` | `#cc79a7` | reddish purple | 2.86:1 | 2.68:1 |
+| `--category-6` | `#56b4e9` | sky blue | 2.16:1 | 2.02:1 |
+| `--category-7` | `#f0e442` | yellow | 1.24:1 | 1.16:1 |
 
-Every token clears 3:1, the WCAG floor for a graphical object, on both surfaces. The
-closest pair, `--category-1` and `--category-2`, sits a CIEDE2000 of 16.6 apart;
-`build-model-release`'s `assets/checks.js` holds every pair to 16. Eight muted colours
-cannot also reach the 20 a six-colour set can — muting and count trade against distance,
-and this set chose count.
+These are not held to a contrast floor, and most of them miss 3:1 on the panel. What
+keeps them usable is their distance from each other — the closest pair, orange and
+yellow, sits a CIEDE2000 of 21.7 apart, and `build-model-release`'s `assets/checks.js`
+holds every pair to 20 — and the text label every marker sits beside.
 
 ```
 ✗ A category colour on text, or a category colour as the only thing telling two rows
   apart.
 → Paint a marker with it beside the row's own text label — a speaker name, a category
   name.
-Why: 3:1 is a marker's floor, not a sentence's 4.5:1, and colour alone fails anyone who
-cannot separate two of the eight — the closest pair is only 16.6 apart.
+Why: yellow measures 1.16:1 on the panel, so for that category the label is the only
+part a reader can reliably see, and any of the seven on text would fail 4.5:1 outright.
 ```

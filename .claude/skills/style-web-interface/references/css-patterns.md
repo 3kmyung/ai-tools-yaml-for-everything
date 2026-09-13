@@ -92,22 +92,21 @@ divergence between two examples' otherwise-shared components.css.
 
 An interface sometimes has to tell apart a handful of categories at a glance — a
 speaker, a track, a label — and one hue is not enough for that. `tokens.md` carries
-eight `--category-*` tokens for exactly this; its "Category colours" section holds their
+seven `--category-*` tokens for exactly this; its "Category colours" section holds their
 values, their measured contrast, and the rule that keeps them off text.
 
 ```
 ✗ A hand-picked hex per category, or a category derived from --accent with
   filter: hue-rotate(Ndeg).
-→ Number each category 1 to 8 — its index modulo eight, plus one — into a data-category
+→ Number each category 1 to 7 — its index modulo seven, plus one — into a data-category
   attribute on the marker, and map it with one CSS line per token:
   [data-category="3"] { --category-color: var(--category-3); }. The marker paints
   var(--category-color).
-Why: a hand-picked hex is a colour invented outside the scale. hue-rotate on a
-full-strength accent paints near-maximum chroma at every angle — OKLCH chroma 0.13 to
-0.28 across the six angles speaker-diarization-vibevoice once shipped — which reads as
-loud beside a palette that is otherwise grey and one blue, and every angle set needed its
-own canvas-read contrast and distance checks. The eight tokens are muted, fixed, and
-measured once in build-model-release's portable checks.
+Why: a hand-picked hex is a colour invented outside the scale. hue-rotate on the accent
+paints whatever the angle lands on — near-maximum chroma, with contrast and distance that
+shift unpredictably from one angle to the next — so every angle set needed its own
+canvas-read checks. The seven tokens are a published set built to survive colour-vision
+deficiencies, fixed, and measured once in build-model-release's portable checks.
 ```
 
 ```

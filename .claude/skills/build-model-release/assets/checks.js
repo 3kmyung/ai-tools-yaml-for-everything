@@ -1,6 +1,6 @@
 const missingTokenSentinel = "rgb(1, 2, 3)";
-const categoryCount = 8;
-const categoryDistanceFloor = 16;
+const categoryCount = 7;
+const categoryDistanceFloor = 20;
 const referenceWhite = [ 0.95047, 1, 1.08883 ];
 
 function channel(value) {
@@ -428,38 +428,6 @@ export const CHECKS = [
         .map(([ name ]) => name);
 
       return wrong.length === 0 ? true : wrong.join(", ");
-    },
-  },
-  {
-    name: `--category-1 through --category-${categoryCount} clear 3:1 on --background and --background-panel`,
-    run: (frameDocument, frameWindow) => {
-      const surfaceTokens = [ "--background", "--background-panel" ];
-
-      const failures = [];
-
-      for (let category = 1; category <= categoryCount; category += 1) {
-        const marker = requireTokenColor(frameDocument, frameWindow, `--category-${category}`);
-
-        if (marker.missing) {
-          failures.push(`${marker.name} is not defined`);
-          continue;
-        }
-
-        for (const surfaceToken of surfaceTokens) {
-          const surface = requireTokenColor(frameDocument, frameWindow, surfaceToken);
-
-          if (surface.missing) {
-            failures.push(`${surface.name} is not defined`);
-            continue;
-          }
-
-          const ratio = contrast(marker.color, surface.color);
-
-          if (ratio < 3) failures.push(`${marker.name} on ${surfaceToken} is ${ratio.toFixed(2)}`);
-        }
-      }
-
-      return failures.length === 0 ? true : failures.join(" / ");
     },
   },
   {
