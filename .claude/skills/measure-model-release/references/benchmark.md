@@ -162,7 +162,7 @@ different model.
 ```
 ✗ Comparing "N seconds here, M seconds there" under `precision: auto` with no further
   comment.
-→ Two tables: one with `float16` forced on every machine for the actual hardware
+→ Measure two tables: one with `float16` forced on every machine for the actual hardware
   comparison, one with `auto` left alone for what a reader gets by just installing it.
 Why: `auto` resolves to a different numeric type per accelerator, so an unqualified
 side-by-side compares different arithmetic, not different speeds of the same arithmetic.
@@ -178,6 +178,15 @@ length. The accuracy run (below) is what tells you whether the second table is h
 publish at all: if precision moves `tcpWER` by a rounding error, the appendix
 side-by-side is fine as a body figure too; if it moves the score materially, only the
 matched table belongs in the body and the report says so.
+
+Writing from results that already exist, the tables follow from what
+`conditions.precision` shows across them:
+
+| The results hold | The report carries |
+|---|---|
+| a forced-`float16` run on every machine, and an `auto` run | both tables, the matched one in the body and `auto` in the appendix |
+| one precision shared by every baseline row, and no forced run | one table in the body, naming that precision and saying no matched-precision run was made |
+| different precisions across baseline rows, and no forced run | one table in the body, with precision as a column and a sentence saying the speed gap mixes hardware with arithmetic |
 
 ## Quantization, when a machine cannot hold the weights
 
