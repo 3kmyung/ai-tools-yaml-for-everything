@@ -208,7 +208,7 @@ categories, cycle.
 
 These are not held to a contrast floor, and most of them miss 3:1 on the panel. What
 keeps them usable is their distance from each other — the closest pair, orange and
-yellow, sits a CIEDE2000 of 21.7 apart, and `build-model-release`'s `assets/checks.js`
+yellow, sits a CIEDE2000 of 21.7 apart, and `assets/checks.js`
 holds every pair to 20 — and the text label every marker sits beside.
 
 ```

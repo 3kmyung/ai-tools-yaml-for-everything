@@ -65,19 +65,6 @@ even though each carries only one workflow —
 `workflows:` with a single-item list under it, never `workflow:` with a mapping under it.
 Match that convention for a new example too, regardless of how many workflows it has.
 
-## Do not rewrite `ui/src/websocket-client.js`
-
-Copy it verbatim from
-`releases/youtube-to-playlist-video/ui/src/websocket-client.js`. Its
-`stream_pull` backpressure, its post-reconnect task resubscription, and its binary chunk
-framing are the model-compose WebSocket protocol itself, not a design decision this skill
-gets to make per example. Regenerating that file from prose produces protocol bugs that a
-fixture-driven fast loop cannot catch, because the fast loop never opens a WebSocket.
-
-File drop needs no new work on top of the copy: `streamFile(file)` in that client already
-builds the `__variable__` stream descriptor the server pulls from. A release
-that accepts a local file upload calls it as-is.
-
 ## Directory naming: verb-object
 
 `examples/showcase/` holds `find-person-scenes`, `upscale-video`, `analyze-disk-usage`,

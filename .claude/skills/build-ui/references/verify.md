@@ -1,28 +1,26 @@
 # verify.md
 
-Step 5 (fast loop) and step 6 (real run, the second human gate).
+Step 6 (fast loop), the checks it runs, and the fixture it renders.
 
 ## Two verification loops
 
 | Loop | Verifies | Mechanism | Cost |
 |---|---|---|---|
 | Fast, run dozens of times | generated `ui/` code, layout, accessibility, responsiveness | `assets/ui-check.mjs` against `ui/test.html` and a fixture, headless Chrome, no model | seconds |
-| Slow, run once or twice | compose wiring, the real model, the real schema | `model-compose up` with real input | tens of minutes |
+| Slow, run before this skill starts | compose wiring, the real model, the real schema | `model-compose up` with real input; its saved output is this skill's input | tens of minutes |
 
-Run the fast loop after every regeneration in step 4, before ever reaching step 6. It
-needs no GPU and no downloaded weights, so there is no reason to skip it on the way to
-the slow loop.
+Run the fast loop after every regeneration of `ui/`. It needs no GPU and no downloaded
+weights.
 
 ## The fast loop
 
-1. Write `ui/fixture.json` matching the workflow's output shape — see the fixture
-   lifecycle below.
+1. Copy the saved real output to `ui/fixture.json` — see the fixture lifecycle below.
 2. Run, from the repository root:
 
    ```
-   node .claude/skills/build-model-release/assets/ui-check.mjs <example>/ui --width=1440 --height=900
-   node .claude/skills/build-model-release/assets/ui-check.mjs <example>/ui --width=800 --height=900
-   node .claude/skills/build-model-release/assets/ui-check.mjs <example>/ui --width=390 --height=844
+   node .claude/skills/build-ui/assets/ui-check.mjs <example>/ui --width=1440 --height=900
+   node .claude/skills/build-ui/assets/ui-check.mjs <example>/ui --width=800 --height=900
+   node .claude/skills/build-ui/assets/ui-check.mjs <example>/ui --width=390 --height=844
    ```
 
    The harness's own flags take the `=` form (`--width=1440`, not `--width 1440`).
@@ -36,7 +34,7 @@ the slow loop.
 3. Capture a screenshot at each of the three widths by adding `--screenshot=<path>`,
    which switches Chrome to load `index.html` directly instead of `test.html`. Look at
    all three — the narrowest one is the one most likely to have never been looked at.
-4. Self-critique the screenshots against `style-web-interface`'s checklist before treating the
+4. Self-critique the screenshots against `self-critique.md` before treating the
    iteration as done.
 
 `assets/serve.mjs` exists in place of Python's `http.server` because Python serves `.js`
@@ -210,16 +208,11 @@ out loud, which of the two was wrong.
 
 ## The fixture lifecycle
 
-The fixture is hand-written from the model card's own example output on the first
-pass — step 1's research, not invention. It is what makes the fast loop possible before
-any model has been downloaded or run.
+The fixture is the workflow output saved from the real `model-compose up` run, copied in
+before the first line of UI code. It settles the output shape: render functions read that
+shape only, with no fallback for a shape the real run did not produce.
 
-After step 6's real run produces real output, replace the hand-written fixture with one
-saved from that real run. From that point on, the fast loop renders real data, and any
-schema ambiguity step 1 could not resolve (see `compose.md`'s fixture adapter) is settled
-by what the real run actually produced.
-
-The fixture saved from the real run is committed with the example. Someone who clones
+The fixture is committed with the example. Someone who clones
 the release and opens `ui/` without running the model sees real output instead of an
 empty page, and the report's screenshot can be reproduced from the repository alone.
 Keep it short: the first screenful or so of the real output, not the whole run.

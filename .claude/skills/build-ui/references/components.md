@@ -263,7 +263,7 @@ preference, and does not move if the render size ever changes without recomputin
 ```
 
 `ICONS` maps each name to `{ paths: [ ... ], viewBox: "0 0 24 24" }`, with every `d`
-attribute of the icon in `paths`. `build-model-release`'s portable check reads `viewBox`
+attribute of the icon in `paths`. `assets/checks.js` reads `viewBox`
 off each entry, so a bare array of paths fails it even when the geometry is right.
 
 Take the path data from the upstream SVG file for each icon, not from lucide.dev: the

@@ -15,9 +15,9 @@ prose is what makes it repeatable.
 | 1. Research | automatic | variants, sizes, licence, I/O mode, hardware, the distinguishing mechanism — `references/research.md` |
 | 2. Map | automatic | which of the model tasks, which driver, which existing example is the base — `references/compose.md` |
 | 3. **Demo angle** | **human** | the killer property, three screens that would show it, pick one |
-| 4. Generate | automatic | compose, `ui/` via `style-web-interface`, fixture, READMEs, index entry — `references/compose.md`, `references/readme.md` |
-| 5. Fast verify | automatic | `ui-check.mjs`, screenshots, self-critique — `references/verify.md` |
-| 6. **Real run** | **human** | `model-compose up` once — `references/verify.md` |
+| 4. Generate | automatic | compose, `ui/` via `build-ui`, READMEs — `references/compose.md`, `references/readme.md` |
+| 5. Fast verify | automatic | `build-ui`'s fast loop |
+| 6. **Real run** | **human** | `model-compose up` once |
 
 > **STOP — human gate, step 3.** Present the killer property and three candidate screens.
 > Do not pick one without the human's answer.
@@ -35,14 +35,13 @@ prose is what makes it repeatable.
 | `references/research.md` | doing step 1 — sourcing fields, the licence gate, the usage-scope gate, the no-guessing rule |
 | `references/compose.md` | doing step 2 or step 4 — picking the base example, writing `model-compose.yml`, the verbatim `websocket-client.js` copy, directory naming |
 | `references/readme.md` | doing step 4 — the three READMEs and the `examples/README.md` index entry |
-| `references/verify.md` | doing step 5 or step 6 — the fast loop, the fixture lifecycle, the Chrome rule |
 
-Step 4's UI work is `style-web-interface`'s job, not this skill's: read that skill's own
+Step 4's UI work is `build-ui`'s job, not this skill's: read that skill's own
 `SKILL.md` when laying down `ui/`.
 
 ## The generated example is never hand-patched
 
 When a screenshot looks wrong, a check fails, or step 6 surfaces a schema this skill
-assumed wrong: fix the skill's prose, `style-web-interface`, or the fixture, then regenerate
+assumed wrong: fix the skill's prose, `build-ui`, or the fixture, then regenerate
 the example whole. Hand-patching measures the patch, not the skill, and the next model
 repeats the same mistake. Nothing under `examples/showcase/<name>/` is a hand-edit target.

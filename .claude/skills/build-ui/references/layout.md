@@ -19,7 +19,7 @@ ui/
     ... (per-example modules)
 ```
 
-`build-model-release`'s `assets/checks.js` fetches `./styles/base.css`,
+`assets/checks.js` fetches `./styles/base.css`,
 `./styles/components.css` and `./styles/layout.css` and imports `./src/icons.js`. It does
 not tolerate a different shape.
 

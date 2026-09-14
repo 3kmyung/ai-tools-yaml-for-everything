@@ -104,7 +104,7 @@ Why: a hand-picked hex is a colour invented outside the scale. hue-rotate on the
 paints whatever the angle lands on — near-maximum chroma, with contrast and distance that
 shift unpredictably from one angle to the next — so every angle set needed its own
 canvas-read checks. The seven tokens are a published set built to survive colour-vision
-deficiencies, fixed, and measured once in build-model-release's portable checks.
+deficiencies, fixed, and measured once in `assets/checks.js`.
 ```
 
 ```
@@ -227,7 +227,7 @@ in review. `.item` itself carried exactly this mistake as a plain <li> with a cl
 handler and a border-recolour focus rule that no element inside it could ever trigger.
 The fix restructured the row into `.item-select` (the clickable, focusable button) and
 `.item-remove` (its own button) — why both classes exist at all. Neither of
-`build-model-release`'s `assets/checks.js` focus checks — "base.css declares a default focus
+`assets/checks.js`'s focus checks — "base.css declares a default focus
 ring" and "no rule removes the outline without a replacement" — catches this: both read
 stylesheet rules, not whether any element in the DOM can ever reach them.
 ```
