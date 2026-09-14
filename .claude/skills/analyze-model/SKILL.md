@@ -1,13 +1,14 @@
 ---
-description: Use when a model-compose release has a working real run and needs to be measured and published — benchmarks it across every machine under comparison, scores accuracy through MeetEval against a published baseline, and turns both into a report and an X post where every number carries its source and its condition.
+name: analyze-model
+description: Use when a model-compose release's real run works and its speed, memory or accuracy needs measuring across machines, or when the user says "성능 분석", "벤치마크", "benchmark", "RTF", "WER 측정".
 ---
 
-# model-report
+# analyze-model
 
-`build-model-release` produces a runnable example; this skill produces the numbers about it
-and the two documents that carry those numbers to a reader. It starts after
-`build-model-release`'s step 6 real run has already succeeded — there is nothing to measure
-before that.
+`compose` and `build-ui` produce a runnable release; this skill produces the measured
+numbers about it. It starts after the human's real run has already succeeded — there is
+nothing to measure before that. Writing the numbers up is `report-model`'s job, and the
+post is `write-post`'s.
 
 ## Where to start
 
@@ -17,10 +18,7 @@ Look in `releases/<example>/benchmarks/` before doing anything else.
 |---|---|
 | no `results/*.json` | measurement — `references/benchmark.md` and both gates below |
 | `results/*.json` with every run `valid: true`, but no `accuracy/*.json` | the accuracy run alone — `references/benchmark.md`'s accuracy section and both gates |
-| `results/*.json` with every run `valid: true`, and `accuracy/*.json` | writing — `references/report.md`, then `references/social.md`. No runner is started and no machine is asked for |
-
-Writing produces its files in `releases/<example>/`: `report.md`, `social.md`,
-`media/rtf-reference.png`, and `media/rtf-builds.png` when any row runs another build.
+| `results/*.json` with every run `valid: true`, and `accuracy/*.json` | nothing — measuring is done, and `report-model` takes it from there. No runner is started and no machine is asked for |
 
 ## Two axes
 
@@ -64,8 +62,6 @@ land in one table. Accuracy is scored from the transcript a runner saved:
 | File | Read it when |
 |---|---|
 | `references/benchmark.md` | measuring anything — what belongs on which axis, the precision trap, quantizing a machine that cannot hold the weights, scoring accuracy through MeetEval rather than a scorer written here |
-| `references/report.md` | writing the six-section report in Korean, especially section 4's mandatory interpretation and section 5's verbatim usage-scope quote |
-| `references/social.md` | writing the X post and its link reply in friendly 합니다체 mixed with 해요체 — the one template, the five required elements, the RTF table image, the length check, the one prohibition |
 
 > **STOP — hardware and data gate.** Every row of the table, and the accuracy run, needs
 > a physical machine this skill cannot reach on its own, plus a reference dataset for the

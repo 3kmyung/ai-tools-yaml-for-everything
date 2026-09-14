@@ -33,7 +33,7 @@ Post (≤280 weighted characters, Korean)
   - attached: the demo media, rtf-reference.png, and rtf-builds.png when it exists
 
 Reply to the post
-  - the GitHub URL of the example's directory, built as report.md's example link section says, alone
+  - the GitHub URL of the example's directory, built as `report-model`'s example link section says, alone
 ```
 
 The link goes in a reply because a link in the post itself measurably reduces that
@@ -48,7 +48,7 @@ the reader is looking at; the link is one tap away.
 | Exactly one performance figure | post text | the fastest reference machine's end-to-end time against the audio length, in minutes |
 | The demo media | post | attached directly |
 | The RTF table images | post | attached directly, rendered by `assets/rtf-table.mjs` |
-| The GitHub URL | reply | the URL from `report.md`'s example link section, and no other character |
+| The GitHub URL | reply | the URL from `report-model`'s example link section, and no other character |
 
 ```
 ✗ Two performance numbers in the post text — for example RTF and peak video memory

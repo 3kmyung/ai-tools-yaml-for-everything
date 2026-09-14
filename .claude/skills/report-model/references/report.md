@@ -70,8 +70,13 @@ says so once rather than leaving each reader to work it out:
 Why: the first sentence attributes to the machine a difference the table never isolated.
 ```
 
+Which precision tables section 4 carries follows from `conditions.precision` across the
+results, as `analyze-model`'s `references/benchmark.md` lays out under "Writing from
+results that already exist".
+
 Section 4 states each accuracy figure with the harness that produced it and the
-published figure it was checked against — `references/benchmark.md` has both. It does
+published figure it was checked against — `analyze-model`'s `references/benchmark.md`
+has both. It does
 not quote only the flattering row:
 
 ```
@@ -114,12 +119,8 @@ testing" are both true of the same model at once. A paraphrase can round the sec
 away without anyone noticing it happened.
 ```
 
-Where the quote comes from depends on what exists:
-
-| What exists | Quote from |
-|---|---|
-| `build-model-release`'s research table with a usage-scope row | that row, verbatim |
-| no research table | the model card, then the model's own repository README and docs, each read as raw text rather than through a summarising fetch |
+Quote from the model card, then the model's own repository README and docs, each read as
+raw text rather than through a summarising fetch.
 
 When a passage covers more than the model — a repository-wide notice naming other
 checkpoints — section 5 says which products it names. When every source was read and
@@ -129,7 +130,7 @@ a reader unless the report distinguishes them.
 
 ## The example link
 
-Section 6 and the post's reply carry the same URL:
+Section 6 and `write-post`'s reply carry the same URL:
 
 ```
 https://github.com/<owner>/<repository>/tree/<branch>/releases/<example>

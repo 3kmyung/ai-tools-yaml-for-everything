@@ -2,7 +2,7 @@
 
 Read this before running or describing any measurement — before touching
 `scripts/analyze-model/bench_hw.py`, before scoring accuracy, and before
-writing a single number into `report.md`.
+handing a single number to `report-model`.
 
 ## Why accuracy is measured once and hardware once per machine
 
@@ -51,8 +51,10 @@ creates lives inside that clone:
 ```
 
 Measured output is the exception and does not live there: results, accuracy and
-transcripts are committed under `benchmarks/<example>/`, because they are the product of
-the run rather than its scaffolding.
+transcripts are committed under `releases/<example>/benchmarks/`, because they are the
+product of the run rather than its scaffolding. The runners default to a different
+directory, so every handed-over command passes `--results-directory` and
+`--transcript-path` explicitly.
 
 ```
 ✗ Adding a worktree or a branch to a clone that belongs to the machine's owner.
@@ -369,5 +371,5 @@ look comparable without making them so.
 ```
 
 No expectation about relative DGX Spark performance gets written down before it is
-measured — the same no-guessing rule that governs `build-model-release`'s research step
-governs every number here.
+measured. A figure without a source URL or a measured run beside it is marked
+`needs verification`, never filled in from memory.
