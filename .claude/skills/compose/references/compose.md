@@ -1,12 +1,12 @@
 # compose.md
 
-Step 2 (mapping) and step 4 (generating `model-compose.yml`).
+Step 2 (writing `model-compose.yml`).
 
 ## Picking the task and the base example
 
 - Model tasks live under `src/mindor/core/component/services/model/tasks/`, one directory
   per task (`speech_to_text`, `text_to_speech`, `image_to_video`, and so on). Match the
-  researched model's input and output shape against these names first — the task decides
+  human's task answer against these names first — the task decides
   the driver, and the driver decides the shape of the `action` block.
 - Never write a component block from scratch. Search `examples/model-tasks/` for the
   example nearest the chosen task and copy its `component:` block whole, adjusting only
@@ -15,8 +15,8 @@ Step 2 (mapping) and step 4 (generating `model-compose.yml`).
   `speech-to-text-vibevoice-streaming`); a new speech-to-text model starts from whichever
   is nearer in checkpoint shape, not from the task documentation. A hand-written block
   encodes driver wiring — model loading, hardware dispatch, the shape of `action:` — that
-  only step 6's real run exercises; a mismatch there surfaces tens of minutes into the one
-  step this skill cannot self-certify, not as a fast-loop failure that costs seconds.
+  only the step 4 real run exercises; a mismatch there surfaces tens of minutes in, not as
+  a validate failure that costs seconds.
 
 ## The static webui, always
 
@@ -29,9 +29,9 @@ controller:
     static_dir: ./ui
 ```
 
-Gradio is what `examples/model-tasks/` uses; a release never uses it. The whole
-point of `build-model-release` is a purpose-built screen for one model's distinguishing
-mechanism, and Gradio's generic component set is the opposite of that.
+Gradio is what `examples/model-tasks/` uses; a release never uses it. `build-ui`
+builds a purpose-built screen for each release, and Gradio's generic component set is the
+opposite of that.
 
 ## Every UI-facing workflow needs an `id`
 
@@ -65,39 +65,15 @@ even though each carries only one workflow —
 `workflows:` with a single-item list under it, never `workflow:` with a mapping under it.
 Match that convention for a new example too, regardless of how many workflows it has.
 
-## Directory naming: verb-object
+## Where a release goes
 
-`examples/showcase/` holds `find-person-scenes`, `upscale-video`, `analyze-disk-usage`,
-`make-inspiring-quote-voice`, `echo-server`, and `vibevoice-realtime-tts`. Four of the six
-are verb-object; `vibevoice-realtime-tts` is the outlier, named after the model rather
-than the capability. Name every new directory verb-object — `speaker-diarization-vibevoice`,
-not `vibevoice-asr-demo` — because an example sells what it lets someone do, and the
-model behind it is an implementation detail that can change.
+A release is its own directory, `releases/<task>-<model>/`, named task first and model
+second the way `examples/model-tasks/` names things — `speaker-diarization-vibevoice`, not
+`transcribe-long-meeting` or `vibevoice-asr-demo`.
 
-## The fixture lives behind an adapter
-
-The output schema of a model task is not reliably knowable before the step 6 real run.
-One model can document two shapes at once:
-
-| Source | Output shape |
-|---|---|
-| This repository's `speech-to-text-vibevoice` README | `{ text, start_time, end_time, speaker_id }[]` |
-| The Transformers model doc, same model, `processor.decode(..., return_format="parsed")` | `{ Start, End, Speaker, Content }` |
-
-Rather than betting the whole UI on one of those shapes, put one adapter function
-between the fixture (or the real WebSocket payload) and the render functions:
-
-```javascript
-function segmentsFromResponse(response) {
-  return response.map((segment) => ({
-    text: segment.text ?? segment.Content,
-    startTime: segment.start_time ?? segment.Start,
-    endTime: segment.end_time ?? segment.End,
-    speakerId: segment.speaker_id ?? segment.Speaker,
-  }));
-}
 ```
-
-When step 6 settles which shape the real run actually produces, this one function
-changes — render functions, the fixture's own shape, and every other module stay as they
-are.
+✗ Adding the release to `examples/README.md`.
+→ Leave `examples/` alone.
+Why: `examples/` mirrors upstream, and a line added there conflicts on the next upstream
+merge.
+```
