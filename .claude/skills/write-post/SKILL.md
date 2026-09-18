@@ -13,10 +13,12 @@ allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, Bash(python -B *), Powe
 | `README.md` | `작성`으로 진행 |
 | `README.md` 없을 때 | 중단 → `write-readme` 스킬(Skill) 호출 |
 
-| 내용 | 출처 |
+| 값 | 출처 |
 | :---: | --- |
-| 수치, 조건, 기계 이름, 단위 등 `README.md`에 있는 내용 | `README.md` 단일 출처, 웹 검색 금지 |
-| GitHub나 Hugging Face의 ID, 스타·포크(Fork) 수 | 웹 검색, 매일 변하는 값은 반올림(e.g., `83k`) |
+| `README.md`에 있는 값(e.g., 수치, 조건, 기계, 단위) | `README.md`만, 웹 검색 결과로 덮어쓰기 금지 |
+| `README.md`에 없는 모든 값(e.g., GitHub나 Hugging Face의 ID, 스타(Star)·포크(Fork) 수) | 웹 검색 |
+
+> 스타·포크 수처럼 매일 변하는 값은 반올림한다(e.g., `83k`).
 
 ### 2. 작성
 
