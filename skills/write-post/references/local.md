@@ -229,7 +229,7 @@ MacBook M1 | whisper-large-v3-4bit | 0.31 Output RTF
 ✓
 
 ```
-The YAML that ran all of this is one file in the repo.
+Your GPU is sitting idle, give it something to do.
 
 ➡️ github.com/hanyeol/model-compose
 ```
@@ -237,7 +237,7 @@ The YAML that ran all of this is one file in the repo.
 ✓
 
 ```
-Every number in this thread came off machines I own, and the file that ran them is public.
+Clone it and point it at your own recordings tonight.
 
 ➡️ github.com/hanyeol/model-compose
 ```

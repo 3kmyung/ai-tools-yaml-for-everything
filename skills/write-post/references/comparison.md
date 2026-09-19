@@ -246,7 +246,7 @@ MacBook M1 | whisper-large-v3-4bit | 0.31 Output RTF
 ✓
 
 ```
-The YAML that ran the local side is one file in the repo.
+Try your own lyrics next and hear what comes out.
 
 ➡️ github.com/hanyeol/model-compose
 ```
@@ -254,7 +254,7 @@ The YAML that ran the local side is one file in the repo.
 ✓
 
 ```
-The local side is one YAML file. Point it at your own lyrics and run it again.
+No API key, no subscription, and no cap on how many songs you make.
 
 ➡️ github.com/hanyeol/model-compose
 ```
@@ -262,7 +262,7 @@ The local side is one YAML file. Point it at your own lyrics and run it again.
 ✓
 
 ```
-No API key and no subscription. The file that ran the local side is public.
+Cancel your Suno plan and run it yourself.
 
 ➡️ github.com/hanyeol/model-compose
 ```
@@ -272,14 +272,6 @@ No API key and no subscription. The file that ran the local side is public.
 ```
 ➡️ github.com/hanyeol/model-compose
 ➡️ platform.openai.com/docs/guides/speech-to-text
-```
-
-✗
-
-```
-Cancel your Suno plan and run it yourself.
-
-➡️ github.com/hanyeol/model-compose
 ```
 
 ✗
