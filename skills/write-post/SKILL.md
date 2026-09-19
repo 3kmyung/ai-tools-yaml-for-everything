@@ -16,7 +16,6 @@ allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, AskUserQuestion, Bash(p
 | 값 | 출처 |
 | :---: | --- |
 | `README.md`에 있는 값(e.g., 수치, 조건, 기계, 단위) | `README.md`만, 웹 검색 결과로 덮어쓰기 금지 |
-| 첨부할 결과물 파일 | 사용자가 준 경로만 사용 → 없으면 `AskUserQuestion`으로 요청 |
 | 그 밖에 `README.md`에 없는 모든 값(e.g., GitHub나 Hugging Face의 ID, 스타(Star)·포크(Fork) 수) | 웹 검색 |
 
 > 스타·포크 수처럼 매일 변하는 값은 반올림한다(e.g., `83k`).
