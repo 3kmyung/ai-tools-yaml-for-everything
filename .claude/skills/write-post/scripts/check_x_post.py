@@ -112,12 +112,13 @@ def weighted_length(text):
 
 
 def main():
-    parser = argparse.ArgumentParser(prog="check_x_post.py")
+    program_name = pathlib.Path(__file__).name
+    parser = argparse.ArgumentParser(prog=program_name)
     parser.add_argument("posts", nargs="*", type=pathlib.Path)
     arguments = parser.parse_args()
 
     if not arguments.posts:
-        print("check_x_post.py: error: pass one file per post, in thread order", file=sys.stderr)
+        print(f"{program_name}: error: pass one file per post, in thread order", file=sys.stderr)
 
         return EXIT_USAGE
 
@@ -127,7 +128,7 @@ def main():
         try:
             text = path.read_text(encoding="utf-8-sig").rstrip()
         except (OSError, UnicodeDecodeError) as error:
-            print(f"check_x_post.py: error: {path}: {error}", file=sys.stderr)
+            print(f"{program_name}: error: {path}: {error}", file=sys.stderr)
 
             return EXIT_USAGE
 
