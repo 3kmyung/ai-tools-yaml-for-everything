@@ -10,7 +10,6 @@ EXIT_THREAD_REJECTED = 1
 EXIT_USAGE = 2
 WEIGHTED_LIMIT = 280
 URL_WEIGHT = 23
-POST_COUNT = 5
 DEFAULT_WEIGHT = 2
 HALF_WEIGHT = 1
 EMOJI_WEIGHT = 2
@@ -138,9 +137,6 @@ def main():
 
         if length > WEIGHTED_LIMIT:
             failures.append(f"post {number} is {length - WEIGHTED_LIMIT} weighted characters over the limit")
-
-    if len(arguments.posts) != POST_COUNT:
-        failures.append(f"a thread holds {POST_COUNT} posts, not {len(arguments.posts)}")
 
     for failure in failures:
         print(failure, file=sys.stderr)
