@@ -30,7 +30,7 @@ allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, AskUserQuestion, Bash(p
 
 ```bash
 python -B -c "import regex" || python -m pip install regex
-python -B "${CLAUDE_SKILL_DIR}/scripts/check_x_post.py" <post-1.txt> <post-2.txt> ...
+python -B "${CLAUDE_SKILL_DIR}/scripts/check_x_post.py" <post.txt>...
 ```
 
 | 종료 코드 | 할 일 |
