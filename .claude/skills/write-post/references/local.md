@@ -1,4 +1,44 @@
+## 스레드
+
+로컬(Local) 모델(Model) 하나를 소개하는 포스트 5개다.
+
+| 포스트 | 내용 |
+| :---: | --- |
+| 1 | 결과, 로컬에서 돌았다는 장점, 모델 소개, 핵심 장점 체크리스트 한 줄 |
+| 2 | 이것으로 무엇을 할 수 있는지, 독자가 체감하는 장점 |
+| 3 | `write-readme`가 찍은 결과물 GIF |
+| 4 | 기계별 숫자 행과 그 행들의 조건, 기계당 한 행 |
+| 5 | `model-compose` 링크 |
+
+`releases/<example>/local.md`에 아래 틀대로 쓴다.
+
+```
 ## 포스트 1
+
+<포스트 1>
+
+## 포스트 2
+
+<포스트 2>
+
+## 포스트 3
+
+<포스트 3>
+
+[media/<example>.gif](media/<example>.gif)
+
+## 포스트 4
+
+<포스트 4>
+
+## 포스트 5
+
+<포스트 5>
+```
+
+## 예시
+
+### 포스트 1
 
 ✓
 
@@ -52,7 +92,7 @@ Whisper large-v3 is OpenAI's speech recognition model.
 ✅ RTF 0.08, 14.2 GB peak video memory, 121 Tokens/s on the 4090
 ```
 
-## 포스트 2
+### 포스트 2
 
 ✓
 
@@ -98,7 +138,7 @@ This seamless pipeline unlocks next-level transcription.
 It beats every cloud API on accuracy and it is completely free.
 ```
 
-## 포스트 3
+### 포스트 3
 
 ✓
 
@@ -130,7 +170,7 @@ Real-time in the GIF, and just as fast on any laptop
 🎬 Rendered in 12 seconds flat
 ```
 
-## 포스트 4
+### 포스트 4
 
 ✓
 
@@ -184,7 +224,7 @@ DGX Spark | whisper-large-v3 | 0.12 Output RTF
 MacBook M1 | whisper-large-v3-4bit | 0.31 Output RTF
 ```
 
-## 포스트 5
+### 포스트 5
 
 ✓
 
