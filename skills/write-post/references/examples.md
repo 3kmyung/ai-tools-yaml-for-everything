@@ -5,37 +5,34 @@
 ```
 🎙️ A one-hour meeting, transcribed in 4 minutes
 
-✅ Offline on a laptop
-✅ No API key
-✅ Nothing uploaded
+Whisper large-v3 keeps up with heavy accents and 99 languages.
+Every line comes back timestamped, so finding a line takes one click.
+OpenAI's open model, 109k stars on GitHub.
 
-Whisper large-v3 is OpenAI's speech recognition model, 1.5B parameters and 109k stars.
-This run quantizes the decoder to 4 bits, which is what fits it on a laptop.
+✅ Offline on a laptop, nothing uploaded
 ```
 
 ✓
 
 ```
-🎹 A 12-bar chord chart in, 3 minutes of audio out, 40 seconds of compute
+🎹 Lyrics and a genre in, a full song with a singer out
 
-✅ One GPU under a desk
-✅ Nothing left the machine
+YuE is one of the few open music models that sings.
+It writes the voice and the band together, so the vocal sits on the beat.
+One line of text sets the genre, mood and voice.
 
-YuE comes from HKUST and M-A-P, 9.6k stars.
-It writes vocals and backing together, so the singing is generated against the track, not over it.
+✅ One GPU, nothing left the machine
 ```
 
 ✓
 
 ```
-🖼️ The cloud is just someone else's computer, and this never touched one
+🖼️ 12 images from one prompt, and none of them left the machine
 
-✅ 12 images in 90 seconds
-✅ No subscription, no credits, no queue
-✅ Offline from prompt to file
+FLUX.1 draws hands with five fingers and spells shop signs right, two things open image models kept missing.
+Made by the team behind Stable Diffusion.
 
-FLUX.1 comes from Black Forest Labs, the Stable Diffusion team, 26k stars.
-This run is the 4-bit build.
+✅ 12 images in 90 seconds, no credits
 ```
 
 ✗
@@ -48,20 +45,11 @@ github.com/hanyeol/model-compose
 ✗
 
 ```
-🎙️🚀 Transcribes a one-hour meeting in 4 minutes.
-Real-time factor 0.08, 14.2 GB peak video memory.
-```
-
-✗
-
-```
 🎙️ A one-hour meeting, transcribed in 4 minutes
 
-✅ RTF 0.08
-✅ 14.2 GB peak video memory
-✅ 121 Tokens/s on the 4090
-
 Whisper large-v3 is OpenAI's speech recognition model.
+
+✅ RTF 0.08, 14.2 GB peak video memory, 121 Tokens/s on the 4090
 ```
 
 ## 포스트 2
@@ -71,6 +59,7 @@ Whisper large-v3 is OpenAI's speech recognition model.
 ```
 Hand it a meeting recording and get back a markdown summary with timestamps.
 Decisions and action items come out as their own lines, and the small talk does not make it in.
+Two people talking at once land in one line, since nothing here tells speakers apart.
 ```
 
 ✓
@@ -78,13 +67,16 @@ Decisions and action items come out as their own lines, and the small talk does 
 ```
 It reads a scanned report and returns markdown with the tables still tables.
 A page of figures stays a page of figures instead of collapsing into a wall of text.
+Two-column pages keep their reading order.
+Handwritten notes in the margin come back rough.
 ```
 
 ✓
 
 ```
-Give it a chord chart and lyrics and it returns a finished track.
+Give it lyrics and a genre and it returns a finished track.
 The first bars come back while the rest is still rendering, so you know early whether the take is worth keeping.
+Tag the lyrics "[verse]" and "[chorus]", about 30 seconds of singing each, or the song loses its shape.
 ```
 
 ✗
@@ -112,12 +104,6 @@ It beats every cloud API on accuracy and it is completely free.
 
 ```
 🎬 A two-hour podcast, summarized with timestamps, recorded at the speed it ran
-```
-
-✓
-
-```
-🖼️ Twelve images from one prompt, 90 seconds start to finish
 ```
 
 ✓
@@ -155,7 +141,7 @@ RTX 4090 | whisper-large-v3 | 0.08 Output RTF
 DGX Spark | whisper-large-v3 | 0.12 Output RTF
 MacBook M1 | whisper-large-v3-4bit | 0.31 Output RTF
 
-Greedy decoding, fp16 on the desktop cards and 4-bit on the MacBook.
+Greedy decoding, fp16 on the RTX 4090 and DGX Spark, 4-bit on the MacBook.
 ```
 
 ✓
@@ -168,18 +154,6 @@ DGX Spark | qwen3-8b | 94 Tokens/s
 MacBook M1 | qwen3-8b-4bit | 38 Tokens/s
 
 Batch size 1, 512 tokens out, greedy decoding.
-```
-
-✓
-
-```
-The same 240-page scan on three machines, fastest first.
-
-RTX 4090 | dots-ocr | 0.67 Pages/s
-DGX Spark | dots-ocr | 0.41 Pages/s
-MacBook M1 | dots-ocr-4bit | 0.08 Pages/s
-
-200 DPI, batch size 4, greedy decoding.
 ```
 
 ✗
@@ -216,14 +190,6 @@ MacBook M1 | whisper-large-v3-4bit | 0.31 Output RTF
 
 ```
 The YAML that ran all of this is one file in the repo.
-
-➡️ github.com/hanyeol/model-compose
-```
-
-✓
-
-```
-Every workflow in this thread is one file, and that file is in the repo.
 
 ➡️ github.com/hanyeol/model-compose
 ```
