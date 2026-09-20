@@ -1,0 +1,19 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "yaml-for-everything",
+  "description": "Marketplace for the yaml-for-everything plugin",
+  "owner": {
+    "name": "3kmyung"
+  },
+  "plugins": [
+    {
+      "name": "yaml-for-everything",
+      "description": "Skills for building, running, measuring and publishing with model-compose",
+      "author": {
+        "name": "3kmyung"
+      },
+      "source": "./",
+      "category": "development"
+    }
+  ]
+}

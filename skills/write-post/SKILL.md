@@ -11,7 +11,7 @@ allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, AskUserQuestion, Bash(p
 | `releases/<example>/` 상태 | 행동 |
 | :---: | --- |
 | `README.md` | `작성`으로 진행 |
-| `README.md` 없을 때 | 중단 → `write-readme` 스킬(Skill) 호출 |
+| `README.md` 없을 때 | 중단 → `yaml-for-everything:write-readme` 스킬(Skill) 호출 |
 
 | 값 | 출처 |
 | :---: | --- |

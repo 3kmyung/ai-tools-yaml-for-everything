@@ -1,0 +1,15 @@
+{
+  "name": "yaml-for-everything",
+  "description": "Skills for building, running, measuring and publishing with model-compose",
+  "version": "0.1.0",
+  "author": {
+    "name": "3kmyung"
+  },
+  "license": "MIT",
+  "keywords": [
+    "model-compose",
+    "workflow",
+    "benchmark",
+    "release"
+  ]
+}
