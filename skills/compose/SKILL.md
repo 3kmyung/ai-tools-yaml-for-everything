@@ -1,14 +1,18 @@
 ---
 name: compose
 description: Use when starting a model-compose release or writing its model-compose.yml, or when the user says "서비스 만들어", "model-compose.yml 써", "compose it".
-allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, WebFetch, Skill, Bash(PYTHONUTF8=1 model-compose *), PowerShell(Push-Location releases/*), PowerShell(Pop-Location), PowerShell($env:PYTHONUTF8=1), PowerShell(model-compose *), Bash(python -B *), PowerShell(python -B *)
+allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, WebFetch, Skill, AskUserQuestion, Bash(PYTHONUTF8=1 model-compose *), PowerShell(Push-Location releases/*), PowerShell(Pop-Location), PowerShell($env:PYTHONUTF8=1), PowerShell(model-compose *), Bash(python -B *), PowerShell(python -B *)
 ---
 
 ## 절차
 
 서비스를 `releases/<name>/model-compose.yml`로 작성한다.
 
-> 그 밖의 파일은 만들지 않는다.
+- 그 밖의 파일은 만들지 않는다
+- 질문은 모두 `AskUserQuestion`으로 한다
+- 사람이 값을 직접 적는 질문도 후보 두세 개를 선택지로 넣는다
+- 후보는 조회를 통해 정한다
+- 출처 없는 값은 선택지에 넣지 않는다
 
 ### 1. 설계
 
