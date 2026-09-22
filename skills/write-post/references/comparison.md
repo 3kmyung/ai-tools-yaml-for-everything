@@ -9,9 +9,9 @@
 | 3 | 이것으로 무엇을 할 수 있는지, 독자가 체감하는 장점 |
 | 4 | GIF에 보이는 실제 입력과 결과를 담은 캡션 |
 | 5 | 로컬 모델의 기계별 숫자 행과 그 행들의 조건, 기계당 한 행, 숫자는 README 콜아웃(Callout)이 읽은 처리량 열 |
-| 6 | `model-compose` 링크 |
+| 6 | 서비스 링크 `github.com/MindrLabs/<example>` |
 
-`releases/<example>/comparison.md`에 아래 틀대로 쓴다. 포스트마다 본문과 첨부 줄을 언어 태그 없는 코드 블록(Code Block) 하나에 넣고, `분량 검사`에는 첨부 줄을 빼고 넘긴다.
+`workspaces/<example>/comparison.md`에 아래 틀대로 쓴다. 포스트마다 본문과 첨부 줄을 언어 태그 없는 코드 블록(Code Block) 하나에 넣고, `분량 검사`에는 첨부 줄을 빼고 넘긴다.
 
 ````
 ## 포스트 1
@@ -40,7 +40,7 @@
 ```
 <포스트 4>
 
-[image](<recording.gif>)
+[image](../../releases/<example>/media/<recording.gif>)
 ```
 
 ## 포스트 5
@@ -272,21 +272,29 @@ MacBook M1 | whisper-large-v3-4bit | 0.31 Output RTF
 ```
 Try your own lyrics next and hear what comes out.
 
-➡️ github.com/hanyeol/model-compose
+➡️ github.com/MindrLabs/music-generation-yue2
 ```
 
 ✓
 
 ```
-No API key, no subscription, and no cap on how many songs you make.
+No API key, no per-minute bill, and no cap on how many hours you transcribe.
 
-➡️ github.com/hanyeol/model-compose
+➡️ github.com/MindrLabs/speech-recognition-whisper
 ```
 
 ✓
 
 ```
-Cancel your Suno plan and run it yourself.
+Cancel your Midjourney plan and run it yourself.
+
+➡️ github.com/MindrLabs/image-generation-flux
+```
+
+✗
+
+```
+Try your own lyrics next and hear what comes out.
 
 ➡️ github.com/hanyeol/model-compose
 ```
@@ -294,7 +302,7 @@ Cancel your Suno plan and run it yourself.
 ✗
 
 ```
-➡️ github.com/hanyeol/model-compose
+➡️ github.com/MindrLabs/speech-recognition-whisper
 ➡️ platform.openai.com/docs/guides/speech-to-text
 ```
 
@@ -303,5 +311,5 @@ Cancel your Suno plan and run it yourself.
 ```
 ➡️ The YAML that ran the local side is one file in the repo.
 
-github.com/hanyeol/model-compose
+github.com/MindrLabs/image-generation-flux
 ```
