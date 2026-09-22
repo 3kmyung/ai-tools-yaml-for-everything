@@ -79,7 +79,7 @@ def load_document(path: pathlib.Path) -> dict[str, typing.Any]:
 
 
 def components_of(
-    document: dict[str, typing.Any]
+    document: dict[str, typing.Any],
 ) -> list[dict[str, typing.Any]]:
     if "components" in document:
         values = document["components"] or []

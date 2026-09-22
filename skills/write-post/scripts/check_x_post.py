@@ -24,8 +24,25 @@ VARIATION_SELECTOR = chr(0xFE0F)
 COMBINING_ENCLOSING_KEYCAP = chr(0x20E3)
 MAXIMUM_LABEL_LENGTH = 32
 GENERIC_TOP_LEVEL_DOMAINS = {
-    "app", "biz", "blog", "cloud", "com", "dev", "edu", "gov", "info", "int",
-    "mil", "net", "news", "online", "org", "site", "store", "tech", "wiki",
+    "app",
+    "biz",
+    "blog",
+    "cloud",
+    "com",
+    "dev",
+    "edu",
+    "gov",
+    "info",
+    "int",
+    "mil",
+    "net",
+    "news",
+    "online",
+    "org",
+    "site",
+    "store",
+    "tech",
+    "wiki",
     "xyz",
 }
 URL_PATH_CHARACTERS = r"[\w\-./%#?=&:~+@,;!$()]"
@@ -117,7 +134,7 @@ def weighted_length(text):
         ):
             continue
 
-        without_urls.append(normalized[position:match.start()])
+        without_urls.append(normalized[position : match.start()])
         url_count += 1
         position = match.start() + len(url)
 

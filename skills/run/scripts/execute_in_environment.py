@@ -25,9 +25,7 @@ def command_directory(
     return directory
 
 
-def resolved_command(
-    workspace: pathlib.Path, command: list[str]
-) -> list[str]:
+def resolved_command(workspace: pathlib.Path, command: list[str]) -> list[str]:
     environment = locate.virtual_environment_variables(workspace)
     executable = (
         shutil.which(command[0], path=environment["PATH"]) or command[0]

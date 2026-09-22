@@ -171,10 +171,7 @@ def log_tail(path: pathlib.Path, line_count: int = LOG_TAIL_LINES) -> str:
         return f"({path} does not exist)"
 
     lines = (
-        text.replace("\r\n", "\n")
-        .replace("\r", "\n")
-        .rstrip("\n")
-        .split("\n")
+        text.replace("\r\n", "\n").replace("\r", "\n").rstrip("\n").split("\n")
     )
 
     return "\n".join(lines[-line_count:])

@@ -119,9 +119,7 @@ def ssh_hosts() -> list[tuple[str, str]]:
 
         if keyword == "host":
             current = [
-                name
-                for name in value.split()
-                if not re.search(r"[*?!]", name)
+                name for name in value.split() if not re.search(r"[*?!]", name)
             ]
 
             for name in current:
@@ -166,9 +164,7 @@ def ssh_command(host: str, arguments: list[str]) -> list[str]:
 
 def parse_probe(name: str, host: str | None, output: str) -> Machine | None:
     fields = (
-        output.strip().splitlines()[-1].split("\t")
-        if output.strip()
-        else []
+        output.strip().splitlines()[-1].split("\t") if output.strip() else []
     )
 
     if len(fields) != PROBE_FIELD_COUNT:

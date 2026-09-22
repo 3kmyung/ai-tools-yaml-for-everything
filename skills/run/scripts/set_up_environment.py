@@ -56,9 +56,7 @@ def uv_environment(workspace: pathlib.Path) -> dict[str, str]:
 def install_uv(workspace: pathlib.Path) -> pathlib.Path:
     windows = sys.platform == "win32"
     installer = (
-        workspace
-        / UV_DIRECTORY
-        / ("install.ps1" if windows else "install.sh")
+        workspace / UV_DIRECTORY / ("install.ps1" if windows else "install.sh")
     )
     installer.parent.mkdir(parents=True, exist_ok=True)
     url = UV_INSTALLER_URL + installer.suffix
@@ -191,8 +189,7 @@ def ensurepip_problem() -> str:
         return ""
 
     return (
-        "the host Python has no ensurepip,"
-        " so python -m venv cannot seed pip"
+        "the host Python has no ensurepip, so python -m venv cannot seed pip"
     )
 
 
@@ -208,9 +205,7 @@ def missing_programs(
     search_path = locate.virtual_environment_variables(workspace)["PATH"]
 
     return [
-        name
-        for name in names
-        if shutil.which(name, path=search_path) is None
+        name for name in names if shutil.which(name, path=search_path) is None
     ]
 
 
