@@ -45,7 +45,7 @@ allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, WebFetch, Skill, Bash(P
 | `title` | 워크플로가 하는 일, 30자 이하 |
 | `description` | 입력과 출력까지 한 문장, 120자 이하 |
 | 입력 | `${input.<이름>}`의 `<이름>` |
-| 출력 | 워크플로 `output`의 키와 값 |
+| 출력 | 워크플로 `output`의 키와 값, 마지막이 아닌 단계의 값도 사람이 읽거나 들을 값이면 포함(e.g., `score: ${jobs.score.output.abc}`) |
 | 주 모델 | `이름`에 넘길 단계 번호 |
 | `실행`에 쓸 입력 | `입력` 열의 이름마다 사람이 준 값, 파일이면 경로, 주지 않은 입력은 예제에서 가져오지 않고 빈칸 |
 | 라이선스(License) | 체크포인트마다 |
