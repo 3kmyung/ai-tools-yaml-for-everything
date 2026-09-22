@@ -57,5 +57,6 @@ python -B "${CLAUDE_SKILL_DIR}/scripts/check_x_post.py" <post.txt>...
 - 문장 안의 세미콜론(Semicolon)과 엠 대시(Em Dash) 금지 → 마침표나 쉼표, 합성어의 하이픈(Hyphen)은 허용
 - AI 티 제거, 행위자 없는 수동과 `not just X, it's Y` 대구까지
 - 수치·이름 날조 금지
+- 라이선스는 이름만(e.g., `CC BY-NC 4.0`) → 허가·제한 조건 요약 금지
 - X는 마크다운(Markdown)을 그리지 않으므로 포스트 본문에 백틱(Backtick)과 마크다운 문법 금지 → 입력 문자열은 큰따옴표
 - 고쳐 쓴 문장은 `작성`과 `규칙`에 따라 재점검
