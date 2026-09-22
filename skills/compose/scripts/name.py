@@ -237,7 +237,7 @@ def main() -> int:
         if isinstance(stream, io.TextIOWrapper):
             stream.reconfigure(encoding="utf-8")
 
-    program_name = pathlib.Path(sys.argv[0]).name
+    program_name = pathlib.Path(__file__).name
 
     if len(sys.argv) != EXPECTED_ARGUMENT_COUNT:
         print(
