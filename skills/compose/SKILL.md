@@ -95,7 +95,7 @@ python -B "${CLAUDE_SKILL_DIR}/scripts/name.py" <repository> <task> <driver> <ch
 | `controller.adapter.port` | | | `${env.PORT \| 8080}`, `참고 예제`에 리터럴(Literal)이 있어도 이 값 |
 | `controller.webui` | | | `driver: gradio`, `port: ${env.SERVER_PORT \| 8081}` |
 | `components` | ✓ | | |
-| `model`이 아닌 컴포넌트 | | ✓ | 생략, 필드는 `docs/reference/compose/components/<type>.md`, 없으면 `src/mindor/dsl/schema/component/impl/<type>.py` |
+| `model`이 아닌 컴포넌트 | | ✓ | 생략, 필드는 `docs/reference/compose/components/<type>.md` → `src/mindor/dsl/schema/component/impl/`의 해당 모듈(Module) → 질문 |
 | `model` 컴포넌트의 `task`·`driver`·`model` | ✓ | | GGUF면 `model`은 `provider: huggingface`·`repository`·`filename` 매핑 |
 | `architecture`·`family`·`preset` | | ✓ | 체크포인트가 요구하지 않으면 생략 |
 | `runtime.type` | | | `virtualenv` |
