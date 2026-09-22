@@ -16,7 +16,7 @@ allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, WebFetch, Skill, AskUse
 
 ### 1. 설계
 
-리포지터리(Repository)와 모델(Model) 카드·논문 같은 웹 자료를 조회해 워크플로(Workflow)와 서비스 두 표를 작성한다. 모르겠으면 질문한다.
+이 리포지터리(Repository)와 모델(Model) 카드·논문 같은 웹 자료를 조회해 워크플로(Workflow)와 서비스 두 표를 작성한다. 모르겠으면 질문한다.
 
 | 상황 | 질문할 칸 |
 | :---: | :---: |
