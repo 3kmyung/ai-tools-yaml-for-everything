@@ -69,7 +69,7 @@ allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, WebFetch, Skill, AskUse
 
 ### 2. 이름
 
-`설계` 결과의 `task`·드라이버·체크포인트로 명령을 돌려 `<name>`을 얻는다. `<repository>`는 `src/`와 `releases/`가 있는 리포지터리 루트(Root) 경로다. `model` 컴포넌트의 `model`이 매핑(Mapping)이면 매핑의 `repository` 필드 값이 `<checkpoint-id>`다.
+`설계` 결과의 `task`·`driver`·`model`로 명령을 돌려 `<name>`을 얻는다. `<repository>`는 `src/`와 `releases/`가 있는 리포지터리 루트(Root) 경로다. `model` 컴포넌트의 `model`이 매핑(Mapping)이면 매핑의 `repository` 필드 값이 `<checkpoint-id>`다.
 
 ```bash
 python -B "${CLAUDE_SKILL_DIR}/scripts/name.py" <repository> <task> <driver> <checkpoint-id>
