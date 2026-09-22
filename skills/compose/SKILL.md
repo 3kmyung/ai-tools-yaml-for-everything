@@ -18,7 +18,7 @@ allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, WebFetch, Skill, AskUse
 
 이 리포지터리(Repository)와 모델(Model) 카드·논문 같은 웹 자료를 조회해 워크플로(Workflow)와 서비스 두 표를 작성한다. 모르겠으면 질문한다.
 
-| 상황 | 질문할 칸 |
+| 상황 | 질문할 열 |
 | :---: | :---: |
 | 자료에 값이 없는 경우 | 그 칸 |
 | 체크포인트(Checkpoint) 후보가 둘 이상 | `model` |
