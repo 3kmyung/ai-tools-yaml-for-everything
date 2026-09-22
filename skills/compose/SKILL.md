@@ -12,7 +12,19 @@ allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, WebFetch, Skill, Bash(P
 
 ### 1. 설계
 
-리포지터리(Repository)와 모델(Model) 카드·논문 같은 웹 자료를 조회해 워크플로(Workflow)와 서비스 두 표를 작성한다. 모르겠으면 빈칸으로 둔다.
+리포지터리(Repository)와 모델(Model) 카드·논문 같은 웹 자료를 조회해 워크플로(Workflow)와 서비스 두 표를 작성한다. 모르겠으면 질문한다.
+
+| 상황 | 질문할 칸 |
+| :---: | :---: |
+| 자료에 값이 없는 경우 | 그 칸 |
+| 체크포인트(Checkpoint) 후보가 둘 이상 | `model` |
+| 리포지터리가 모르는 체크포인트 | `model` |
+| 고른 `driver`에 그 `task`의 배선이 없는 경우 | `task` |
+| 예제 후보가 둘 이상이고 `output` 모양이 서로 다른 경우 | 출력 |
+| 경로에 없는 입력 파일 | `실행`에 쓸 입력 |
+| 예제의 `action` 필드나 `params`가 스키마(Schema) 기본값과 다른 경우 | `action` |
+
+두 표를 완성하면 그대로 출력해 보고하고 승인이 올 때까지 멈춘다.
 
 #### 워크플로
 
@@ -27,9 +39,9 @@ allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, WebFetch, Skill, Bash(P
 | `id` | 컴포넌트(Component)가 하는 일을 나타내는 명사(e.g., `composer`, `transcriber`), 모델이나 계열 이름 금지, 같은 컴포넌트의 다른 액션(Action)을 쓰는 단계는 같은 `id` |
 | `type` | `src/mindor/dsl/schema/component/impl/types.py`의 `ComponentType` 값 |
 | `task` | `model` 컴포넌트만, `src/mindor/dsl/schema/component/impl/model/tasks/common.py`의 `ModelTaskType` 값 |
-| `driver` | `model` 컴포넌트만, `architecture`·`family` 열거값이나 전용 로더(Loader)로 체크포인트(Checkpoint)를 배선한 드라이버(Driver) → 자동 감지 드라이버 → 빈칸 |
+| `driver` | `model` 컴포넌트만, `architecture`·`family` 열거값이나 전용 로더(Loader)로 체크포인트를 배선한 드라이버(Driver) → 자동 감지 드라이버 |
 | `model` | `model` 컴포넌트만, 체크포인트 후보 ID와 GGUF면 파일명 |
-| `action` | `model` 컴포넌트만, 스키마(Schema) 기본값과 다르게 고정할 `action` 필드(Field)와 `params`를 `이름: 값`으로 |
+| `action` | `model` 컴포넌트만, 스키마 기본값과 다르게 고정할 `action` 필드(Field)와 `params`를 `이름: 값`으로 |
 | 출처 | 파일 경로나 URL |
 
 #### 서비스
@@ -47,26 +59,12 @@ allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, WebFetch, Skill, Bash(P
 | 입력 | `${input.<이름>}`의 `<이름>` |
 | 출력 | 워크플로 `output`의 키와 값, 마지막이 아닌 단계의 값도 사람이 읽거나 들을 값이면 포함(e.g., `score: ${jobs.score.output.abc}`) |
 | 주 모델 | `이름`에 넘길 단계 번호 |
-| `실행`에 쓸 입력 | `입력` 열의 이름마다 사람이 준 값, 파일이면 경로, 주지 않은 입력은 예제에서 가져오지 않고 빈칸 |
+| `실행`에 쓸 입력 | `입력` 열의 이름마다 사람이 준 값, 파일이면 경로, 주지 않은 입력은 예제에서 가져오지 않고 질문 |
 | 라이선스(License) | 체크포인트마다 |
 
-### 2. 승인
+### 2. 이름
 
-`설계` 결과에 관해 질문 후 승인이 올 때까지 멈춘다.
-
-| 상황 | 표에서 질문할 칸 |
-| :---: | :---: |
-| 빈칸 | 그 칸 |
-| 체크포인트 후보가 둘 이상 | `model` |
-| 리포지터리가 모르는 체크포인트 | `model` |
-| `task`와 드라이버 배선 불일치 | `task` |
-| 예제 후보가 둘 이상이고 `output` 모양이 불일치 | 출력 |
-| 경로에 없는 입력 파일 | `실행`에 쓸 입력 |
-| `참고 예제`의 `action` 필드나 `params`와 스키마 기본값 불일치 | `action` |
-
-### 3. 이름
-
-`승인` 결과의 `task`·드라이버·체크포인트로 명령을 돌려 `<name>`을 얻는다. `<repository>`는 `src/`와 `releases/`가 있는 리포지터리 루트(Root) 경로다. `model` 컴포넌트의 `model`이 매핑(Mapping)이면 매핑의 `repository` 필드 값이 `<checkpoint-id>`다.
+`설계` 결과의 `task`·드라이버·체크포인트로 명령을 돌려 `<name>`을 얻는다. `<repository>`는 `src/`와 `releases/`가 있는 리포지터리 루트(Root) 경로다. `model` 컴포넌트의 `model`이 매핑(Mapping)이면 매핑의 `repository` 필드 값이 `<checkpoint-id>`다.
 
 ```bash
 python -B "${CLAUDE_SKILL_DIR}/scripts/name.py" <repository> <task> <driver> <checkpoint-id>
@@ -79,7 +77,7 @@ python -B "${CLAUDE_SKILL_DIR}/scripts/name.py" <repository> <task> <driver> <ch
 | `4` | 주 모델 체크포인트 질문 |
 | 그 밖의 코드 | 출력 그대로 보고 후 중단 |
 
-### 4. 작성
+### 3. 작성
 
 #### 참고 예제
 
@@ -123,7 +121,7 @@ python -B "${CLAUDE_SKILL_DIR}/scripts/name.py" <repository> <task> <driver> <ch
 | 항목 결과를 끝나는 대로 다음 단계로 | `for-each`의 `streaming: true` |
 | 모델 출력이 도착하는 대로 사용 | 액션 `streaming: true`, 워크플로 `output`의 값은 `${output as stream/<타입>}` |
 
-### 5. 검증
+### 4. 검증
 
 ```bash
 (cd releases/<name> && PYTHONUTF8=1 model-compose -f model-compose.yml validate)
@@ -141,12 +139,12 @@ Push-Location releases/<name>; if ($?) { $env:PYTHONUTF8=1; model-compose -f mod
 | 그 밖의 스키마 위반 | 수정 후 재실행 |
 | `model-compose` 기동 실패 | 출력 그대로 보고 후 중단 |
 
-### 6. 실행
+### 5. 실행
 
 `yaml-for-everything:run` 스킬(Skill)로 `releases/<name>`을 기기 `local`에서 열고, `설계`의 `실행`에 쓸 입력으로 워크플로를 한 번 돌린 뒤 닫는다.
 
 | `yaml-for-everything:run` 결과 | 할 일 |
 | :---: | --- |
-| `output.json`의 키와 모양이 `승인` 결과와 일치 | 요약 보고 후 종료 |
+| `output.json`의 키와 모양이 `설계` 결과와 일치 | 요약 보고 후 종료 |
 | 불일치 | 고치지 않고 출력 그대로 보고 후 중단 |
 | 실패 | `yaml-for-everything:run`의 대응대로 보고 후 중단 |
