@@ -11,38 +11,50 @@
 | 5 | 로컬 모델의 기계별 숫자 행과 그 행들의 조건, 기계당 한 행 |
 | 6 | `model-compose` 링크 |
 
-`releases/<example>/comparison.md`에 아래 틀대로 쓴다.
+`releases/<example>/comparison.md`에 아래 틀대로 쓴다. 포스트마다 본문과 첨부 줄을 언어 태그 없는 코드 블록(Code Block) 하나에 넣고, `분량 검사`에는 첨부 줄을 빼고 넘긴다.
 
-```
+````
 ## 포스트 1
 
+```
 <포스트 1>
 
 [output](<local.mp4|jpg|gif>)
 [output](<cloud.mp4|jpg|gif>)
+```
 
 ## 포스트 2
 
+```
 <포스트 2>
+```
 
 ## 포스트 3
 
+```
 <포스트 3>
+```
 
 ## 포스트 4
 
+```
 <포스트 4>
 
 [image](<recording.gif>)
+```
 
 ## 포스트 5
 
+```
 <포스트 5>
+```
 
 ## 포스트 6
 
+```
 <포스트 6>
 ```
+````
 
 ## 예시
 
