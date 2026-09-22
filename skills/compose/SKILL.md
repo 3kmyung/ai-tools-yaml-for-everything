@@ -1,7 +1,7 @@
 ---
 name: compose
 description: Use when starting a model-compose release or writing its model-compose.yml, or when the user says "서비스 만들어", "model-compose.yml 써", "compose it".
-allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, WebFetch, Bash(PYTHONUTF8=1 model-compose *), PowerShell(Push-Location releases/*), PowerShell(Pop-Location), PowerShell($env:PYTHONUTF8=1), PowerShell(model-compose *), Bash(python -B *), PowerShell(python -B *)
+allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, WebFetch, Skill, Bash(PYTHONUTF8=1 model-compose *), PowerShell(Push-Location releases/*), PowerShell(Pop-Location), PowerShell($env:PYTHONUTF8=1), PowerShell(model-compose *), Bash(python -B *), PowerShell(python -B *)
 ---
 
 ## 절차
@@ -142,18 +142,10 @@ Push-Location releases/<name>; if ($?) { $env:PYTHONUTF8=1; model-compose -f mod
 
 ### 6. 실행
 
-스크립트(Script)가 릴리스 폴더에서 서버(Server)를 띄워 돌리고 출력을 저장한 뒤 내린다. 백그라운드(Background)로 돌리고, 입력 파일은 `--file`로 넘긴다.
+`yaml-for-everything:run` 스킬(Skill)로 `releases/<name>`을 기기 `local`에서 열고, `설계`의 `실행`에 쓸 입력으로 워크플로를 한 번 돌린 뒤 닫는다.
 
-```bash
-python -B "${CLAUDE_SKILL_DIR}/scripts/run.py" releases/<name> <workflow-id> '<입력 JSON>' --file <필드>=<경로>
-```
-
-```powershell
-python -B "${CLAUDE_SKILL_DIR}/scripts/run.py" releases/<name> <workflow-id> '<"를 \"로 바꾼 입력 JSON>' --file <필드>=<경로>
-```
-
-| 종료 코드 | 할 일 |
+| `yaml-for-everything:run` 결과 | 할 일 |
 | :---: | --- |
-| `0` | 출력된 `output.json`의 키와 모양이 `승인` 결과와 일치하면 요약 보고 후 종료, 아니면 고치지 않고 출력 그대로 보고 후 중단 |
-| `1` | 포트 사용 중, 남의 프로세스(Process)는 내리지 않고 출력 그대로 보고 후 중단 |
-| 그 밖의 코드 | 출력 그대로 보고 후 중단 |
+| `output.json`의 키와 모양이 `승인` 결과와 일치 | 요약 보고 후 종료 |
+| 불일치 | 고치지 않고 출력 그대로 보고 후 중단 |
+| 실패 | `yaml-for-everything:run`의 대응대로 보고 후 중단 |
