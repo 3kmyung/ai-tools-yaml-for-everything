@@ -1,4 +1,4 @@
 line-length = 79
 
 [lint]
-ignore = ["BLE001", "S110", "PLW1510"]
+ignore = ["BLE001", "S110", "PLW1510", "SIM114"]
