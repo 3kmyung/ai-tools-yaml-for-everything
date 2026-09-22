@@ -38,7 +38,8 @@ def enum_match(text: str, enum_values: list[str]) -> str | None:
     matches = [
         value
         for value in enum_values
-        if value != EXCLUDED_ENUM_VALUE and normalized_text.startswith(normalize(value))
+        if value != EXCLUDED_ENUM_VALUE
+        and normalized_text.startswith(normalize(value))
     ]
 
     if not matches:
@@ -64,14 +65,20 @@ def variant_candidates(
 ) -> list[str]:
     existing_tokens = {
         token.lower()
-        for token in TOKEN_SEPARATOR_PATTERN.split(existing_checkpoint.split("/")[-1])
+        for token in TOKEN_SEPARATOR_PATTERN.split(
+            existing_checkpoint.split("/")[-1]
+        )
     }
     requested_tokens = [
         token.lower()
-        for token in TOKEN_SEPARATOR_PATTERN.split(requested_checkpoint.split("/")[-1])
+        for token in TOKEN_SEPARATOR_PATTERN.split(
+            requested_checkpoint.split("/")[-1]
+        )
     ]
 
-    return [token for token in requested_tokens if token not in existing_tokens]
+    return [
+        token for token in requested_tokens if token not in existing_tokens
+    ]
 
 
 def flatten_union(annotation: typing.Any) -> list[typing.Any]:
@@ -99,7 +106,10 @@ def annotation_values(annotation: typing.Any) -> list[str]:
         elif isinstance(member, type) and issubclass(member, enum.Enum):
             values.extend(member)
 
-    return [value.value if isinstance(value, enum.Enum) else value for value in values]
+    return [
+        value.value if isinstance(value, enum.Enum) else value
+        for value in values
+    ]
 
 
 def field_values(component_class: type, field_name: str) -> list[str]:
@@ -136,7 +146,9 @@ def schema_enum_values(
     )
 
 
-def run_git(repository: pathlib.Path, *arguments: str) -> subprocess.CompletedProcess:
+def run_git(
+    repository: pathlib.Path, *arguments: str
+) -> subprocess.CompletedProcess:
     return subprocess.run(
         ["git", "-C", str(repository), *arguments],
         capture_output=True,
@@ -146,14 +158,19 @@ def run_git(repository: pathlib.Path, *arguments: str) -> subprocess.CompletedPr
     )
 
 
-def existing_releases(repository: pathlib.Path, name: str) -> list[tuple[str, str]]:
+def existing_releases(
+    repository: pathlib.Path, name: str
+) -> list[tuple[str, str]]:
     compose_path = f"{RELEASES_DIRECTORY}/{name}/{COMPOSE_FILE}"
     releases = []
     working_tree_file = repository / compose_path
 
     if working_tree_file.is_file():
         releases.append(
-            (str(working_tree_file), working_tree_file.read_text(encoding="utf-8"))
+            (
+                str(working_tree_file),
+                working_tree_file.read_text(encoding="utf-8"),
+            )
         )
 
     references = run_git(
@@ -165,10 +182,14 @@ def existing_releases(repository: pathlib.Path, name: str) -> list[tuple[str, st
     )
 
     for reference in references.stdout.split():
-        show_result = run_git(repository, "show", f"{reference}:{compose_path}")
+        show_result = run_git(
+            repository, "show", f"{reference}:{compose_path}"
+        )
 
         if show_result.returncode == 0:
-            releases.append((f"{reference}:{compose_path}", show_result.stdout))
+            releases.append(
+                (f"{reference}:{compose_path}", show_result.stdout)
+            )
 
     return releases
 
@@ -220,7 +241,8 @@ def main() -> int:
 
     if len(sys.argv) != EXPECTED_ARGUMENT_COUNT:
         print(
-            f"usage: {program_name} <repository> <task> <driver> <checkpoint-id>",
+            f"usage: {program_name} "
+            "<repository> <task> <driver> <checkpoint-id>",
             file=sys.stderr,
         )
         return EXIT_USAGE
@@ -230,7 +252,8 @@ def main() -> int:
 
     if not CHECKPOINT_ID_PATTERN.fullmatch(requested_checkpoint):
         print(
-            f"{program_name}: error: '{requested_checkpoint}' is not an <organization>/<name> checkpoint ID",
+            f"{program_name}: error: '{requested_checkpoint}' is not an "
+            "<organization>/<name> checkpoint ID",
             file=sys.stderr,
         )
         return EXIT_NOT_CHECKPOINT_ID
@@ -246,7 +269,8 @@ def main() -> int:
 
     if enum_values is None:
         print(
-            f"{program_name}: error: no model component for task '{task}' and driver '{driver}'",
+            f"{program_name}: error: no model component for task '{task}' "
+            f"and driver '{driver}'",
             file=sys.stderr,
         )
         return EXIT_UNKNOWN_COMPONENT

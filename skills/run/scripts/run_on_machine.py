@@ -45,7 +45,9 @@ def contained_path(workspace: pathlib.Path, relative: str) -> pathlib.Path:
 
 def unpack(payload: dict[str, typing.Any]) -> int:
     workspace = locate.workspace_path(payload)
-    locate.extract(sys.stdin.buffer, contained_path(workspace, payload["destination"]))
+    locate.extract(
+        sys.stdin.buffer, contained_path(workspace, payload["destination"])
+    )
 
     return locate.EXIT_SUCCESS
 
@@ -55,7 +57,9 @@ def pack(payload: dict[str, typing.Any]) -> int:
     path = contained_path(workspace, payload["source"])
 
     if not path.exists():
-        raise locate.RunError(f"{payload['source']} does not exist in the workspace")
+        raise locate.RunError(
+            f"{payload['source']} does not exist in the workspace"
+        )
 
     with tarfile.open(fileobj=sys.stdout.buffer, mode="w|") as archive:
         archive.add(path, arcname=path.name)
@@ -87,7 +91,9 @@ def kill(payload: dict[str, typing.Any]) -> int:
     return locate.EXIT_SUCCESS
 
 
-def remove_children(workspace: pathlib.Path, kept: typing.Iterable[str]) -> None:
+def remove_children(
+    workspace: pathlib.Path, kept: typing.Iterable[str]
+) -> None:
     for child in workspace.iterdir():
         if child.name in kept:
             continue
@@ -100,7 +106,11 @@ def remove_children(workspace: pathlib.Path, kept: typing.Iterable[str]) -> None
 
 def remove(payload: dict[str, typing.Any]) -> int:
     workspace = locate.workspace_path(payload)
-    kept = locate.SESSION_DIRECTORIES if payload.get("keep_session_directories") else ()
+    kept = (
+        locate.SESSION_DIRECTORIES
+        if payload.get("keep_session_directories")
+        else ()
+    )
     print(kill_with_virtual_environment(payload), flush=True)
 
     try:
@@ -138,7 +148,8 @@ def kill_with_virtual_environment(payload: dict[str, typing.Any]) -> str:
 
     if result.returncode != locate.EXIT_SUCCESS:
         raise locate.RunError(
-            f"killing the server and jobs exited with code {result.returncode},"
+            "killing the server and jobs exited"
+            f" with code {result.returncode},"
             f" so {workspace} stays: {output}",
             locate.EXIT_KILL_FAILED,
         )

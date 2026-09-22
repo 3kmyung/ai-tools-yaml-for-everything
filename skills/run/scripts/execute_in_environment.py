@@ -18,14 +18,20 @@ def command_directory(
     directory = (workspace / payload.get("directory", ".")).resolve()
 
     if not directory.is_dir():
-        raise locate.RunError(f"{directory} is not a directory in the workspace")
+        raise locate.RunError(
+            f"{directory} is not a directory in the workspace"
+        )
 
     return directory
 
 
-def resolved_command(workspace: pathlib.Path, command: list[str]) -> list[str]:
+def resolved_command(
+    workspace: pathlib.Path, command: list[str]
+) -> list[str]:
     environment = locate.virtual_environment_variables(workspace)
-    executable = shutil.which(command[0], path=environment["PATH"]) or command[0]
+    executable = (
+        shutil.which(command[0], path=environment["PATH"]) or command[0]
+    )
 
     return [executable, *command[1:]]
 
@@ -75,7 +81,9 @@ def execute(payload: dict[str, typing.Any]) -> int:
         "directory": str(directory),
         "pid": process.pid,
     }
-    (job_records / f"{job}.json").write_text(json.dumps(record), encoding="utf-8")
+    (job_records / f"{job}.json").write_text(
+        json.dumps(record), encoding="utf-8"
+    )
     print(f"job {job} started, log: {job_logs / (job + '.txt')}", flush=True)
 
     return locate.EXIT_SUCCESS
@@ -96,7 +104,9 @@ def wrap(payload: dict[str, typing.Any]) -> int:
             check=False,
         ).returncode
 
-    (job_records / f"{payload['job']}.exit").write_text(str(code), encoding="utf-8")
+    (job_records / f"{payload['job']}.exit").write_text(
+        str(code), encoding="utf-8"
+    )
 
     return code
 
@@ -105,7 +115,9 @@ def kill_jobs(workspace: pathlib.Path, payload: dict[str, typing.Any]) -> str:
     import psutil
 
     job_records, _ = locate.job_directories(workspace, payload)
-    record_paths = sorted(job_records.glob("*.json")) if job_records.is_dir() else []
+    record_paths = (
+        sorted(job_records.glob("*.json")) if job_records.is_dir() else []
+    )
     processes: dict[int, typing.Any] = {}
     killed = []
 
@@ -166,7 +178,8 @@ def status(payload: dict[str, typing.Any]) -> int:
         )["command"]
         print(f"job {name}: {state}: {' '.join(command)}", flush=True)
         tail = locate.log_tail(
-            job_logs / f"{name}.txt", payload.get("lines", locate.LOG_TAIL_LINES)
+            job_logs / f"{name}.txt",
+            payload.get("lines", locate.LOG_TAIL_LINES),
         )
         print(diagnose.annotated(tail), flush=True)
 

@@ -13,23 +13,34 @@ URL_WEIGHT = 23
 DEFAULT_WEIGHT = 2
 HALF_WEIGHT = 1
 EMOJI_WEIGHT = 2
-HALF_WEIGHT_RANGES = [(0x0000, 0x10FF), (0x2000, 0x200D), (0x2010, 0x201F), (0x2032, 0x2037)]
+HALF_WEIGHT_RANGES = [
+    (0x0000, 0x10FF),
+    (0x2000, 0x200D),
+    (0x2010, 0x201F),
+    (0x2032, 0x2037),
+]
 TRAILING_PUNCTUATION = ".,;:!?'\"‘’“”"
 VARIATION_SELECTOR = chr(0xFE0F)
 COMBINING_ENCLOSING_KEYCAP = chr(0x20E3)
 MAXIMUM_LABEL_LENGTH = 32
 GENERIC_TOP_LEVEL_DOMAINS = {
-    "app", "biz", "blog", "cloud", "com", "dev", "edu", "gov", "info", "int", "mil",
-    "net", "news", "online", "org", "site", "store", "tech", "wiki", "xyz",
+    "app", "biz", "blog", "cloud", "com", "dev", "edu", "gov", "info", "int",
+    "mil", "net", "news", "online", "org", "site", "store", "tech", "wiki",
+    "xyz",
 }
 URL_PATH_CHARACTERS = r"[\w\-./%#?=&:~+@,;!$()]"
 URL_PATTERN = regex.compile(
-    rf"(?<![\w@.])(?:https?://)?[\w-]+(?:\.[\w-]+)*\.[A-Za-z][\w-]*(?:[/?#]{URL_PATH_CHARACTERS}*)?"
+    rf"(?<![\w@.])(?:https?://)?[\w-]+(?:\.[\w-]+)*"
+    rf"\.[A-Za-z][\w-]*(?:[/?#]{URL_PATH_CHARACTERS}*)?"
 )
 HOST_PATTERN = regex.compile(r"(?:https?://)?(?P<host>[^/?#]*)")
-KEYCAP_PATTERN = regex.compile(f"[#*0-9]{VARIATION_SELECTOR}?{COMBINING_ENCLOSING_KEYCAP}")
+KEYCAP_PATTERN = regex.compile(
+    f"[#*0-9]{VARIATION_SELECTOR}?{COMBINING_ENCLOSING_KEYCAP}"
+)
 FLAG_PATTERN = regex.compile(r"\p{Regional_Indicator}{2}")
-EMOJI_MODIFIER_SEQUENCE_PATTERN = regex.compile(r"\p{Emoji_Modifier_Base}\p{Emoji_Modifier}")
+EMOJI_MODIFIER_SEQUENCE_PATTERN = regex.compile(
+    r"\p{Emoji_Modifier_Base}\p{Emoji_Modifier}"
+)
 EMOJI_PRESENTATION_PATTERN = regex.compile(r"\p{Emoji_Presentation}")
 GRAPHEME_PATTERN = regex.compile(r"\X")
 
@@ -84,7 +95,10 @@ def has_known_top_level_domain(url):
     host = HOST_PATTERN.match(url).group("host")
     top_level_domain = host.rsplit(".", 1)[-1].lower()
 
-    return len(top_level_domain) == 2 or top_level_domain in GENERIC_TOP_LEVEL_DOMAINS
+    return (
+        len(top_level_domain) == 2
+        or top_level_domain in GENERIC_TOP_LEVEL_DOMAINS
+    )
 
 
 def weighted_length(text):
@@ -96,7 +110,11 @@ def weighted_length(text):
     for match in URL_PATTERN.finditer(normalized):
         url = strip_trailing_punctuation(match.group())
 
-        if not url or has_oversized_label(url) or not has_known_top_level_domain(url):
+        if (
+            not url
+            or has_oversized_label(url)
+            or not has_known_top_level_domain(url)
+        ):
             continue
 
         without_urls.append(normalized[position:match.start()])
@@ -117,7 +135,10 @@ def main():
     arguments = parser.parse_args()
 
     if not arguments.posts:
-        print(f"{program_name}: error: pass one file per post, in thread order", file=sys.stderr)
+        print(
+            f"{program_name}: error: pass one file per post, in thread order",
+            file=sys.stderr,
+        )
 
         return EXIT_USAGE
 
@@ -136,7 +157,10 @@ def main():
         print(f"{number}. {path}: {length}/{WEIGHTED_LIMIT}")
 
         if length > WEIGHTED_LIMIT:
-            failures.append(f"post {number} is {length - WEIGHTED_LIMIT} weighted characters over the limit")
+            failures.append(
+                f"post {number} is {length - WEIGHTED_LIMIT} "
+                "weighted characters over the limit"
+            )
 
     for failure in failures:
         print(failure, file=sys.stderr)

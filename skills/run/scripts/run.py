@@ -43,7 +43,10 @@ def machines(options: argparse.Namespace) -> int:
 
     for probe_result in probes:
         if probe_result.machine is None:
-            print(f"{probe_result.name}\tunreachable\t-\t-\t-\t{probe_result.problem}")
+            print(
+                f"{probe_result.name}\tunreachable\t-\t-\t-\t"
+                f"{probe_result.problem}"
+            )
             continue
 
         machine = probe_result.machine
@@ -110,7 +113,9 @@ def only_choice(choices: list[str], noun: str, flag: str) -> str:
     if not choices:
         raise locate.RunError(f"no open {noun}; run open first")
 
-    raise locate.RunError(f"several open {noun}s: {', '.join(choices)}; pass {flag}")
+    raise locate.RunError(
+        f"several open {noun}s: {', '.join(choices)}; pass {flag}"
+    )
 
 
 def read_state(options: argparse.Namespace) -> dict[str, typing.Any]:
@@ -138,7 +143,9 @@ def read_state(options: argparse.Namespace) -> dict[str, typing.Any]:
     try:
         return json.loads(paths[machine_name].read_text(encoding="utf-8"))
     except (OSError, ValueError) as error:
-        raise locate.RunError(f"cannot read {paths[machine_name]}: {error}") from error
+        raise locate.RunError(
+            f"cannot read {paths[machine_name]}: {error}"
+        ) from error
 
 
 def remove_state(state: dict[str, typing.Any]) -> None:
@@ -211,7 +218,9 @@ def run_machine_command(
     )
 
 
-def unpack_workspace(machine: probe.Machine, archive: bytes, parts: list[str]) -> str:
+def unpack_workspace(
+    machine: probe.Machine, archive: bytes, parts: list[str]
+) -> str:
     if machine.host is None:
         workspace = pathlib.Path(machine.temporary_root).joinpath(*parts)
         workspace.mkdir(parents=True, exist_ok=True)
@@ -253,7 +262,9 @@ def open_machine(
     try:
         machine = probe.usable_machine(probe_result)
         workspace = unpack_workspace(
-            machine, archive, [session_fields["project"], session_fields["session"]]
+            machine,
+            archive,
+            [session_fields["project"], session_fields["session"]],
         )
     except locate.RunError as error:
         print(f"{PROGRAM_NAME}: error: {error}", file=sys.stderr)
@@ -495,7 +506,8 @@ def call(options: argparse.Namespace) -> int:
     ).resolve()
     call_id = unused_call_id(output_directory)
     staged_output = (
-        f"{locate.SESSION_OUTPUTS_DIRECTORY}/{state['machine']['name']}/{call_id}"
+        f"{locate.SESSION_OUTPUTS_DIRECTORY}/"
+        f"{state['machine']['name']}/{call_id}"
     )
     code = run_machine_command(
         state,
@@ -549,7 +561,9 @@ def upload(options: argparse.Namespace) -> int:
         raise locate.RunError(f"{source} does not exist")
 
     destination = pathlib.PurePosixPath(options.destination)
-    upload_path(state, source.resolve(), str(destination.parent), destination.name)
+    upload_path(
+        state, source.resolve(), str(destination.parent), destination.name
+    )
     print(f"uploaded {source} to {state['machine']['name']}:{destination}")
 
     return locate.EXIT_SUCCESS
@@ -558,7 +572,9 @@ def upload(options: argparse.Namespace) -> int:
 def download(options: argparse.Namespace) -> int:
     state = read_state(options)
     source = pathlib.PurePosixPath(options.source)
-    download_path(state, str(source), pathlib.Path(options.destination).resolve())
+    download_path(
+        state, str(source), pathlib.Path(options.destination).resolve()
+    )
     print(f"downloaded {source.name} into {options.destination}")
 
     return locate.EXIT_SUCCESS
@@ -615,7 +631,9 @@ def parse_arguments(arguments: list[str]) -> argparse.Namespace:
     opening.add_argument("service")
     opening.add_argument("--machine", action="append", required=True)
     opening.add_argument("--ref", default="main")
-    opening.add_argument("--package", action="append", dest="packages", default=[])
+    opening.add_argument(
+        "--package", action="append", dest="packages", default=[]
+    )
 
     targeting = argparse.ArgumentParser(add_help=False)
     targeting.add_argument("--session", metavar="SERVICE/TIMESTAMP")
@@ -626,16 +644,22 @@ def parse_arguments(arguments: list[str]) -> argparse.Namespace:
     serving.add_argument(
         "--webui", choices=locate.WEBUI_CHOICES, default=locate.WEBUI_NONE
     )
-    serving.add_argument("--timeout", type=int, default=locate.UP_TIMEOUT_SECONDS)
+    serving.add_argument(
+        "--timeout", type=int, default=locate.UP_TIMEOUT_SECONDS
+    )
 
     for name, handler in (("down", down), ("close", close_session)):
-        commands.add_parser(name, parents=[targeting]).set_defaults(handler=handler)
+        commands.add_parser(name, parents=[targeting]).set_defaults(
+            handler=handler
+        )
 
     calling = commands.add_parser("call", parents=[targeting])
     calling.set_defaults(handler=call)
     calling.add_argument("workflow")
     calling.add_argument("input_json")
-    calling.add_argument("--file", action="append", default=[], metavar="FIELD=PATH")
+    calling.add_argument(
+        "--file", action="append", default=[], metavar="FIELD=PATH"
+    )
     calling.add_argument("--output-directory", type=pathlib.Path)
 
     executing = commands.add_parser("execute", parents=[targeting])

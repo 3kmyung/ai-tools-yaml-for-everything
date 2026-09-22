@@ -68,7 +68,9 @@ def kill_orphaned_ssh(parent_pid: int) -> None:
 def kill_process(pid: int) -> None:
     if sys.platform == "win32":
         subprocess.run(
-            ["taskkill", "/PID", str(pid), "/T", "/F"], capture_output=True, check=False
+            ["taskkill", "/PID", str(pid), "/T", "/F"],
+            capture_output=True,
+            check=False,
         )
         kill_orphaned_ssh(pid)
 

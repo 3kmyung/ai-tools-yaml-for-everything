@@ -23,14 +23,18 @@ def git_output(arguments: list[str], repository: pathlib.Path) -> bytes:
 
     if result.returncode != 0:
         error_output = result.stderr.decode("utf-8", "replace").strip()
-        raise locate.RunError(f"git {' '.join(arguments)} failed: {error_output}")
+        raise locate.RunError(
+            f"git {' '.join(arguments)} failed: {error_output}"
+        )
 
     return result.stdout
 
 
 def repository_root(start: pathlib.Path) -> pathlib.Path:
     return pathlib.Path(
-        git_output(["rev-parse", "--show-toplevel"], start).decode("utf-8").strip()
+        git_output(["rev-parse", "--show-toplevel"], start)
+        .decode("utf-8")
+        .strip()
     )
 
 
@@ -67,7 +71,8 @@ def add_directory(
     def excluded(member: tarfile.TarInfo) -> tarfile.TarInfo | None:
         return (
             None
-            if pathlib.PurePosixPath(member.name).name in SKIPPED_DIRECTORY_NAMES
+            if pathlib.PurePosixPath(member.name).name
+            in SKIPPED_DIRECTORY_NAMES
             else member
         )
 
@@ -113,14 +118,16 @@ def workspace_archive(
 
     with tarfile.open(fileobj=buffer, mode="w:") as archive:
         copy_archive(
-            git_output(["archive", "--format=tar", reference], repository), archive
+            git_output(["archive", "--format=tar", reference], repository),
+            archive,
         )
 
         if isinstance(source, pathlib.Path):
             add_directory(source, archive, f"releases/{name}")
         else:
             service_tree = git_output(
-                ["archive", "--format=tar", source, f"releases/{name}"], repository
+                ["archive", "--format=tar", source, f"releases/{name}"],
+                repository,
             )
             copy_archive(service_tree, archive)
 

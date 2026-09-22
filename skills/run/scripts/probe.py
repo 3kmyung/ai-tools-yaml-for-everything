@@ -19,7 +19,12 @@ SSH_OPTIONS = (
     f"ConnectTimeout={SSH_CONNECT_TIMEOUT_SECONDS}",
 )
 LOCAL_MACHINE = "local"
-GIT_HOST_NAMES = ("github.com", "gitlab.com", "bitbucket.org", "ssh.dev.azure.com")
+GIT_HOST_NAMES = (
+    "github.com",
+    "gitlab.com",
+    "bitbucket.org",
+    "ssh.dev.azure.com",
+)
 BARE_WORD_PATTERN = re.compile(r"[\w.:\\/+-]+")
 SSH_CONNECTION_FAILED = 255
 PROBE_TIMEOUT_SECONDS = 30
@@ -36,7 +41,8 @@ for path in candidates:
         free[path] = shutil.disk_usage(path).free
 root = max(free, key=free.get) if free else candidates[0]
 version = "%d.%d" % sys.version_info[:2]
-print(sys.executable, platform.system(), root, version, free.get(root, 0), sep="\\t")
+print(sys.executable, platform.system(), root, version, free.get(root, 0), \
+sep="\\t")
 """
 PROBE_CODE = "import base64;exec(base64.b64decode('{}'))".format(
     base64.b64encode(PROBE_SCRIPT.encode("utf-8")).decode("ascii")
@@ -86,7 +92,9 @@ def ssh_configuration_lines(path: pathlib.Path, depth: int = 0) -> list[str]:
             if depth < SSH_INCLUDE_DEPTH:
                 for pattern in parts[1].split():
                     for included in included_paths(pattern):
-                        expanded.extend(ssh_configuration_lines(included, depth + 1))
+                        expanded.extend(
+                            ssh_configuration_lines(included, depth + 1)
+                        )
 
             continue
 
@@ -110,7 +118,11 @@ def ssh_hosts() -> list[tuple[str, str]]:
         keyword, value = parts[0].lower(), parts[1].strip()
 
         if keyword == "host":
-            current = [name for name in value.split() if not re.search(r"[*?!]", name)]
+            current = [
+                name
+                for name in value.split()
+                if not re.search(r"[*?!]", name)
+            ]
 
             for name in current:
                 hosts.append((name, name))
@@ -146,24 +158,41 @@ def ssh_command(host: str, arguments: list[str]) -> list[str]:
         "ssh",
         *SSH_OPTIONS,
         host,
-        " ".join([command_word(program), *(f'"{argument}"' for argument in rest)]),
+        " ".join(
+            [command_word(program), *(f'"{argument}"' for argument in rest)]
+        ),
     ]
 
 
 def parse_probe(name: str, host: str | None, output: str) -> Machine | None:
-    fields = output.strip().splitlines()[-1].split("\t") if output.strip() else []
+    fields = (
+        output.strip().splitlines()[-1].split("\t")
+        if output.strip()
+        else []
+    )
 
     if len(fields) != PROBE_FIELD_COUNT:
         return None
 
     python, system, temporary_root, version, free_bytes = fields
 
-    return Machine(name, host, python, system, temporary_root, version, int(free_bytes))
+    return Machine(
+        name,
+        host,
+        python,
+        system,
+        temporary_root,
+        version,
+        int(free_bytes),
+    )
 
 
 def probe_local() -> Probe:
     result = subprocess.run(
-        [sys.executable, "-c", PROBE_CODE], capture_output=True, text=True, check=False
+        [sys.executable, "-c", PROBE_CODE],
+        capture_output=True,
+        text=True,
+        check=False,
     )
 
     return Probe(
@@ -186,10 +215,14 @@ def probe_remote(name: str) -> Probe:
                 check=False,
             )
         except subprocess.TimeoutExpired:
-            return Probe(name, None, f"no answer in {PROBE_TIMEOUT_SECONDS} seconds")
+            return Probe(
+                name, None, f"no answer in {PROBE_TIMEOUT_SECONDS} seconds"
+            )
 
         machine = (
-            parse_probe(name, name, result.stdout) if result.returncode == 0 else None
+            parse_probe(name, name, result.stdout)
+            if result.returncode == 0
+            else None
         )
 
         if machine is not None:
@@ -218,7 +251,10 @@ def python_version(machine: Machine) -> tuple[int, int]:
 
 def version_problem(machine: Machine) -> str:
     if python_version(machine) < locate.SCRIPT_MINIMUM_PYTHON:
-        return f"Python {machine.version} is too old to run the machine-side scripts"
+        return (
+            f"Python {machine.version} is too old"
+            " to run the machine-side scripts"
+        )
 
     return ""
 
@@ -226,7 +262,8 @@ def version_problem(machine: Machine) -> str:
 def version_note(machine: Machine) -> str:
     if python_version(machine) < locate.ENVIRONMENT_MINIMUM_PYTHON:
         return (
-            f"Python {machine.version} < {locate.ENVIRONMENT_MINIMUM_PYTHON_TEXT},"
+            f"Python {machine.version}"
+            f" < {locate.ENVIRONMENT_MINIMUM_PYTHON_TEXT},"
             " so open installs an isolated uv Python"
         )
 
@@ -237,7 +274,10 @@ def space_note(machine: Machine) -> str:
     if machine.free_bytes >= LOW_SPACE_BYTES:
         return ""
 
-    return f"only {gibibytes(machine.free_bytes)} free in {machine.temporary_root}"
+    return (
+        f"only {gibibytes(machine.free_bytes)} free"
+        f" in {machine.temporary_root}"
+    )
 
 
 def gibibytes(size: int) -> str:

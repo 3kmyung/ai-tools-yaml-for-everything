@@ -78,7 +78,9 @@ def load_document(path: pathlib.Path) -> dict[str, typing.Any]:
     return document
 
 
-def components_of(document: dict[str, typing.Any]) -> list[dict[str, typing.Any]]:
+def components_of(
+    document: dict[str, typing.Any]
+) -> list[dict[str, typing.Any]]:
     if "components" in document:
         values = document["components"] or []
     elif "component" in document:
@@ -89,7 +91,9 @@ def components_of(document: dict[str, typing.Any]) -> list[dict[str, typing.Any]
     return [value for value in values if isinstance(value, dict)]
 
 
-def section(document: dict[str, typing.Any], name: str) -> dict[str, typing.Any] | None:
+def section(
+    document: dict[str, typing.Any], name: str
+) -> dict[str, typing.Any] | None:
     controller = document.get("controller")
     value = controller.get(name) if isinstance(controller, dict) else None
 
@@ -110,7 +114,10 @@ def add_gradio(
 ) -> int:
     existing = section(document, "webui")
 
-    if existing is not None and existing.get("driver", GRADIO_DRIVER) == GRADIO_DRIVER:
+    if (
+        existing is not None
+        and existing.get("driver", GRADIO_DRIVER) == GRADIO_DRIVER
+    ):
         port = port_of(existing.get("port"))
 
         if port is not None:
@@ -119,7 +126,8 @@ def add_gradio(
     taken = {
         port
         for port in (
-            port_of(component.get("port")) for component in components_of(document)
+            port_of(component.get("port"))
+            for component in components_of(document)
         )
         if port
     }
@@ -187,7 +195,8 @@ def save_changes(
         return
 
     path.write_text(
-        yaml.safe_dump(document, sort_keys=False, allow_unicode=True), encoding="utf-8"
+        yaml.safe_dump(document, sort_keys=False, allow_unicode=True),
+        encoding="utf-8",
     )
     print(
         f"workspace copy of {locate.COMPOSE_FILE}: {'; '.join(changes)}",
@@ -229,7 +238,9 @@ def wanted_interface(
     base_path = (resolve_value(adapter.get("base_path")) or "").rstrip("/")
 
     if webui == locate.WEBUI_GRADIO:
-        ports[locate.WEBUI_GRADIO] = add_gradio(document, adapter_port, changes)
+        ports[locate.WEBUI_GRADIO] = add_gradio(
+            document, adapter_port, changes
+        )
     elif webui == locate.WEBUI_COMPONENT:
         component = next(
             (
@@ -243,7 +254,8 @@ def wanted_interface(
 
         if component_port is None:
             raise locate.RunError(
-                f"--webui component needs an id: webui component with a port in {path}"
+                "--webui component needs an id: webui component"
+                f" with a port in {path}"
             )
 
         ports[locate.WEBUI_COMPONENT] = component_port
@@ -272,10 +284,14 @@ def up(payload: dict[str, typing.Any]) -> int:
             )
 
     interface = wanted_interface(
-        service_directory, locate.original_compose_path(workspace, payload), webui
+        service_directory,
+        locate.original_compose_path(workspace, payload),
+        webui,
     )
     ports = interface.ports
-    log_path = locate.machine_logs_directory(workspace, payload) / SERVER_LOG_FILE
+    log_path = (
+        locate.machine_logs_directory(workspace, payload) / SERVER_LOG_FILE
+    )
     busy = [
         f"{label} port {port}"
         for label, port in ports.items()
@@ -297,7 +313,8 @@ def up(payload: dict[str, typing.Any]) -> int:
 
     if busy:
         raise locate.RunError(
-            f"already in use on this machine: {', '.join(busy)}", locate.EXIT_BUSY
+            f"already in use on this machine: {', '.join(busy)}",
+            locate.EXIT_BUSY,
         )
 
     bin_directory = locate.virtual_environment_bin(workspace)
@@ -329,7 +346,10 @@ def up(payload: dict[str, typing.Any]) -> int:
         "websocket_path": interface.websocket_path,
     }
     record_path.write_text(json.dumps(record), encoding="utf-8")
-    print(f"launched {LAUNCHER} up (pid {process.pid}), log: {log_path}", flush=True)
+    print(
+        f"launched {LAUNCHER} up (pid {process.pid}), log: {log_path}",
+        flush=True,
+    )
     deadline = time.monotonic() + timeout
 
     while True:
@@ -341,7 +361,8 @@ def up(payload: dict[str, typing.Any]) -> int:
         if process.poll() is not None:
             kill_server(workspace, payload)
             raise locate.RunError(
-                f"{LAUNCHER} exited with code {process.returncode} before listening;"
+                f"{LAUNCHER} exited with code {process.returncode}"
+                " before listening;"
                 f" last {locate.LOG_TAIL_LINES} lines of {log_path}:"
                 f"\n{diagnose.annotated(locate.log_tail(log_path))}",
                 locate.EXIT_UNREACHABLE,
@@ -412,7 +433,9 @@ def runs_in_workspace(process: typing.Any, workspace: pathlib.Path) -> bool:
     return directory == workspace or workspace in directory.parents
 
 
-def add_with_children(process: typing.Any, tree: dict[int, typing.Any]) -> None:
+def add_with_children(
+    process: typing.Any, tree: dict[int, typing.Any]
+) -> None:
     import psutil
 
     try:
@@ -449,7 +472,9 @@ def process_tree(
 def ready_line(
     ports: dict[str, int], base_path: str | None, log_path: pathlib.Path
 ) -> str:
-    return json.dumps({"ports": ports, "base_path": base_path, "log": str(log_path)})
+    return json.dumps(
+        {"ports": ports, "base_path": base_path, "log": str(log_path)}
+    )
 
 
 def read_record(
@@ -457,13 +482,17 @@ def read_record(
 ) -> dict[str, typing.Any] | None:
     try:
         return json.loads(
-            locate.server_record_path(workspace, payload).read_text(encoding="utf-8")
+            locate.server_record_path(workspace, payload).read_text(
+                encoding="utf-8"
+            )
         )
     except (OSError, ValueError):
         return None
 
 
-def held_by_this_session(workspace: pathlib.Path, ports: dict[str, int]) -> bool:
+def held_by_this_session(
+    workspace: pathlib.Path, ports: dict[str, int]
+) -> bool:
     import psutil
 
     listener_pids = listening_pids(set(ports.values()))
@@ -484,7 +513,9 @@ def held_by_this_session(workspace: pathlib.Path, ports: dict[str, int]) -> bool
 
 
 def serves_this_session(
-    workspace: pathlib.Path, payload: dict[str, typing.Any], ports: dict[str, int]
+    workspace: pathlib.Path,
+    payload: dict[str, typing.Any],
+    ports: dict[str, int],
 ) -> bool:
     record = read_record(workspace, payload)
 
@@ -523,7 +554,9 @@ def kill_processes(processes: list[typing.Any]) -> None:
     psutil.wait_procs(alive, timeout=KILL_TIMEOUT_SECONDS)
 
 
-def kill_server(workspace: pathlib.Path, payload: dict[str, typing.Any]) -> str:
+def kill_server(
+    workspace: pathlib.Path, payload: dict[str, typing.Any]
+) -> str:
     record_path = locate.server_record_path(workspace, payload)
 
     try:
@@ -531,7 +564,9 @@ def kill_server(workspace: pathlib.Path, payload: dict[str, typing.Any]) -> str:
     except (OSError, ValueError):
         return "no server was running"
 
-    processes = process_tree(record["pid"], record["ports"].values(), workspace)
+    processes = process_tree(
+        record["pid"], record["ports"].values(), workspace
+    )
     kill_processes(processes)
     record_path.unlink(missing_ok=True)
 

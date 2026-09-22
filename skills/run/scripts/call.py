@@ -75,7 +75,9 @@ class WorkflowRun:
 
         for field, path in files.items():
             stream_id = uuid.uuid4().hex
-            content_type = mimetypes.guess_type(path.name)[0] or DEFAULT_CONTENT_TYPE
+            content_type = (
+                mimetypes.guess_type(path.name)[0] or DEFAULT_CONTENT_TYPE
+            )
             self.uploads[stream_id] = (path.open("rb"), 0)
             payload_input[field] = {
                 VARIABLE_MARKER: {
@@ -98,8 +100,12 @@ class WorkflowRun:
             },
         )
 
-    async def send(self, message_type: str, data: dict[str, typing.Any]) -> None:
-        await self.connection.send(json.dumps({"type": message_type, "data": data}))
+    async def send(
+        self, message_type: str, data: dict[str, typing.Any]
+    ) -> None:
+        await self.connection.send(
+            json.dumps({"type": message_type, "data": data})
+        )
 
     async def run(self) -> typing.Any:
         import websockets.exceptions
@@ -123,7 +129,8 @@ class WorkflowRun:
             pass
         except asyncio.TimeoutError as error:
             raise locate.RunError(
-                f"no message for {IDLE_TIMEOUT_SECONDS} seconds", locate.EXIT_TIMEOUT
+                f"no message for {IDLE_TIMEOUT_SECONDS} seconds",
+                locate.EXIT_TIMEOUT,
             ) from error
         except websockets.exceptions.WebSocketException as error:
             raise locate.RunError(
@@ -134,7 +141,8 @@ class WorkflowRun:
             self.close_files()
 
         raise locate.RunError(
-            "connection closed before the workflow finished", locate.EXIT_RUN_FAILED
+            "connection closed before the workflow finished",
+            locate.EXIT_RUN_FAILED,
         )
 
     async def check_state_periodically(self) -> None:
@@ -181,7 +189,8 @@ class WorkflowRun:
 
         if status in FAILED_STATUSES:
             raise locate.RunError(
-                f"workflow {status}: {diagnose.annotated(str(data.get('error')))}",
+                f"workflow {status}: "
+                f"{diagnose.annotated(str(data.get('error')))}",
                 locate.EXIT_RUN_FAILED,
             )
 
@@ -189,7 +198,9 @@ class WorkflowRun:
             return
 
         self.completed = True
-        self.output = self.register_downloads(data.get("output"), [OUTPUT_STEM])
+        self.output = self.register_downloads(
+            data.get("output"), [OUTPUT_STEM]
+        )
 
         for stream_id in list(self.downloads):
             await self.send("stream_pull", {"id": stream_id})
@@ -203,7 +214,9 @@ class WorkflowRun:
             kind = marker.get("kind", BYTES_KIND)
             extension = extension_for(marker.get("content_type"), kind)
             path = self.output_directory / (".".join(path_parts) + extension)
-            self.downloads[marker["id"]] = Download(path, path.open("wb"), kind)
+            self.downloads[marker["id"]] = Download(
+                path, path.open("wb"), kind
+            )
 
             return path.name
 
@@ -231,7 +244,9 @@ class WorkflowRun:
         download.handle.write(chunk)
         await self.send("stream_pull", {"id": stream_id})
 
-    async def receive_value_chunk(self, stream_id: str, value: typing.Any) -> None:
+    async def receive_value_chunk(
+        self, stream_id: str, value: typing.Any
+    ) -> None:
         download = self.downloads.get(stream_id)
 
         if download is None:
@@ -270,7 +285,8 @@ class WorkflowRun:
 
         download.handle.close()
         print(
-            f"saved {download.path.name} ({download.path.stat().st_size} bytes)",
+            f"saved {download.path.name} "
+            f"({download.path.stat().st_size} bytes)",
             flush=True,
         )
 
@@ -298,7 +314,9 @@ def encode_frame(stream_id: str, sequence: int, chunk: bytes) -> bytes:
 def decode_frame(frame: bytes) -> tuple[str, bytes]:
     stream_id_length = STREAM_ID_LENGTH_FORMAT.unpack_from(frame, 0)[0]
     stream_id_end = STREAM_ID_LENGTH_FORMAT.size + stream_id_length
-    stream_id = frame[STREAM_ID_LENGTH_FORMAT.size : stream_id_end].decode("utf-8")
+    stream_id = frame[STREAM_ID_LENGTH_FORMAT.size : stream_id_end].decode(
+        "utf-8"
+    )
 
     return stream_id, frame[stream_id_end + SEQUENCE_FORMAT.size :]
 
@@ -319,7 +337,10 @@ def stream_marker(value: typing.Any) -> dict[str, typing.Any] | None:
 
     variable = value[VARIABLE_MARKER]
 
-    if isinstance(variable, dict) and variable.get("type") == STREAM_VARIABLE_TYPE:
+    if (
+        isinstance(variable, dict)
+        and variable.get("type") == STREAM_VARIABLE_TYPE
+    ):
         return variable
 
     return None
@@ -335,7 +356,9 @@ async def run_workflow(
     import websockets.exceptions
 
     try:
-        connection = await websockets.asyncio.client.connect(url, max_size=None)
+        connection = await websockets.asyncio.client.connect(
+            url, max_size=None
+        )
     except (OSError, websockets.exceptions.WebSocketException) as error:
         raise locate.RunError(
             f"{url} is not accepting connections: {error}; run up first",
@@ -357,7 +380,10 @@ def websocket_url(record: dict[str, typing.Any]) -> str:
             f"{locate.COMPOSE_FILE} disables controller.adapter.websocket"
         )
 
-    return f"ws://{locate.HOST}:{record['ports']['adapter']}{record['base_path']}{path}"
+    return (
+        f"ws://{locate.HOST}:{record['ports']['adapter']}"
+        f"{record['base_path']}{path}"
+    )
 
 
 def run_with_inputs(
@@ -386,7 +412,9 @@ def call(payload: dict[str, typing.Any]) -> int:
 
     try:
         record = json.loads(
-            locate.server_record_path(workspace, payload).read_text(encoding="utf-8")
+            locate.server_record_path(workspace, payload).read_text(
+                encoding="utf-8"
+            )
         )
     except (OSError, ValueError) as error:
         raise locate.RunError(
@@ -401,7 +429,8 @@ def call(payload: dict[str, typing.Any]) -> int:
         output_directory.mkdir(parents=True)
     except FileExistsError as error:
         raise locate.RunError(
-            f"{output_directory} already exists; call again for a new output folder"
+            f"{output_directory} already exists;"
+            " call again for a new output folder"
         ) from error
 
     try:
@@ -413,7 +442,9 @@ def call(payload: dict[str, typing.Any]) -> int:
         raise
 
     output_text = json.dumps(output, ensure_ascii=False, indent=2)
-    (output_directory / OUTPUT_FILE).write_text(output_text + "\n", encoding="utf-8")
+    (output_directory / OUTPUT_FILE).write_text(
+        output_text + "\n", encoding="utf-8"
+    )
     print(output_text, flush=True)
 
     return locate.EXIT_SUCCESS

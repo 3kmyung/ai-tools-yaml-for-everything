@@ -38,7 +38,9 @@ LOG_TAIL_LINES = 40
 WINDOWS_DETACHED_FLAGS = 0x00000200 | 0x08000000
 WINDOWS_BREAKAWAY_FROM_JOB_FLAG = 0x01000000
 ENVIRONMENT_MINIMUM_PYTHON = (3, 10)
-ENVIRONMENT_MINIMUM_PYTHON_TEXT = ".".join(map(str, ENVIRONMENT_MINIMUM_PYTHON))
+ENVIRONMENT_MINIMUM_PYTHON_TEXT = ".".join(
+    map(str, ENVIRONMENT_MINIMUM_PYTHON)
+)
 SCRIPT_MINIMUM_PYTHON = (3, 8)
 EXIT_SUCCESS = 0
 EXIT_USAGE = 2
@@ -142,14 +144,18 @@ def virtual_environment_variables(workspace: pathlib.Path) -> dict[str, str]:
     }
 
 
-def popen_detached(arguments: list[str], **options: typing.Any) -> subprocess.Popen:
+def popen_detached(
+    arguments: list[str], **options: typing.Any
+) -> subprocess.Popen:
     if sys.platform != "win32":
         return subprocess.Popen(arguments, start_new_session=True, **options)
 
     try:
         return subprocess.Popen(
             arguments,
-            creationflags=WINDOWS_DETACHED_FLAGS | WINDOWS_BREAKAWAY_FROM_JOB_FLAG,
+            creationflags=(
+                WINDOWS_DETACHED_FLAGS | WINDOWS_BREAKAWAY_FROM_JOB_FLAG
+            ),
             **options,
         )
     except PermissionError:
@@ -164,7 +170,12 @@ def log_tail(path: pathlib.Path, line_count: int = LOG_TAIL_LINES) -> str:
     except OSError:
         return f"({path} does not exist)"
 
-    lines = text.replace("\r\n", "\n").replace("\r", "\n").rstrip("\n").split("\n")
+    lines = (
+        text.replace("\r\n", "\n")
+        .replace("\r", "\n")
+        .rstrip("\n")
+        .split("\n")
+    )
 
     return "\n".join(lines[-line_count:])
 
@@ -176,7 +187,9 @@ def port_in_use(port: int) -> bool:
         return connection.connect_ex((HOST, port)) == 0
 
 
-def extract(archive_stream: typing.BinaryIO, destination: pathlib.Path) -> None:
+def extract(
+    archive_stream: typing.BinaryIO, destination: pathlib.Path
+) -> None:
     destination.mkdir(parents=True, exist_ok=True)
 
     with tarfile.open(fileobj=archive_stream, mode="r|*") as archive:
@@ -186,21 +199,31 @@ def extract(archive_stream: typing.BinaryIO, destination: pathlib.Path) -> None:
             archive.extractall(destination)
 
 
-def remove_empty_directories(directory: pathlib.Path, stop: pathlib.Path) -> None:
+def remove_empty_directories(
+    directory: pathlib.Path, stop: pathlib.Path
+) -> None:
     children = list(directory.iterdir()) if directory.is_dir() else []
 
     for child in children:
         if child.is_dir() and not any(child.iterdir()):
             child.rmdir()
 
-    while directory != stop and directory.is_dir() and not any(directory.iterdir()):
+    while (
+        directory != stop
+        and directory.is_dir()
+        and not any(directory.iterdir())
+    ):
         directory.rmdir()
         directory = directory.parent
 
 
 def encode_payload(payload: dict[str, typing.Any]) -> str:
-    return base64.urlsafe_b64encode(json.dumps(payload).encode("utf-8")).decode("ascii")
+    return base64.urlsafe_b64encode(
+        json.dumps(payload).encode("utf-8")
+    ).decode("ascii")
 
 
 def decode_payload(text: str) -> dict[str, typing.Any]:
-    return json.loads(base64.urlsafe_b64decode(text.encode("ascii")).decode("utf-8"))
+    return json.loads(
+        base64.urlsafe_b64decode(text.encode("ascii")).decode("utf-8")
+    )

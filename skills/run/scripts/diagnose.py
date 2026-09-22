@@ -4,11 +4,14 @@ import re
 
 SIGNATURES = (
     (
-        re.compile(r"not compiled with CUDA|torch\.cuda\.is_available\(\) is False"),
+        re.compile(
+            r"not compiled with CUDA|"
+            r"torch\.cuda\.is_available\(\) is False"
+        ),
         "the component runtime installed a CPU-only torch wheel",
         (
-            "report this log as it is; if a fix lives on another ref, open again"
-            " with --ref instead of editing the source"
+            "report this log as it is; if a fix lives on another ref,"
+            " open again with --ref instead of editing the source"
         ),
     ),
     (
@@ -26,13 +29,16 @@ SIGNATURES = (
         re.compile(r"ffprobe|ffmpeg"),
         "ffmpeg is a system binary, not a pip dependency",
         (
-            "report it; open installs ffmpeg and ffprobe into the virtual environment"
-            " when they are missing from PATH"
+            "report it; open installs ffmpeg and ffprobe into the virtual"
+            " environment when they are missing from PATH"
         ),
     ),
     (
         re.compile(r"No module named 'mindor|mindor\.version"),
-        "an older model-compose distribution is in the way of this repository's code",
+        (
+            "an older model-compose distribution is in the way"
+            " of this repository's code"
+        ),
         "report it; never pip install model-compose",
     ),
     (

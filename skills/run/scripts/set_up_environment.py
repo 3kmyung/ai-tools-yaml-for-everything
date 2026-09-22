@@ -30,7 +30,9 @@ SUPPLY_REMEDY = "a copy is supplied inside the virtual environment"
 REPORT_REMEDY = "nothing installs it; commands that need it refuse to start"
 
 
-def run_step(step: list[str], environment: dict[str, str] | None = None) -> None:
+def run_step(
+    step: list[str], environment: dict[str, str] | None = None
+) -> None:
     print(f"$ {' '.join(step)}", flush=True)
     code = subprocess.run(
         step, stdin=subprocess.DEVNULL, env=environment, check=False
@@ -53,10 +55,16 @@ def uv_environment(workspace: pathlib.Path) -> dict[str, str]:
 
 def install_uv(workspace: pathlib.Path) -> pathlib.Path:
     windows = sys.platform == "win32"
-    installer = workspace / UV_DIRECTORY / ("install.ps1" if windows else "install.sh")
+    installer = (
+        workspace
+        / UV_DIRECTORY
+        / ("install.ps1" if windows else "install.sh")
+    )
     installer.parent.mkdir(parents=True, exist_ok=True)
     url = UV_INSTALLER_URL + installer.suffix
-    request = urllib.request.Request(url, headers={"User-Agent": DOWNLOAD_USER_AGENT})
+    request = urllib.request.Request(
+        url, headers={"User-Agent": DOWNLOAD_USER_AGENT}
+    )
 
     try:
         with urllib.request.urlopen(
@@ -78,7 +86,9 @@ def install_uv(workspace: pathlib.Path) -> pathlib.Path:
     executable = next(
         (
             path
-            for path in (workspace / UV_DIRECTORY).rglob("uv.exe" if windows else "uv")
+            for path in (workspace / UV_DIRECTORY).rglob(
+                "uv.exe" if windows else "uv"
+            )
             if path.is_file()
         ),
         None,
@@ -96,7 +106,9 @@ def install_uv(workspace: pathlib.Path) -> pathlib.Path:
 def create_virtual_environment(
     workspace: pathlib.Path, problems: dict[str, str]
 ) -> None:
-    environment_directory = str(workspace / locate.VIRTUAL_ENVIRONMENT_DIRECTORY)
+    environment_directory = str(
+        workspace / locate.VIRTUAL_ENVIRONMENT_DIRECTORY
+    )
 
     if "python" in problems:
         python = UV_PYTHON_VERSION
@@ -117,7 +129,14 @@ def create_virtual_environment(
 def supply_ffmpeg(workspace: pathlib.Path) -> None:
     python = str(locate.virtual_environment_python(workspace))
     run_step(
-        [python, "-m", "pip", "install", "--disable-pip-version-check", "static-ffmpeg"]
+        [
+            python,
+            "-m",
+            "pip",
+            "install",
+            "--disable-pip-version-check",
+            "static-ffmpeg",
+        ]
     )
     result = subprocess.run(
         [python, "-c", STATIC_FFMPEG_PATHS_CODE],
@@ -128,7 +147,8 @@ def supply_ffmpeg(workspace: pathlib.Path) -> None:
 
     if result.returncode != locate.EXIT_SUCCESS:
         raise locate.RunError(
-            f"static-ffmpeg could not fetch its binaries: {result.stderr.strip()}",
+            "static-ffmpeg could not fetch its binaries:"
+            f" {result.stderr.strip()}",
             locate.EXIT_SET_UP_FAILED,
         )
 
@@ -149,7 +169,9 @@ def supply_ffmpeg(workspace: pathlib.Path) -> None:
         )
 
     for name, source in zip(FFMPEG_TOOLS, paths):
-        destination = locate.virtual_environment_bin(workspace) / f"{name}{suffix}"
+        destination = (
+            locate.virtual_environment_bin(workspace) / f"{name}{suffix}"
+        )
         shutil.copy2(source, destination)
         print(f"placed {destination}", flush=True)
 
@@ -168,7 +190,10 @@ def ensurepip_problem() -> str:
     if importlib.util.find_spec("ensurepip") is not None:
         return ""
 
-    return "the host Python has no ensurepip, so python -m venv cannot seed pip"
+    return (
+        "the host Python has no ensurepip,"
+        " so python -m venv cannot seed pip"
+    )
 
 
 def host_problems() -> dict[str, str]:
@@ -177,14 +202,22 @@ def host_problems() -> dict[str, str]:
     return {name: problem for name, problem in problems.items() if problem}
 
 
-def missing_programs(workspace: pathlib.Path, names: tuple[str, ...]) -> list[str]:
+def missing_programs(
+    workspace: pathlib.Path, names: tuple[str, ...]
+) -> list[str]:
     search_path = locate.virtual_environment_variables(workspace)["PATH"]
 
-    return [name for name in names if shutil.which(name, path=search_path) is None]
+    return [
+        name
+        for name in names
+        if shutil.which(name, path=search_path) is None
+    ]
 
 
 def report_problems(
-    problems: dict[str, str], missing_ffmpeg: list[str], missing_webui: list[str]
+    problems: dict[str, str],
+    missing_ffmpeg: list[str],
+    missing_webui: list[str],
 ) -> None:
     for name, problem in problems.items():
         print(f"{name}: {problem}; {ENVIRONMENT_REMEDY}", flush=True)
