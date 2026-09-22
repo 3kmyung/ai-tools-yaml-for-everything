@@ -24,7 +24,7 @@ allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, WebFetch, Skill, AskUse
 | 체크포인트(Checkpoint) 후보가 둘 이상 | `model` |
 | 리포지터리가 모르는 체크포인트 | `model` |
 | 고른 `driver`에 그 `task`의 배선이 없는 경우 | `task` |
-| 예제 후보가 둘 이상이고 `output` 모양이 서로 다른 경우 | 출력 |
+| 예제 후보가 둘 이상이고 `output` 모양이 서로 다른 경우 | `출력` |
 | 경로에 없는 입력 파일 | `실행`에 쓸 입력 |
 | 예제의 `action` 필드(Field)나 `params`가 스키마(Schema) 기본값과 다른 경우 | `action` |
 
