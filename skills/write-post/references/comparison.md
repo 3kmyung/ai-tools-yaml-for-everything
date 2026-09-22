@@ -7,7 +7,7 @@
 | 1 | 두 결과물을 비교하게 만드는 캡션 |
 | 2 | 클라우드 서비스의 모델이 아닌 로컬 모델만 소개하는 산문, 핵심 장점 체크리스트 한 줄 |
 | 3 | 이것으로 무엇을 할 수 있는지, 독자가 체감하는 장점 |
-| 4 | 결과물 GIF에 붙일 캡션 |
+| 4 | GIF에 보이는 실제 입력과 결과를 담은 캡션 |
 | 5 | 로컬 모델의 기계별 숫자 행과 그 행들의 조건, 기계당 한 행 |
 | 6 | `model-compose` 링크 |
 
@@ -181,13 +181,25 @@ Suno returns a song in under a minute, YuE takes three.
 ✓
 
 ```
-🎬 The local run, recorded at the speed it ran
+🎬 A one-hour town hall in, a timestamped summary out
 ```
 
 ✓
 
 ```
-🎹 Lyrics in, song out, recorded at the speed it rendered
+🪗 A sea shanty from eight lines of lyrics, 2 min 10 s of song out
+```
+
+✗
+
+```
+🎹 Style and lyrics in, a score and a song out
+```
+
+✗
+
+```
+🎬 The local run, recorded at the speed it ran
 ```
 
 ✗

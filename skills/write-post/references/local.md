@@ -6,7 +6,7 @@
 | :---: | --- |
 | 1 | 결과, 로컬에서 돌았다는 장점, 모델 소개, 핵심 장점 체크리스트 한 줄 |
 | 2 | 이것으로 무엇을 할 수 있는지, 독자가 체감하는 장점 |
-| 3 | 결과물 GIF에 붙일 캡션 |
+| 3 | GIF에 보이는 실제 입력과 결과를 담은 캡션 |
 | 4 | 기계별 숫자 행과 그 행들의 조건, 기계당 한 행 |
 | 5 | `model-compose` 링크 |
 
@@ -153,7 +153,7 @@ It beats every cloud API on accuracy and it is completely free.
 ✓
 
 ```
-🎬 A two-hour podcast, summarized with timestamps, recorded at the speed it ran
+🎬 A two-hour podcast in, a summary with timestamps out
 ```
 
 ✓
