@@ -102,6 +102,7 @@ python -B "${CLAUDE_SKILL_DIR}/scripts/name.py" <repository> <task> <driver> <ch
 | `device`·포트(Port)·모델 경로처럼 기기마다 다른 값 | | ✓ | `${env.<NAME> \| <값>}`, `<값>`은 `type`·`task`·`driver`가 같은 `참고 예제`의 값 |
 | 그 밖의 컴포넌트 필드 | | ✓ | 생략 |
 | `workflows` | ✓ | | 단계 사이 값은 `${jobs.<id>.output}` |
+| 워크플로 `title`·`description` | ✓ | | |
 | `action` 필드와 `params` | ✓ | | 생략 |
 
 #### 규칙
