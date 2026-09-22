@@ -218,11 +218,11 @@ def websocket_path_of(adapter: dict[str, typing.Any]) -> str | None:
 
 
 def wanted_interface(
-    service_directory: pathlib.Path, original_path: pathlib.Path, webui: str
+    path: pathlib.Path,
+    document: dict[str, typing.Any],
+    webui: str,
+    changes: list[str],
 ) -> Interface:
-    path = service_directory / locate.COMPOSE_FILE
-    document = original_document(path, original_path)
-    changes: list[str] = []
     remove_unused_interfaces(document, webui, changes)
     adapter = section(document, "adapter")
 
@@ -260,9 +260,67 @@ def wanted_interface(
 
         ports[locate.WEBUI_COMPONENT] = component_port
 
-    save_changes(path, original_path, document, changes)
-
     return Interface(ports, base_path, websocket_path_of(adapter))
+
+
+def busy_ports(ports: dict[str, int]) -> list[str]:
+    return [
+        f"{label} port {port}"
+        for label, port in ports.items()
+        if locate.port_in_use(port)
+    ]
+
+
+def move_busy_ports(
+    document: dict[str, typing.Any],
+    interface: Interface,
+    webui: str,
+    changes: list[str],
+) -> Interface:
+    busy = busy_ports(interface.ports)
+
+    if not busy:
+        return interface
+
+    if webui == locate.WEBUI_COMPONENT:
+        raise locate.RunError(
+            f"already in use on this machine: {', '.join(busy)};"
+            " --webui component cannot move ports, because the built page"
+            " calls the adapter port it was built with",
+            locate.EXIT_BUSY,
+        )
+
+    taken = set(interface.ports.values()) | {
+        port
+        for port in (
+            port_of(component.get("port"))
+            for component in components_of(document)
+        )
+        if port
+    }
+    ports = dict(interface.ports)
+
+    for label, port in interface.ports.items():
+        if not locate.port_in_use(port):
+            continue
+
+        moved = free_port_after(port, taken)
+        taken.add(moved)
+        ports[label] = moved
+        name = "adapter" if label == "adapter" else "webui"
+        controller_section = section(document, name)
+
+        if controller_section is None:
+            raise locate.RunError(
+                f"cannot move the {label} port without controller.{name}"
+            )
+
+        controller_section["port"] = moved
+        changes.append(
+            f"moved the {label} port from {port}, in use, to {moved}"
+        )
+
+    return interface._replace(ports=ports)
 
 
 def up(payload: dict[str, typing.Any]) -> int:
@@ -283,39 +341,47 @@ def up(payload: dict[str, typing.Any]) -> int:
                 locate.EXIT_SET_UP_FAILED,
             )
 
-    interface = wanted_interface(
-        service_directory,
-        locate.original_compose_path(workspace, payload),
-        webui,
-    )
-    ports = interface.ports
+    path = service_directory / locate.COMPOSE_FILE
+    original_path = locate.original_compose_path(workspace, payload)
+    document = original_document(path, original_path)
+    changes: list[str] = []
+    interface = wanted_interface(path, document, webui, changes)
     log_path = (
         locate.machine_logs_directory(workspace, payload) / SERVER_LOG_FILE
     )
-    busy = [
-        f"{label} port {port}"
-        for label, port in ports.items()
-        if locate.port_in_use(port)
-    ]
+    record = read_record(workspace, payload)
+    running_ports = record.get("ports") if record else None
 
-    if busy and serves_this_session(workspace, payload, ports):
+    if running_ports and serves_this_session(
+        workspace, payload, running_ports
+    ):
+        if set(running_ports) != set(interface.ports):
+            raise locate.RunError(
+                "this session's server is already running with other"
+                " interfaces; run down, then up",
+                locate.EXIT_BUSY,
+            )
+
         print("reusing the server already running in this session", flush=True)
-        print(ready_line(ports, interface.base_path, log_path), flush=True)
+        print(
+            ready_line(running_ports, interface.base_path, log_path),
+            flush=True,
+        )
 
         return locate.EXIT_SUCCESS
 
-    if busy and held_by_this_session(workspace, ports):
+    if busy_ports(interface.ports) and held_by_this_session(
+        workspace, interface.ports
+    ):
         raise locate.RunError(
             "this session's server is already running with other interfaces;"
             " run down, then up",
             locate.EXIT_BUSY,
         )
 
-    if busy:
-        raise locate.RunError(
-            f"already in use on this machine: {', '.join(busy)}",
-            locate.EXIT_BUSY,
-        )
+    interface = move_busy_ports(document, interface, webui, changes)
+    save_changes(path, original_path, document, changes)
+    ports = interface.ports
 
     bin_directory = locate.virtual_environment_bin(workspace)
     launcher = shutil.which(LAUNCHER, path=str(bin_directory))

@@ -72,13 +72,14 @@ python -B "${CLAUDE_SKILL_DIR}/scripts/run.py" up <대상> [--webui gradio|compo
 
 - `--webui`를 주면 그 UI 포트(Port)가 열릴 때까지 대기
 - 원격 기기는 로컬 터널(Tunnel)로 연결, 로컬 포트는 `model-compose.yml`의 포트와 별개
+- `model-compose.yml`의 포트를 남의 프로세스가 쓰고 있으면 작업 폴더 사본의 그 포트를 다음 빈 포트로 옮겨 띄운다 → 출력의 `moved the ... port` 줄을 보고에 포함
 - 이 세션 서버(Server)가 같은 구성으로 실행 중이면 터널만 재연결 → 출력된 주소가 응답하지 않으면 `up` 재실행
 
 | 종료 코드 | 할 일 |
 | :---: | --- |
 | `0` | `model-compose.yml`의 포트가 아닌 출력된 `http://127.0.0.1:<포트>` 주소 사용 |
 | `8`, `this session's server is already running with other interfaces` | `down` 후 원하는 `--webui`로 `up` |
-| `8`, 그 밖의 출력 | 남의 프로세스(Process)는 중지하지 않고 출력 그대로 보고 후 중단 |
+| `8`, `--webui component cannot move ports` | 남의 프로세스(Process)는 중지하지 않고 출력 그대로 보고 후 중단 |
 | 그 밖의 종료 코드 | 출력 그대로 보고 후 중단 |
 
 ```bash
