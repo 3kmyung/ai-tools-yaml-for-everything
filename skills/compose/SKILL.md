@@ -48,7 +48,7 @@ allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, WebFetch, Skill, Bash(P
 | 출력 | 워크플로 `output`의 키와 값 |
 | 주 모델 | `이름`에 넘길 단계 번호 |
 | `실행`에 쓸 입력 | `입력` 열의 이름마다 사람이 준 값, 파일이면 경로, 주지 않은 입력은 예제에서 가져오지 않고 빈칸 |
-| 라이선스 | 체크포인트마다 |
+| 라이선스(License) | 체크포인트마다 |
 
 ### 2. 승인
 
@@ -132,7 +132,7 @@ python -B "${CLAUDE_SKILL_DIR}/scripts/name.py" <repository> <task> <driver> <ch
 Push-Location releases/<name>; if ($?) { $env:PYTHONUTF8=1; model-compose -f model-compose.yml validate; Pop-Location }
 ```
 
-가상 환경(Virtual Environment)이 작업 디렉터리 기준이고 그 디렉터리는 다음 호출까지 남으므로, 괄호·`Pop-Location`·UTF-8 강제·`-f` 위치를 바꾸지 않는다.
+가상 환경(Virtual Environment)이 작업 디렉터리(Working Directory) 기준이고 그 디렉터리는 다음 호출까지 남으므로, 괄호·`Pop-Location`·UTF-8 강제·`-f` 위치를 바꾸지 않는다.
 
 | `0`이 아닌 종료 코드가 가리키는 것 | 할 일 |
 | :---: | --- |
