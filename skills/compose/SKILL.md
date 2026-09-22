@@ -24,7 +24,7 @@ allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, WebFetch, Bash(PYTHONUT
 | 열 | 채우는 법 |
 | :---: | --- |
 | `#` | `1`부터 붙이는 번호 |
-| `id` | 컴포넌트(Component)의 역할 이름, 같은 컴포넌트의 다른 액션(Action)을 쓰는 단계는 같은 `id` |
+| `id` | 컴포넌트(Component)가 하는 일을 나타내는 명사(e.g., `composer`, `transcriber`), 모델이나 계열 이름 금지, 같은 컴포넌트의 다른 액션(Action)을 쓰는 단계는 같은 `id` |
 | `type` | `src/mindor/dsl/schema/component/impl/types.py`의 `ComponentType` 값 |
 | `task` | `model` 컴포넌트만, `src/mindor/dsl/schema/component/impl/model/tasks/common.py`의 `ModelTaskType` 값 |
 | `driver` | `model` 컴포넌트만, `architecture`·`family` 열거값이나 전용 로더(Loader)로 체크포인트(Checkpoint)를 배선한 드라이버(Driver) → 자동 감지 드라이버 → 빈칸 |
