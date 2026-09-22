@@ -98,7 +98,7 @@ python -B "${CLAUDE_SKILL_DIR}/scripts/name.py" <repository> <task> <driver> <ch
 | `architecture`·`family`·`preset` | | ✓ | 체크포인트가 요구하지 않으면 생략 |
 | `runtime.type` | | | `virtualenv` |
 | `runtime.path` | | | `.venv/<컴포넌트 id>` |
-| `runtime.start_timeout` | | | 첫 실행의 의존성 설치와 체크포인트 다운로드가 끝날 만큼 |
+| `runtime.start_timeout` | | | `참고 예제`에 있어도 생략 |
 | `device`·포트(Port)·모델 경로처럼 기기마다 다른 값 | | ✓ | `${env.<NAME> \| <값>}`, `<값>`은 `type`·`task`·`driver`가 같은 `참고 예제`의 값 |
 | 그 밖의 컴포넌트 필드 | | ✓ | 생략 |
 | `workflows` | ✓ | | 단계 사이 값은 `${jobs.<id>.output}` |
