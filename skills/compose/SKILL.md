@@ -40,7 +40,7 @@ allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, WebFetch, Skill, AskUse
 | 열 | 채우는 법 |
 | :---: | --- |
 | `#` | `1`부터 붙이는 번호 |
-| `id` | 컴포넌트(Component)가 하는 일을 나타내는 명사(e.g., `composer`, `transcriber`), 모델이나 계열 이름 금지, 같은 컴포넌트의 다른 액션(Action)을 쓰는 단계는 같은 `id` |
+| `id` | 컴포넌트(Component)가 하는 일을 나타내는 명사(e.g., `composer`, `transcriber`), 모델이나 계열 이름 금지, 같은 컴포넌트의 다른 액션(Action)을 쓰는 잡(Job)은 같은 `id` |
 | `type` | `src/mindor/dsl/schema/component/impl/types.py`의 `ComponentType` 값 |
 | `task` | `model` 컴포넌트만, `src/mindor/dsl/schema/component/impl/model/tasks/common.py`의 `ModelTaskType` 값 |
 | `driver` | `model` 컴포넌트만, `architecture`·`family` 열거값이나 전용 로더(Loader)로 체크포인트를 배선한 드라이버(Driver) → 자동 감지 드라이버 |
@@ -62,8 +62,8 @@ allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, WebFetch, Skill, AskUse
 | `title` | 워크플로가 하는 일, 30자 이하 |
 | `description` | 입력과 출력까지 한 문장, 120자 이하 |
 | 입력 | `${input.<이름>}`의 `<이름>` |
-| 출력 | 워크플로 `output`의 키와 값, 마지막이 아닌 단계의 값도 사람이 읽거나 들을 값이면 포함(e.g., `score: ${jobs.score.output.abc}`) |
-| 주 모델 | `이름`에 넘길 단계 번호 |
+| 출력 | 워크플로 `output`의 키와 값, 마지막이 아닌 잡의 값도 사람이 읽거나 들을 값이면 포함(e.g., `score: ${jobs.score.output.abc}`) |
+| 주 모델 | `이름`에 넘길 잡 번호 |
 | `실행`에 쓸 입력 | `입력` 열의 이름마다 사람이 준 값, 파일이면 경로, 주지 않은 입력은 예제에서 가져오지 않고 질문 |
 | 라이선스(License) | 체크포인트마다 |
 
@@ -104,7 +104,7 @@ python -B "${CLAUDE_SKILL_DIR}/scripts/name.py" <repository> <task> <driver> <ch
 | 컴포넌트 `runtime.start_timeout` | | | `참고 예제`에 있어도 생략 |
 | `device`·포트(Port)·모델 경로처럼 기기마다 다른 값 | | ✓ | `${env.<NAME> \| <값>}`, `<값>`은 `type`·`task`·`driver`가 같은 `참고 예제`의 값 |
 | 그 밖의 컴포넌트 필드 | | ✓ | 생략 |
-| `workflows` | ✓ | | 단계 사이 값은 `${jobs.<id>.output}` |
+| `workflows` | ✓ | | 잡 사이 값은 `${jobs.<id>.output}` |
 | 워크플로 `title`·`description` | ✓ | | |
 | `action` 필드와 `params` | ✓ | | 생략 |
 
@@ -115,15 +115,15 @@ python -B "${CLAUDE_SKILL_DIR}/scripts/name.py" <repository> <task> <driver> <ch
 | `components`·`workflows` | 목록 |
 | 워크플로 `id` | 동작 이름(e.g., `speak`, `transcribe`) |
 | 워크플로 `output` | 값이 하나여도 이름 붙인 매핑(e.g., `audio: ${output as audio/wav}`) |
-| 단계가 하나 | `job` |
-| 단계가 둘 이상 | `jobs` |
+| 잡이 하나 | `job` |
+| 잡이 둘 이상 | `jobs` |
 | 체크한 열에서 값을 못 찾고 마지막 열도 빈칸 | 질문 |
-| `설계` 결과에 없는 단계나 출처 없는 값이 필요 | 질문 |
-| 앞 단계의 출력을 쓰는 단계 | `depends_on`에 그 잡(Job)의 `id` |
-| 서로의 출력을 쓰지 않는 단계 | `depends_on`을 걸지 않아 병렬로 실행 |
-| 한 스트림(Stream)을 둘 이상의 단계가 사용 | `fan-out` 잡의 `output`에 사용할 단계마다 이름을 선언하고 `${jobs.<id>.output.<이름>}` |
+| `설계` 결과에 없는 잡이나 출처 없는 값이 필요 | 질문 |
+| 앞 잡의 출력을 쓰는 잡 | `depends_on`에 그 잡의 `id` |
+| 서로의 출력을 쓰지 않는 잡 | `depends_on`을 걸지 않아 병렬로 실행 |
+| 한 스트림(Stream)을 둘 이상의 잡이 사용 | `fan-out` 잡의 `output`에 사용할 잡마다 이름을 선언하고 `${jobs.<id>.output.<이름>}` |
 | 목록의 항목마다 같은 처리 | `for-each`, `batch_size`는 `max_concurrent_count`로 동시 실행을 제한하는 경우 그 수 이하 |
-| 항목 결과를 끝나는 대로 다음 단계로 | `for-each`의 `streaming: true` |
+| 항목 결과를 끝나는 대로 다음 잡으로 | `for-each`의 `streaming: true` |
 | 모델 출력이 도착하는 대로 사용 | 액션 `streaming: true`, 워크플로 `output`의 값은 `${output as stream/<타입>}` |
 
 ### 4. 검증
