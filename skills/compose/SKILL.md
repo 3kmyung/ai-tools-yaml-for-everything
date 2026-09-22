@@ -90,7 +90,8 @@ python -B "${CLAUDE_SKILL_DIR}/scripts/name.py" <repository> <task> <driver> <ch
 | 작성 대상 | `설계` | `설계`에 없으면 `참고 예제` | `참고 예제`에 없거나 값이 서로 다르면 |
 | :---: | :---: | :---: | --- |
 | `controller.adapter` | | ✓ | 생략 |
-| `controller.webui` | | | ✗ |
+| `controller.adapter.port` | | | `${env.PORT \| 8080}`, `참고 예제`에 리터럴(Literal)이 있어도 이 값 |
+| `controller.webui` | | | `driver: gradio`, `port: ${env.SERVER_PORT \| 8081}` |
 | `components` | ✓ | | |
 | `model`이 아닌 컴포넌트 | | ✓ | 생략, 필드는 `docs/reference/compose/components/<type>.md`, 없으면 `src/mindor/dsl/schema/component/impl/<type>.py` |
 | `model` 컴포넌트의 `task`·`driver`·`model` | ✓ | | GGUF면 `model`은 `provider: huggingface`·`repository`·`filename` 매핑 |
