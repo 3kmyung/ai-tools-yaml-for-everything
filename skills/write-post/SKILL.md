@@ -1,6 +1,6 @@
 ---
 name: write-post
-description: Use when a release's README is finished and needs an X thread, or when the user says "X 포스트", "트윗", "스레드", "SNS 홍보".
+description: Use when a service's README is finished and needs an X thread, or when the user says "X 포스트", "트윗", "스레드", "SNS 홍보".
 allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, AskUserQuestion, Bash(python -B *), PowerShell(python -B *), Bash(python -m pip install *), PowerShell(python -m pip install *)
 ---
 
