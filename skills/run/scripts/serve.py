@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import pathlib
@@ -518,10 +519,8 @@ def process_tree(
 
     tree: dict[int, typing.Any] = {}
 
-    try:
+    with contextlib.suppress(psutil.NoSuchProcess):
         add_with_children(psutil.Process(pid), tree)
-    except psutil.NoSuchProcess:
-        pass
 
     for listener_pid in listening_pids(set(ports)) - set(tree):
         try:

@@ -166,7 +166,7 @@ def supply_ffmpeg(workspace: pathlib.Path) -> None:
             locate.EXIT_SET_UP_FAILED,
         )
 
-    for name, source in zip(FFMPEG_TOOLS, paths):
+    for name, source in zip(FFMPEG_TOOLS, paths, strict=True):
         destination = (
             locate.virtual_environment_bin(workspace) / f"{name}{suffix}"
         )

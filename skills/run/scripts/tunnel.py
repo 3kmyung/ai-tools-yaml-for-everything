@@ -1,3 +1,4 @@
+import contextlib
 import os
 import pathlib
 import signal
@@ -76,10 +77,8 @@ def kill_process(pid: int) -> None:
 
         return
 
-    try:
+    with contextlib.suppress(ProcessLookupError):
         os.killpg(pid, signal.SIGTERM)
-    except ProcessLookupError:
-        pass
 
 
 def open_tunnel(
