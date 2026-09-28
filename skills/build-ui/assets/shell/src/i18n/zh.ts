@@ -1,0 +1,77 @@
+import type { ShellStrings } from "./shell-strings";
+
+export const ZH: ShellStrings = {
+  language: {
+    name: "简体中文",
+    label: "语言",
+  },
+  sidebar: {
+    open: "打开侧边栏",
+    close: "关闭侧边栏",
+    newRun: "新运行",
+    history: "运行记录",
+    emptyHistory: "还没有运行记录",
+    rename: "重命名",
+    delete: "删除",
+    threadName: "记录名称",
+  },
+  recency: {
+    today: "今天",
+    lastWeek: "最近 7 天",
+    older: "更早",
+  },
+  deleteSheet: {
+    title: "删除这条记录？",
+    description: "“{title}”的输入和结果将全部删除。",
+    cancel: "取消",
+    confirm: "删除",
+  },
+  composer: {
+    workflowPicker: "要运行的任务",
+    run: "运行",
+    stopRun: "停止运行",
+    stopping: "正在停止",
+    removeFile: "移除 {name}",
+    record: "录音",
+    stopRecording: "停止录音",
+    recording: "录音中 {time}",
+    preparingMicrophone: "正在准备麦克风…",
+    processingRecording: "正在处理录音…",
+    recordingBlocksRun: "录音结束后才能运行",
+  },
+  recordingErrors: {
+    insecureContext: "只有 https 或 localhost 地址才能录音。请上传文件。",
+    permissionDenied: "请允许使用麦克风。",
+    microphoneMissing: "没有找到麦克风。",
+    startFailed: "无法开始录音。",
+    conversionFailed: "无法转换录音。请重新录音。",
+  },
+  thread: {
+    running: "运行中",
+    stopping: "正在停止",
+    steps: "进度",
+    retry: "重试",
+  },
+  failures: {
+    server: { title: "运行失败", hint: "请在服务器日志中查看详细原因。" },
+    network: { title: "无法连接服务器", hint: "请确认服务器已启动，地址正确。" },
+    cancelled: { title: "运行已停止", hint: "重试会从头开始运行。" },
+    unanswered: { title: "没有收到结果", hint: "运行期间页面被关闭或刷新了。" },
+    "missing-file": { title: "找不到保存的输入文件", hint: "请重新上传文件并开始新的运行。" },
+    "unreadable-output": { title: "无法读取结果", hint: "服务器的输出与此页面预期的格式不同。" },
+  },
+  result: {
+    completedIn: "用时 {duration}",
+    seconds: "{value} 秒",
+    saveJson: "保存结果 JSON",
+  },
+  audio: {
+    play: "播放",
+    pause: "暂停",
+    position: "播放位置",
+    skipBack: "后退 {seconds} 秒",
+    skipForward: "前进 {seconds} 秒",
+    playbackRate: "播放速度 {rate}×",
+    save: "保存音频",
+  },
+};

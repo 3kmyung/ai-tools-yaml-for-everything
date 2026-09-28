@@ -1,0 +1,29 @@
+{
+  "__job__": {
+    "segments": {
+      "segments": [
+        {
+          "type": "audible",
+          "start_time": 0.0,
+          "end_time": 2.000794
+        },
+        {
+          "type": "silence",
+          "start_time": 2.000794,
+          "end_time": 3.500952
+        },
+        {
+          "type": "audible",
+          "start_time": 3.500952,
+          "end_time": 6.500839
+        },
+        {
+          "type": "silence",
+          "start_time": 6.500839,
+          "end_time": 7.300975
+        }
+      ],
+      "duration": 0.0
+    }
+  }
+}

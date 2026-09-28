@@ -1,0 +1,77 @@
+import type { ShellStrings } from "./shell-strings";
+
+export const EN: ShellStrings = {
+  language: {
+    name: "English",
+    label: "Language",
+  },
+  sidebar: {
+    open: "Open sidebar",
+    close: "Close sidebar",
+    newRun: "New run",
+    history: "Run history",
+    emptyHistory: "No runs yet",
+    rename: "Rename",
+    delete: "Delete",
+    threadName: "Run name",
+  },
+  recency: {
+    today: "Today",
+    lastWeek: "Last 7 days",
+    older: "Older",
+  },
+  deleteSheet: {
+    title: "Delete this run?",
+    description: "The inputs and results of “{title}” will be removed.",
+    cancel: "Cancel",
+    confirm: "Delete",
+  },
+  composer: {
+    workflowPicker: "Task to run",
+    run: "Run",
+    stopRun: "Stop run",
+    stopping: "Stopping",
+    removeFile: "Remove {name}",
+    record: "Record",
+    stopRecording: "Stop recording",
+    recording: "Recording {time}",
+    preparingMicrophone: "Getting the microphone ready…",
+    processingRecording: "Finishing the recording…",
+    recordingBlocksRun: "Finish recording to run",
+  },
+  recordingErrors: {
+    insecureContext: "Recording works only on https or localhost. Upload a file instead.",
+    permissionDenied: "Allow microphone access.",
+    microphoneMissing: "No microphone found.",
+    startFailed: "Could not start recording.",
+    conversionFailed: "Could not convert the recording. Record again.",
+  },
+  thread: {
+    running: "Running",
+    stopping: "Stopping",
+    steps: "Progress",
+    retry: "Try again",
+  },
+  failures: {
+    server: { title: "The run failed", hint: "Check the server log for details." },
+    network: { title: "Could not reach the server", hint: "Check that the server is running and the address is right." },
+    cancelled: { title: "Run stopped", hint: "Trying again starts the run from the beginning." },
+    unanswered: { title: "No result came back", hint: "The page was closed or reloaded during the run." },
+    "missing-file": { title: "The saved input file is gone", hint: "Upload the file again and start a new run." },
+    "unreadable-output": { title: "Could not read the result", hint: "The server output does not match what this page expects." },
+  },
+  result: {
+    completedIn: "Done in {duration}",
+    seconds: "{value}s",
+    saveJson: "Save result JSON",
+  },
+  audio: {
+    play: "Play",
+    pause: "Pause",
+    position: "Playback position",
+    skipBack: "Back {seconds}s",
+    skipForward: "Forward {seconds}s",
+    playbackRate: "Playback speed {rate}×",
+    save: "Save audio",
+  },
+};

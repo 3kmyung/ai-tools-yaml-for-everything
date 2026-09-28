@@ -1,0 +1,135 @@
+@import "tailwindcss";
+@import "@fontsource-variable/noto-sans-kr";
+@import "@fontsource-variable/noto-sans-sc";
+
+@font-face {
+  font-family: "Noto Sans Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("@fontsource-variable/noto-sans/files/noto-sans-latin-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  --canvas: #fbfbfd;
+  --sidebar: #f5f5f7;
+  --surface: #ffffff;
+  --surface-muted: #f0f0f2;
+  --surface-hover: rgb(0 0 0 / 0.045);
+  --ink: #1d1d1f;
+  --ink-secondary: #6e6e73;
+  --ink-tertiary: #a1a1a6;
+  --hairline: rgb(0 0 0 / 0.08);
+  --accent: #1d1d1f;
+  --accent-soft: rgb(0 0 0 / 0.06);
+  --danger: #d70015;
+  --inverse: #1d1d1f;
+  --on-inverse: #ffffff;
+  --float-shadow: 0 1px 1px rgb(0 0 0 / 0.02), 0 12px 40px -12px rgb(0 0 0 / 0.14);
+  --canvas-fade: rgb(251 251 253 / 0.72);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --canvas: #0b0b0c;
+    --sidebar: #161617;
+    --surface: #1c1c1e;
+    --surface-muted: #2c2c2e;
+    --surface-hover: rgb(255 255 255 / 0.06);
+    --ink: #f5f5f7;
+    --ink-secondary: #98989d;
+    --ink-tertiary: #636366;
+    --hairline: rgb(255 255 255 / 0.1);
+    --accent: #f5f5f7;
+    --accent-soft: rgb(255 255 255 / 0.1);
+    --danger: #ff453a;
+    --inverse: #f5f5f7;
+    --on-inverse: #1d1d1f;
+    --float-shadow: 0 0 0 1px rgb(255 255 255 / 0.06), 0 16px 48px -16px rgb(0 0 0 / 0.8);
+    --canvas-fade: rgb(11 11 12 / 0.72);
+  }
+}
+
+@theme {
+  --text-caption: 12px;
+  --text-label: 13px;
+  --text-body: 14px;
+  --text-body-lg: 15px;
+  --text-input: 16px;
+  --text-read: 17px;
+  --text-title: 16px;
+  --text-title-lg: 19px;
+  --text-display: 30px;
+  --text-display-lg: 40px;
+
+  --radius-row: 12px;
+  --radius-panel: 16px;
+  --radius-card: 24px;
+
+  --container-content: 720px;
+
+  --color-scrim: rgb(0 0 0 / 0.3);
+}
+
+@theme inline {
+  --font-sans: "Noto Sans Variable", "Noto Sans KR Variable", "Noto Sans SC Variable", system-ui,
+    sans-serif;
+  --font-display: "Noto Sans Variable", "Noto Sans KR Variable", "Noto Sans SC Variable", system-ui,
+    sans-serif;
+  --color-canvas: var(--canvas);
+  --color-sidebar: var(--sidebar);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-hover: var(--surface-hover);
+  --color-ink: var(--ink);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-tertiary: var(--ink-tertiary);
+  --color-hairline: var(--hairline);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-danger: var(--danger);
+  --color-inverse: var(--inverse);
+  --color-on-inverse: var(--on-inverse);
+  --shadow-float: var(--float-shadow);
+}
+
+@layer base {
+  html,
+  body {
+    background-color: var(--canvas);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "kern";
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+
+  ::selection {
+    background-color: var(--accent-soft);
+  }
+
+  button,
+  select {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  select:disabled {
+    cursor: default;
+  }
+}
+
+@layer components {
+  .surface-blur {
+    background-color: var(--canvas-fade);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+  }
+
+  .auto-grow {
+    field-sizing: content;
+  }
+}

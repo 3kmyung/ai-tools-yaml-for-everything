@@ -1,0 +1,77 @@
+import type { ShellStrings } from "./shell-strings";
+
+export const KO: ShellStrings = {
+  language: {
+    name: "한국어",
+    label: "언어",
+  },
+  sidebar: {
+    open: "사이드바 열기",
+    close: "사이드바 닫기",
+    newRun: "새 실행",
+    history: "실행 기록",
+    emptyHistory: "아직 실행한 기록이 없어요",
+    rename: "이름 바꾸기",
+    delete: "삭제",
+    threadName: "기록 이름",
+  },
+  recency: {
+    today: "오늘",
+    lastWeek: "지난 7일",
+    older: "이전",
+  },
+  deleteSheet: {
+    title: "기록을 삭제할까요?",
+    description: "“{title}”의 입력과 결과가 모두 사라져요.",
+    cancel: "취소",
+    confirm: "삭제",
+  },
+  composer: {
+    workflowPicker: "실행할 작업",
+    run: "실행",
+    stopRun: "실행 멈추기",
+    stopping: "멈추는 중",
+    removeFile: "{name} 지우기",
+    record: "녹음하기",
+    stopRecording: "녹음 멈추기",
+    recording: "녹음 중 {time}",
+    preparingMicrophone: "마이크를 준비하는 중…",
+    processingRecording: "녹음을 정리하는 중…",
+    recordingBlocksRun: "녹음을 마치면 실행할 수 있어요",
+  },
+  recordingErrors: {
+    insecureContext: "https나 localhost 주소에서만 녹음할 수 있어요. 파일을 올려 주세요",
+    permissionDenied: "마이크 권한을 허용해 주세요",
+    microphoneMissing: "연결된 마이크를 찾지 못했어요",
+    startFailed: "녹음을 시작하지 못했어요",
+    conversionFailed: "녹음을 변환하지 못했어요. 다시 녹음해 주세요",
+  },
+  thread: {
+    running: "실행 중",
+    stopping: "멈추는 중",
+    steps: "진행 단계",
+    retry: "다시 시도",
+  },
+  failures: {
+    server: { title: "실행하지 못했어요", hint: "서버 로그에서 자세한 원인을 확인할 수 있어요." },
+    network: { title: "서버에 연결하지 못했어요", hint: "서버가 켜져 있는지, 주소가 맞는지 확인해 주세요." },
+    cancelled: { title: "실행을 멈췄어요", hint: "다시 시도하면 처음부터 다시 실행해요." },
+    unanswered: { title: "결과를 받지 못했어요", hint: "실행 도중 페이지를 닫거나 새로고침했어요." },
+    "missing-file": { title: "저장해 둔 입력 파일을 찾지 못했어요", hint: "파일을 다시 올려 새로 실행해 주세요." },
+    "unreadable-output": { title: "결과를 읽지 못했어요", hint: "서버가 준 출력이 이 화면이 아는 모양과 달라요." },
+  },
+  result: {
+    completedIn: "{duration} 만에 완료",
+    seconds: "{value}초",
+    saveJson: "결과 JSON 저장",
+  },
+  audio: {
+    play: "재생",
+    pause: "일시정지",
+    position: "재생 위치",
+    skipBack: "{seconds}초 뒤로",
+    skipForward: "{seconds}초 앞으로",
+    playbackRate: "재생 속도 {rate}배",
+    save: "오디오 저장",
+  },
+};
