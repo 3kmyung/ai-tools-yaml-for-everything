@@ -13,13 +13,15 @@ allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, AskUserQuestion, Skill,
 | `README.md` | `작성`으로 진행 |
 | `README.md` 없을 때 | 중단 → `yaml-for-everything:write-readme` 스킬(Skill) 호출 |
 
-| 값 | 출처 |
-| :---: | --- |
-| `README.md`에 있는 값(e.g., 수치, 조건, 기계, 단위) | `README.md`만, 웹 검색 결과로 덮어쓰기 금지 |
-| GIF나 첨부 파일에 담긴 입력과 결과(e.g., 캡션의 장르·가사·길이), 첨부할 파일의 경로 | `AskUserQuestion`, 직접 조회 금지 |
-| 그 밖에 `README.md`에 없는 모든 값(e.g., GitHub나 Hugging Face의 ID, 스타(Star)·포크(Fork) 수) | 웹 검색 |
+| 값 | 예시 | 출처 |
+| :---: | --- | --- |
+| README에 있는 값 | 수치, 조건, 기계, 단위 | README만, 웹 검색 결과로 덮어쓰기 금지 |
+| GIF나 첨부 파일에 담긴 입력과 결과 | 캡션의 장르·가사·길이 | `AskUserQuestion`, 직접 조회 금지 |
+| 모델(Model)의 성질 | 아키텍처(Architecture), 차별점, 고를 수 있는 모드 | 체크포인트(Checkpoint) 카드, 논문, 모델의 공식 리포지터리(Repository) |
+| README에 없는 모델 규모 | 크기, 파라미터(Parameter) 수 | 체크포인트 카드, 양자화(Quantization) 배포판은 실제로 공개된 것만 |
+| 그 밖에 README에 없는 모든 값 | GitHub나 Hugging Face의 ID, 스타(Star)·포크(Fork) 수 | 웹 검색 |
 
-> 스타·포크 수처럼 매일 변하는 값은 반올림한다(e.g., `83k`).
+> 스타·포크 수처럼 매일 변하는 값은 반올림한다(e.g., `83K`).
 
 ### 2. 작성
 
@@ -55,9 +57,11 @@ python -B "${CLAUDE_SKILL_DIR}/scripts/check_x_post.py" <post.txt>...
 
 ## 규칙
 
-- 문장 안의 세미콜론(Semicolon)과 엠 대시(Em Dash) 금지 → 마침표나 쉼표, 합성어의 하이픈(Hyphen)은 허용
+- 워크플로(Workflow)의 잡(Job) 구성, 이 서비스가 고른 모드, `model-compose.yml`의 값을 모델의 성질로 쓰기 금지
+- 문장 안의 엠 대시(Em Dash) 금지 → 세미콜론(Semicolon)으로 대체(e.g., `vs. Suno; same lyrics, same style`), 합성어의 하이픈(Hyphen)은 허용
+- 문장마다 빈 줄로 떼어 단락 하나에 문장 하나 → 숫자 행 묶음만 빈 줄 없이
 - AI 티 제거, 행위자 없는 수동과 `not just X, it's Y` 대구까지
 - 수치·이름 날조 금지
-- 라이선스는 이름만(e.g., `CC BY-NC 4.0`) → 허가·제한 조건 요약 금지
+- 라이선스(License)는 이름만(e.g., `CC BY-NC 4.0`) → 허가·제한 조건 요약 금지
 - X는 마크다운(Markdown)을 그리지 않으므로 포스트 본문에 백틱(Backtick)과 마크다운 문법 금지 → 입력 문자열은 큰따옴표
 - 고쳐 쓴 문장은 `작성`과 `규칙`에 따라 재점검
