@@ -1,7 +1,7 @@
 {
   "name": "yaml-for-everything",
   "description": "Skills for building, running, measuring and publishing with model-compose",
-  "version": "0.1.0",
+  "version": "0.2.12",
   "author": {
     "name": "3kmyung"
   },
