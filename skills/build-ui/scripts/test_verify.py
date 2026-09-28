@@ -25,6 +25,18 @@ EXIT_VIOLATION = 1
 EXIT_USAGE = 2
 
 
+def run_script(
+    script: pathlib.Path, *arguments: str
+) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, "-B", str(script), *arguments],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=False,
+    )
+
+
 class VerifyTest(unittest.TestCase):
     def setUp(self) -> None:
         directory = tempfile.TemporaryDirectory(prefix="verify-test-")
@@ -330,18 +342,6 @@ class VerifyTest(unittest.TestCase):
 
     def test_a_missing_web_directory_exits_with_usage(self) -> None:
         self.assertEqual(run_script(VERIFY_SCRIPT).returncode, EXIT_USAGE)
-
-
-def run_script(
-    script: pathlib.Path, *arguments: str
-) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        [sys.executable, "-B", str(script), *arguments],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        check=False,
-    )
 
 
 if __name__ == "__main__":

@@ -44,6 +44,26 @@ class ServerUnreachableError(Exception):
     pass
 
 
+def encode_chunk_frame(stream_id: str, sequence: int, chunk: bytes) -> bytes:
+    identifier = stream_id.encode("utf-8")
+
+    return (
+        STREAM_ID_LENGTH_FORMAT.pack(len(identifier))
+        + identifier
+        + SEQUENCE_FORMAT.pack(sequence)
+        + chunk
+    )
+
+
+def decode_chunk_frame(frame: bytes) -> tuple[str, bytes]:
+    identifier_length = STREAM_ID_LENGTH_FORMAT.unpack_from(frame, 0)[0]
+    identifier_end = STREAM_ID_LENGTH_FORMAT.size + identifier_length
+    payload_start = identifier_end + SEQUENCE_FORMAT.size
+    identifier = frame[STREAM_ID_LENGTH_FORMAT.size : identifier_end]
+
+    return identifier.decode("utf-8"), frame[payload_start:]
+
+
 class Upload:
     def __init__(self, stream_id: str, path: pathlib.Path) -> None:
         self.stream_id = stream_id
@@ -128,26 +148,6 @@ class StreamOutputError(Exception):
 
 class IdleTimeoutError(Exception):
     pass
-
-
-def encode_chunk_frame(stream_id: str, sequence: int, chunk: bytes) -> bytes:
-    identifier = stream_id.encode("utf-8")
-
-    return (
-        STREAM_ID_LENGTH_FORMAT.pack(len(identifier))
-        + identifier
-        + SEQUENCE_FORMAT.pack(sequence)
-        + chunk
-    )
-
-
-def decode_chunk_frame(frame: bytes) -> tuple[str, bytes]:
-    identifier_length = STREAM_ID_LENGTH_FORMAT.unpack_from(frame, 0)[0]
-    identifier_end = STREAM_ID_LENGTH_FORMAT.size + identifier_length
-    payload_start = identifier_end + SEQUENCE_FORMAT.size
-    identifier = frame[STREAM_ID_LENGTH_FORMAT.size : identifier_end]
-
-    return identifier.decode("utf-8"), frame[payload_start:]
 
 
 def websocket_url(api_url: str) -> str:

@@ -52,38 +52,6 @@ class ProcessTree:
         return set(self.tracked)
 
 
-class AcceleratorReader:
-    def __init__(self, tree, interval=1.0):
-        self.tree = tree
-        self.interval = interval
-        self.value = None
-        self.peak = None
-        self.other_process_ids = set()
-        self._stop = threading.Event()
-        self._thread = threading.Thread(target=self._run, daemon=True)
-
-    def start(self):
-        self._thread.start()
-
-        return self
-
-    def stop(self):
-        self._stop.set()
-        self._thread.join(timeout=self.interval + 5)
-
-    def _run(self):
-        while not self._stop.is_set():
-            pids = self.tree.pids()
-            apps = compute_apps()
-            self.value, peak = accelerator_vram_bytes(pids, apps)
-            self.other_process_ids |= other_compute_process_ids(pids, apps)
-
-            if peak is not None:
-                self.peak = max(self.peak or 0, peak)
-
-            self._stop.wait(self.interval)
-
-
 def torch_vram_bytes():
     torch = sys.modules.get("torch")
 
@@ -195,6 +163,38 @@ def accelerator_vram_bytes(pids, apps):
         max(currents) if currents else None,
         max(peaks) if peaks else None,
     )
+
+
+class AcceleratorReader:
+    def __init__(self, tree, interval=1.0):
+        self.tree = tree
+        self.interval = interval
+        self.value = None
+        self.peak = None
+        self.other_process_ids = set()
+        self._stop = threading.Event()
+        self._thread = threading.Thread(target=self._run, daemon=True)
+
+    def start(self):
+        self._thread.start()
+
+        return self
+
+    def stop(self):
+        self._stop.set()
+        self._thread.join(timeout=self.interval + 5)
+
+    def _run(self):
+        while not self._stop.is_set():
+            pids = self.tree.pids()
+            apps = compute_apps()
+            self.value, peak = accelerator_vram_bytes(pids, apps)
+            self.other_process_ids |= other_compute_process_ids(pids, apps)
+
+            if peak is not None:
+                self.peak = max(self.peak or 0, peak)
+
+            self._stop.wait(self.interval)
 
 
 def other_cpu_cores(own_cpu_percent):

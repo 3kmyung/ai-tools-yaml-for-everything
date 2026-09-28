@@ -104,28 +104,6 @@ def remove_children(
             child.unlink()
 
 
-def remove(payload: dict[str, typing.Any]) -> int:
-    workspace = locate.workspace_path(payload)
-    kept = (
-        locate.SESSION_DIRECTORIES
-        if payload.get("keep_session_directories")
-        else ()
-    )
-    print(kill_with_virtual_environment(payload), flush=True)
-
-    try:
-        remove_children(workspace, kept)
-    except OSError as error:
-        raise locate.RunError(
-            f"cannot remove {workspace}: {error}", locate.EXIT_KILL_FAILED
-        ) from error
-
-    locate.remove_empty_directories(workspace, locate.temporary_root(payload))
-    print(f"removed {workspace}", flush=True)
-
-    return locate.EXIT_SUCCESS
-
-
 def kill_with_virtual_environment(payload: dict[str, typing.Any]) -> str:
     workspace = locate.workspace_path(payload)
     python = locate.virtual_environment_python(workspace)
@@ -155,6 +133,28 @@ def kill_with_virtual_environment(payload: dict[str, typing.Any]) -> str:
         )
 
     return output
+
+
+def remove(payload: dict[str, typing.Any]) -> int:
+    workspace = locate.workspace_path(payload)
+    kept = (
+        locate.SESSION_DIRECTORIES
+        if payload.get("keep_session_directories")
+        else ()
+    )
+    print(kill_with_virtual_environment(payload), flush=True)
+
+    try:
+        remove_children(workspace, kept)
+    except OSError as error:
+        raise locate.RunError(
+            f"cannot remove {workspace}: {error}", locate.EXIT_KILL_FAILED
+        ) from error
+
+    locate.remove_empty_directories(workspace, locate.temporary_root(payload))
+    print(f"removed {workspace}", flush=True)
+
+    return locate.EXIT_SUCCESS
 
 
 def in_virtual_environment(workspace: pathlib.Path) -> bool:

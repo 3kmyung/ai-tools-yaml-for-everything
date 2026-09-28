@@ -471,14 +471,6 @@ def literal_text(value: typing.Any) -> str | None:
     return None
 
 
-def values_at(value: typing.Any, path: str) -> list[typing.Any]:
-    return [
-        item
-        for item_path, item in walk_values(value)
-        if parameter_path(item_path) == path
-    ]
-
-
 def walk_values(
     value: typing.Any, path: str = ""
 ) -> typing.Iterator[tuple[str, typing.Any]]:
@@ -490,6 +482,14 @@ def walk_values(
             yield from walk_values(item, f"{path}[{index}]")
     else:
         yield path, value
+
+
+def values_at(value: typing.Any, path: str) -> list[typing.Any]:
+    return [
+        item
+        for item_path, item in walk_values(value)
+        if parameter_path(item_path) == path
+    ]
 
 
 def choice_candidates(

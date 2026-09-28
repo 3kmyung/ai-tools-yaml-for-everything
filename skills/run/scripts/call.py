@@ -55,6 +55,54 @@ class Download(typing.NamedTuple):
     kind: str
 
 
+def encode_frame(stream_id: str, sequence: int, chunk: bytes) -> bytes:
+    encoded_stream_id = stream_id.encode("utf-8")
+
+    return b"".join(
+        [
+            STREAM_ID_LENGTH_FORMAT.pack(len(encoded_stream_id)),
+            encoded_stream_id,
+            SEQUENCE_FORMAT.pack(sequence),
+            chunk,
+        ]
+    )
+
+
+def decode_frame(frame: bytes) -> tuple[str, bytes]:
+    stream_id_length = STREAM_ID_LENGTH_FORMAT.unpack_from(frame, 0)[0]
+    stream_id_end = STREAM_ID_LENGTH_FORMAT.size + stream_id_length
+    stream_id = frame[STREAM_ID_LENGTH_FORMAT.size : stream_id_end].decode(
+        "utf-8"
+    )
+
+    return stream_id, frame[stream_id_end + SEQUENCE_FORMAT.size :]
+
+
+def extension_for(content_type: str | None, kind: str) -> str:
+    media_type = (content_type or "").split(";")[0].strip().lower()
+
+    return (
+        EXTENSIONS.get(media_type)
+        or mimetypes.guess_extension(media_type)
+        or FALLBACK_EXTENSIONS.get(kind, FALLBACK_EXTENSIONS[BYTES_KIND])
+    )
+
+
+def stream_marker(value: typing.Any) -> dict[str, typing.Any] | None:
+    if not isinstance(value, dict) or set(value) != {VARIABLE_MARKER}:
+        return None
+
+    variable = value[VARIABLE_MARKER]
+
+    if (
+        isinstance(variable, dict)
+        and variable.get("type") == STREAM_VARIABLE_TYPE
+    ):
+        return variable
+
+    return None
+
+
 class WorkflowRun:
     def __init__(self, connection: typing.Any, output_directory: pathlib.Path):
         self.connection = connection
@@ -296,54 +344,6 @@ class WorkflowRun:
 
         for download in self.downloads.values():
             download.handle.close()
-
-
-def encode_frame(stream_id: str, sequence: int, chunk: bytes) -> bytes:
-    encoded_stream_id = stream_id.encode("utf-8")
-
-    return b"".join(
-        [
-            STREAM_ID_LENGTH_FORMAT.pack(len(encoded_stream_id)),
-            encoded_stream_id,
-            SEQUENCE_FORMAT.pack(sequence),
-            chunk,
-        ]
-    )
-
-
-def decode_frame(frame: bytes) -> tuple[str, bytes]:
-    stream_id_length = STREAM_ID_LENGTH_FORMAT.unpack_from(frame, 0)[0]
-    stream_id_end = STREAM_ID_LENGTH_FORMAT.size + stream_id_length
-    stream_id = frame[STREAM_ID_LENGTH_FORMAT.size : stream_id_end].decode(
-        "utf-8"
-    )
-
-    return stream_id, frame[stream_id_end + SEQUENCE_FORMAT.size :]
-
-
-def extension_for(content_type: str | None, kind: str) -> str:
-    media_type = (content_type or "").split(";")[0].strip().lower()
-
-    return (
-        EXTENSIONS.get(media_type)
-        or mimetypes.guess_extension(media_type)
-        or FALLBACK_EXTENSIONS.get(kind, FALLBACK_EXTENSIONS[BYTES_KIND])
-    )
-
-
-def stream_marker(value: typing.Any) -> dict[str, typing.Any] | None:
-    if not isinstance(value, dict) or set(value) != {VARIABLE_MARKER}:
-        return None
-
-    variable = value[VARIABLE_MARKER]
-
-    if (
-        isinstance(variable, dict)
-        and variable.get("type") == STREAM_VARIABLE_TYPE
-    ):
-        return variable
-
-    return None
 
 
 async def run_workflow(

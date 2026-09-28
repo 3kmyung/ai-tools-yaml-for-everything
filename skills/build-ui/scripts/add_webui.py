@@ -382,6 +382,20 @@ def warnings(document: dict[str, typing.Any]) -> list[str]:
     return messages
 
 
+def check_written(path: pathlib.Path, updated: str, port: int | None) -> None:
+    reparsed = yaml.safe_load(updated)
+
+    if not isinstance(reparsed, dict) or has_controller_webui(reparsed):
+        raise AddWebuiError(f"removing controller.webui would break {path}")
+
+    added = ports.webui_component(reparsed)
+
+    if added is None or ports.port_number(added.get(ports.PORT_KEY)) != port:
+        raise AddWebuiError(
+            f"inserting the webui component would break {path}"
+        )
+
+
 def add_webui(release_directory: pathlib.Path) -> list[str]:
     path = release_directory / COMPOSE_FILE
     text, document = read_compose(path)
@@ -424,20 +438,6 @@ def add_webui(release_directory: pathlib.Path) -> list[str]:
         *marked,
         *warnings(document),
     ]
-
-
-def check_written(path: pathlib.Path, updated: str, port: int | None) -> None:
-    reparsed = yaml.safe_load(updated)
-
-    if not isinstance(reparsed, dict) or has_controller_webui(reparsed):
-        raise AddWebuiError(f"removing controller.webui would break {path}")
-
-    added = ports.webui_component(reparsed)
-
-    if added is None or ports.port_number(added.get(ports.PORT_KEY)) != port:
-        raise AddWebuiError(
-            f"inserting the webui component would break {path}"
-        )
 
 
 def main() -> int:

@@ -93,6 +93,15 @@ class DevToolsSession:
             self.receive()
 
 
+def add_language_argument(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--lang",
+        dest="language",
+        choices=tuple(CHROME_LOCALES),
+        default=DEFAULT_LANGUAGE,
+    )
+
+
 def parse_arguments(arguments: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog=pathlib.Path(__file__).name)
     parser.add_argument("--url", required=True)
@@ -103,15 +112,6 @@ def parse_arguments(arguments: list[str]) -> argparse.Namespace:
     add_language_argument(parser)
 
     return parser.parse_args(arguments)
-
-
-def add_language_argument(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument(
-        "--lang",
-        dest="language",
-        choices=tuple(CHROME_LOCALES),
-        default=DEFAULT_LANGUAGE,
-    )
 
 
 def with_language(url: str, language: str) -> str:

@@ -324,129 +324,6 @@ def move_busy_ports(
     return interface._replace(ports=ports)
 
 
-def up(payload: dict[str, typing.Any]) -> int:
-    workspace = locate.workspace_path(payload)
-    service_directory = locate.service_directory(workspace, payload)
-    webui = payload.get("webui", locate.WEBUI_NONE)
-    timeout = payload.get("timeout", locate.UP_TIMEOUT_SECONDS)
-
-    if webui == locate.WEBUI_COMPONENT:
-        missing = set_up_environment.missing_programs(
-            workspace, set_up_environment.WEBUI_COMPONENT_PROGRAMS
-        )
-
-        if missing:
-            raise locate.RunError(
-                f"{', '.join(missing)} not on PATH on this machine;"
-                " --webui component cannot start without them",
-                locate.EXIT_SET_UP_FAILED,
-            )
-
-    path = service_directory / locate.COMPOSE_FILE
-    original_path = locate.original_compose_path(workspace, payload)
-    document = original_document(path, original_path)
-    changes: list[str] = []
-    interface = wanted_interface(path, document, webui, changes)
-    log_path = (
-        locate.machine_logs_directory(workspace, payload) / SERVER_LOG_FILE
-    )
-    record = read_record(workspace, payload)
-    running_ports = record.get("ports") if record else None
-
-    if running_ports and serves_this_session(
-        workspace, payload, running_ports
-    ):
-        if set(running_ports) != set(interface.ports):
-            raise locate.RunError(
-                "this session's server is already running with other"
-                " interfaces; run down, then up",
-                locate.EXIT_BUSY,
-            )
-
-        print("reusing the server already running in this session", flush=True)
-        print(
-            ready_line(running_ports, interface.base_path, log_path),
-            flush=True,
-        )
-
-        return locate.EXIT_SUCCESS
-
-    if busy_ports(interface.ports) and held_by_this_session(
-        workspace, interface.ports
-    ):
-        raise locate.RunError(
-            "this session's server is already running with other interfaces;"
-            " run down, then up",
-            locate.EXIT_BUSY,
-        )
-
-    interface = move_busy_ports(document, interface, webui, changes)
-    save_changes(path, original_path, document, changes)
-    ports = interface.ports
-
-    bin_directory = locate.virtual_environment_bin(workspace)
-    launcher = shutil.which(LAUNCHER, path=str(bin_directory))
-
-    if launcher is None:
-        raise locate.RunError(
-            f"{LAUNCHER} does not exist in {bin_directory}; run open again"
-        )
-
-    record_path = locate.server_record_path(workspace, payload)
-    log_path.parent.mkdir(parents=True, exist_ok=True)
-    record_path.parent.mkdir(parents=True, exist_ok=True)
-
-    with log_path.open("wb") as log:
-        process = locate.popen_detached(
-            [launcher, "-f", locate.COMPOSE_FILE, "up"],
-            cwd=service_directory,
-            env=locate.virtual_environment_variables(workspace),
-            stdin=subprocess.DEVNULL,
-            stdout=log,
-            stderr=subprocess.STDOUT,
-        )
-
-    record = {
-        "pid": process.pid,
-        "ports": ports,
-        "base_path": interface.base_path,
-        "websocket_path": interface.websocket_path,
-    }
-    record_path.write_text(json.dumps(record), encoding="utf-8")
-    print(
-        f"launched {LAUNCHER} up (pid {process.pid}), log: {log_path}",
-        flush=True,
-    )
-    deadline = time.monotonic() + timeout
-
-    while True:
-        if all(locate.port_in_use(port) for port in ports.values()):
-            print(ready_line(ports, interface.base_path, log_path), flush=True)
-
-            return locate.EXIT_SUCCESS
-
-        if process.poll() is not None:
-            kill_server(workspace, payload)
-            raise locate.RunError(
-                f"{LAUNCHER} exited with code {process.returncode}"
-                " before listening;"
-                f" last {locate.LOG_TAIL_LINES} lines of {log_path}:"
-                f"\n{diagnose.annotated(locate.log_tail(log_path))}",
-                locate.EXIT_UNREACHABLE,
-            )
-
-        if time.monotonic() >= deadline:
-            kill_server(workspace, payload)
-            raise locate.RunError(
-                f"not listening after {timeout} seconds;"
-                f" last {locate.LOG_TAIL_LINES} lines of {log_path}:"
-                f"\n{diagnose.annotated(locate.log_tail(log_path))}",
-                locate.EXIT_TIMEOUT,
-            )
-
-        time.sleep(locate.POLL_SECONDS)
-
-
 def listens_on(connection: typing.Any, ports: set[int]) -> bool:
     import psutil
 
@@ -455,21 +332,6 @@ def listens_on(connection: typing.Any, ports: set[int]) -> bool:
         and bool(connection.laddr)
         and connection.laddr.port in ports
     )
-
-
-def listening_pids(ports: set[int]) -> set[int]:
-    import psutil
-
-    try:
-        connections = psutil.net_connections(kind="tcp")
-    except psutil.AccessDenied:
-        return listening_pids_per_process(ports)
-
-    return {
-        connection.pid
-        for connection in connections
-        if connection.pid and listens_on(connection, ports)
-    }
 
 
 def listening_pids_per_process(ports: set[int]) -> set[int]:
@@ -487,6 +349,21 @@ def listening_pids_per_process(ports: set[int]) -> set[int]:
             pids.add(process.pid)
 
     return pids
+
+
+def listening_pids(ports: set[int]) -> set[int]:
+    import psutil
+
+    try:
+        connections = psutil.net_connections(kind="tcp")
+    except psutil.AccessDenied:
+        return listening_pids_per_process(ports)
+
+    return {
+        connection.pid
+        for connection in connections
+        if connection.pid and listens_on(connection, ports)
+    }
 
 
 def runs_in_workspace(process: typing.Any, workspace: pathlib.Path) -> bool:
@@ -636,6 +513,129 @@ def kill_server(
     record_path.unlink(missing_ok=True)
 
     return f"killed {len(processes)} server processes"
+
+
+def up(payload: dict[str, typing.Any]) -> int:
+    workspace = locate.workspace_path(payload)
+    service_directory = locate.service_directory(workspace, payload)
+    webui = payload.get("webui", locate.WEBUI_NONE)
+    timeout = payload.get("timeout", locate.UP_TIMEOUT_SECONDS)
+
+    if webui == locate.WEBUI_COMPONENT:
+        missing = set_up_environment.missing_programs(
+            workspace, set_up_environment.WEBUI_COMPONENT_PROGRAMS
+        )
+
+        if missing:
+            raise locate.RunError(
+                f"{', '.join(missing)} not on PATH on this machine;"
+                " --webui component cannot start without them",
+                locate.EXIT_SET_UP_FAILED,
+            )
+
+    path = service_directory / locate.COMPOSE_FILE
+    original_path = locate.original_compose_path(workspace, payload)
+    document = original_document(path, original_path)
+    changes: list[str] = []
+    interface = wanted_interface(path, document, webui, changes)
+    log_path = (
+        locate.machine_logs_directory(workspace, payload) / SERVER_LOG_FILE
+    )
+    record = read_record(workspace, payload)
+    running_ports = record.get("ports") if record else None
+
+    if running_ports and serves_this_session(
+        workspace, payload, running_ports
+    ):
+        if set(running_ports) != set(interface.ports):
+            raise locate.RunError(
+                "this session's server is already running with other"
+                " interfaces; run down, then up",
+                locate.EXIT_BUSY,
+            )
+
+        print("reusing the server already running in this session", flush=True)
+        print(
+            ready_line(running_ports, interface.base_path, log_path),
+            flush=True,
+        )
+
+        return locate.EXIT_SUCCESS
+
+    if busy_ports(interface.ports) and held_by_this_session(
+        workspace, interface.ports
+    ):
+        raise locate.RunError(
+            "this session's server is already running with other interfaces;"
+            " run down, then up",
+            locate.EXIT_BUSY,
+        )
+
+    interface = move_busy_ports(document, interface, webui, changes)
+    save_changes(path, original_path, document, changes)
+    ports = interface.ports
+
+    bin_directory = locate.virtual_environment_bin(workspace)
+    launcher = shutil.which(LAUNCHER, path=str(bin_directory))
+
+    if launcher is None:
+        raise locate.RunError(
+            f"{LAUNCHER} does not exist in {bin_directory}; run open again"
+        )
+
+    record_path = locate.server_record_path(workspace, payload)
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    record_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with log_path.open("wb") as log:
+        process = locate.popen_detached(
+            [launcher, "-f", locate.COMPOSE_FILE, "up"],
+            cwd=service_directory,
+            env=locate.virtual_environment_variables(workspace),
+            stdin=subprocess.DEVNULL,
+            stdout=log,
+            stderr=subprocess.STDOUT,
+        )
+
+    record = {
+        "pid": process.pid,
+        "ports": ports,
+        "base_path": interface.base_path,
+        "websocket_path": interface.websocket_path,
+    }
+    record_path.write_text(json.dumps(record), encoding="utf-8")
+    print(
+        f"launched {LAUNCHER} up (pid {process.pid}), log: {log_path}",
+        flush=True,
+    )
+    deadline = time.monotonic() + timeout
+
+    while True:
+        if all(locate.port_in_use(port) for port in ports.values()):
+            print(ready_line(ports, interface.base_path, log_path), flush=True)
+
+            return locate.EXIT_SUCCESS
+
+        if process.poll() is not None:
+            kill_server(workspace, payload)
+            raise locate.RunError(
+                f"{LAUNCHER} exited with code {process.returncode}"
+                " before listening;"
+                f" last {locate.LOG_TAIL_LINES} lines of {log_path}:"
+                f"\n{diagnose.annotated(locate.log_tail(log_path))}",
+                locate.EXIT_UNREACHABLE,
+            )
+
+        if time.monotonic() >= deadline:
+            kill_server(workspace, payload)
+            raise locate.RunError(
+                f"not listening after {timeout} seconds;"
+                f" last {locate.LOG_TAIL_LINES} lines of {log_path}:"
+                f"\n{diagnose.annotated(locate.log_tail(log_path))}",
+                locate.EXIT_TIMEOUT,
+            )
+
+        time.sleep(locate.POLL_SECONDS)
 
 
 def down(payload: dict[str, typing.Any]) -> int:

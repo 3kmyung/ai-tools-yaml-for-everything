@@ -47,6 +47,25 @@ def port_number(value: typing.Any) -> int | None:
     return None
 
 
+def listening_owners_per_process() -> dict[int, set[int]]:
+    psutil = load_psutil()
+    owners: dict[int, set[int]] = {}
+
+    for process in psutil.process_iter():
+        try:
+            connections = process.net_connections(kind="tcp")
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+
+        for connection in connections:
+            if connection.status == LISTEN_STATUS and connection.laddr:
+                owners.setdefault(connection.laddr.port, set()).add(
+                    process.pid
+                )
+
+    return owners
+
+
 def listening_owners() -> dict[int, set[int]]:
     psutil = load_psutil()
 
@@ -65,25 +84,6 @@ def listening_owners() -> dict[int, set[int]]:
 
         if connection.pid:
             pids.add(connection.pid)
-
-    return owners
-
-
-def listening_owners_per_process() -> dict[int, set[int]]:
-    psutil = load_psutil()
-    owners: dict[int, set[int]] = {}
-
-    for process in psutil.process_iter():
-        try:
-            connections = process.net_connections(kind="tcp")
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
-            continue
-
-        for connection in connections:
-            if connection.status == LISTEN_STATUS and connection.laddr:
-                owners.setdefault(connection.laddr.port, set()).add(
-                    process.pid
-                )
 
     return owners
 

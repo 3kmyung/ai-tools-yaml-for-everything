@@ -31,6 +31,18 @@ def digest_bytes(value):
     return value if isinstance(value, bytes) else str(value).encode("utf-8")
 
 
+def item_input_value(item):
+    if item.get("file") is not None:
+        return item["file"].read_bytes()
+
+    if item.get("text") is not None:
+        return item["text"]
+
+    raise ValueError(
+        f"input item {item.get('id')!r} carries neither 'file' nor 'text'"
+    )
+
+
 def inputs_digest(path):
     items = sorted(read_inputs(path), key=lambda item: str(item.get("id")))
     digest = hashlib.sha256()
@@ -44,18 +56,6 @@ def inputs_digest(path):
         digest.update(b"\0")
 
     return digest.hexdigest()
-
-
-def item_input_value(item):
-    if item.get("file") is not None:
-        return item["file"].read_bytes()
-
-    if item.get("text") is not None:
-        return item["text"]
-
-    raise ValueError(
-        f"input item {item.get('id')!r} carries neither 'file' nor 'text'"
-    )
 
 
 def item_workflow_input(template, item):

@@ -20,6 +20,36 @@ EXIT_SUCCESS = 0
 EXIT_USAGE = 2
 
 
+def excluded_ports(output: str) -> dict[int, str]:
+    lines = EXCLUDED_LINE.findall(output)
+    assert len(lines) == 1, output
+
+    if lines[0] == "none":
+        return {}
+
+    entries = (entry.split(" ", 1) for entry in lines[0].split("; "))
+
+    return {int(port): reason for port, reason in entries}
+
+
+def run_add_webui(
+    release_directory: pathlib.Path,
+) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, "-B", str(ADD_WEBUI_SCRIPT), str(release_directory)],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=False,
+    )
+
+
+def webui_of(document: dict) -> dict:
+    return next(
+        item for item in document["components"] if item.get("id") == "webui"
+    )
+
+
 class AddWebuiTest(unittest.TestCase):
     def setUp(self) -> None:
         directory = tempfile.TemporaryDirectory(prefix="add-webui-test-")
@@ -225,36 +255,6 @@ class AddWebuiTest(unittest.TestCase):
 
         self.assertEqual(missing.returncode, EXIT_USAGE)
         self.assertEqual(broken.returncode, EXIT_USAGE)
-
-
-def excluded_ports(output: str) -> dict[int, str]:
-    lines = EXCLUDED_LINE.findall(output)
-    assert len(lines) == 1, output
-
-    if lines[0] == "none":
-        return {}
-
-    entries = (entry.split(" ", 1) for entry in lines[0].split("; "))
-
-    return {int(port): reason for port, reason in entries}
-
-
-def run_add_webui(
-    release_directory: pathlib.Path,
-) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        [sys.executable, "-B", str(ADD_WEBUI_SCRIPT), str(release_directory)],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        check=False,
-    )
-
-
-def webui_of(document: dict) -> dict:
-    return next(
-        item for item in document["components"] if item.get("id") == "webui"
-    )
 
 
 if __name__ == "__main__":

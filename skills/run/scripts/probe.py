@@ -266,6 +266,10 @@ def version_note(machine: Machine) -> str:
     return ""
 
 
+def gibibytes(size: int) -> str:
+    return f"{size / GIBIBYTE:.1f} GiB"
+
+
 def space_note(machine: Machine) -> str:
     if machine.free_bytes >= LOW_SPACE_BYTES:
         return ""
@@ -274,10 +278,6 @@ def space_note(machine: Machine) -> str:
         f"only {gibibytes(machine.free_bytes)} free"
         f" in {machine.temporary_root}"
     )
-
-
-def gibibytes(size: int) -> str:
-    return f"{size / GIBIBYTE:.1f} GiB"
 
 
 def machine_notes(machine: Machine) -> str:

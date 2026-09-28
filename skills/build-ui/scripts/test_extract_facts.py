@@ -13,6 +13,43 @@ EXIT_USAGE = 2
 EXIT_UNSUPPORTED = 3
 
 
+def run_extract(
+    release_directory: pathlib.Path, *arguments: str
+) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [
+            sys.executable,
+            "-B",
+            str(EXTRACT_SCRIPT),
+            str(release_directory),
+            *arguments,
+        ],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=False,
+    )
+
+
+def section_rows(output: str, heading: str) -> list[dict[str, str]]:
+    lines = output.split("\n")
+    start = lines.index(f"## {heading}") + 2
+    table_lines: list[str] = []
+
+    for line in lines[start:]:
+        if not line.startswith("|"):
+            break
+
+        table_lines.append(line)
+
+    headers = [cell.strip() for cell in table_lines[0].strip("|").split(" | ")]
+
+    return [
+        dict(zip(headers, (cell.strip() for cell in line[2:-2].split(" | "))))
+        for line in table_lines[2:]
+    ]
+
+
 class ExtractFactsTest(unittest.TestCase):
     def extract(
         self, fixture: str, *arguments: str, expected_code: int = EXIT_SUCCESS
@@ -339,43 +376,6 @@ class ExtractFactsTest(unittest.TestCase):
         self.assertEqual(missing.returncode, EXIT_USAGE)
         self.assertEqual(not_mapping.returncode, EXIT_USAGE)
         self.assertEqual(broken_capture.returncode, EXIT_USAGE)
-
-
-def run_extract(
-    release_directory: pathlib.Path, *arguments: str
-) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        [
-            sys.executable,
-            "-B",
-            str(EXTRACT_SCRIPT),
-            str(release_directory),
-            *arguments,
-        ],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        check=False,
-    )
-
-
-def section_rows(output: str, heading: str) -> list[dict[str, str]]:
-    lines = output.split("\n")
-    start = lines.index(f"## {heading}") + 2
-    table_lines: list[str] = []
-
-    for line in lines[start:]:
-        if not line.startswith("|"):
-            break
-
-        table_lines.append(line)
-
-    headers = [cell.strip() for cell in table_lines[0].strip("|").split(" | ")]
-
-    return [
-        dict(zip(headers, (cell.strip() for cell in line[2:-2].split(" | "))))
-        for line in table_lines[2:]
-    ]
 
 
 if __name__ == "__main__":

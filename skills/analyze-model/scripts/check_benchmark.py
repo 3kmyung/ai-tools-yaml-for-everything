@@ -166,6 +166,41 @@ def package_name(requirement):
     return requirement.split("==", 1)[0].strip().lower().replace("_", "-")
 
 
+def metric_problems(metric):
+    name = metric["name"]
+    registered = METRICS[name]
+    problems = []
+
+    if not isinstance(metric.get("scale"), (int, float)):
+        problems.append("metric.scale must be a number")
+
+    if len(registered.keys) > 1 and metric.get("key") not in registered.keys:
+        problems.append(
+            f"metric.key must be one of {', '.join(registered.keys)} "
+            f"for {name}"
+        )
+
+    requirements = metric.get("requirements") or []
+    pinned = {
+        package_name(requirement)
+        for requirement in requirements
+        if "==" in requirement
+    }
+    unpinned = [
+        package
+        for package in registered.packages
+        if package_name(package) not in pinned
+    ]
+
+    if unpinned:
+        problems.append(
+            f"metric.requirements needs a pinned version of "
+            f"{', '.join(unpinned)} for {name}"
+        )
+
+    return problems
+
+
 def method_metric_problems(benchmark, method):
     kind = benchmark["output_kind"]
     metric = benchmark.get("metric")
@@ -201,41 +236,6 @@ def method_metric_problems(benchmark, method):
         ]
 
     return metric_problems(metric)
-
-
-def metric_problems(metric):
-    name = metric["name"]
-    registered = METRICS[name]
-    problems = []
-
-    if not isinstance(metric.get("scale"), (int, float)):
-        problems.append("metric.scale must be a number")
-
-    if len(registered.keys) > 1 and metric.get("key") not in registered.keys:
-        problems.append(
-            f"metric.key must be one of {', '.join(registered.keys)} "
-            f"for {name}"
-        )
-
-    requirements = metric.get("requirements") or []
-    pinned = {
-        package_name(requirement)
-        for requirement in requirements
-        if "==" in requirement
-    }
-    unpinned = [
-        package
-        for package in registered.packages
-        if package_name(package) not in pinned
-    ]
-
-    if unpinned:
-        problems.append(
-            f"metric.requirements needs a pinned version of "
-            f"{', '.join(unpinned)} for {name}"
-        )
-
-    return problems
 
 
 def published_score_problems(benchmark):
