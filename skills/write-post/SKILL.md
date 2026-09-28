@@ -46,7 +46,15 @@ python -B "${CLAUDE_SKILL_DIR}/scripts/check_x_post.py" <post.txt>...
 
 ### 4. 산출
 
-고른 유형 파일의 `스레드`에 적힌 경로와 틀대로 쓴다.
+`workspaces/<example>/<type>.md`에 아래 틀대로 쓴다. 포스트마다 본문을 언어 태그 없는 코드 블록(Code Block) 하나에 넣고 포스트 수만큼 반복한다.
+
+````
+## 포스트 <번호>
+
+```
+<본문>
+```
+````
 
 ## 유형
 
