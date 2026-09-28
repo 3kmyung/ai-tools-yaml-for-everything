@@ -1,14 +1,16 @@
 ## 스레드
 
-로컬(Local) 모델(Model) 하나를 소개하는 포스트 5개다.
+로컬(Local) 모델(Model) 하나를 소개하는 포스트 4개다.
 
-| 포스트 | 내용 |
-| :---: | --- |
-| 1 | 결과, 로컬에서 돌았다는 장점, 모델 소개, 핵심 장점 체크리스트 한 줄 |
-| 2 | 이것으로 무엇을 할 수 있는지, 독자가 체감하는 장점 |
-| 3 | GIF에 보이는 실제 입력과 결과를 담은 캡션 |
-| 4 | 기계별 숫자 행과 그 행들의 조건, 기계당 한 행, 숫자는 README 콜아웃(Callout)이 읽은 처리량 열 |
-| 5 | 서비스 링크 `github.com/MindrLabs/<example>` |
+| 포스트 | 내용 | 첨부 |
+| :---: | --- | --- |
+| 1 | 독자의 문제를 묻는 질문, 사용 권유, 데모 GIF 속 입력과 결과 캡션 | 데모 GIF |
+| 2 | 모델 소개(e.g., 입력과 출력, 차별점, 모드), 사실 체크리스트 | |
+| 3 | 모델 성능(e.g., 속도 질문, 조건, 기계별 숫자 행) | |
+| 4 | 무제한 반복, 비개발자에게 AI 어시스턴트(AI Assistant)로 실행하라는 안내, `github.com/MindrLabs/<example>` | |
+
+- 체크리스트는 라이선스(License), 체크포인트(Checkpoint) 크기, 스타(Star) 수를 이은 `✅` 한 줄
+- 숫자 행은 기계당 한 행, 값은 README 콜아웃(Callout)이 읽은 처리량 열
 
 ## 예시
 
@@ -17,113 +19,29 @@
 ✓
 
 ```
-🎙️ A one-hour meeting, transcribed in 4 minutes
+Still uploading meeting recordings to get a transcript?
 
-Whisper large-v3 keeps up with heavy accents and 99 languages.
-Every line comes back timestamped, so finding a line takes one click.
-OpenAI's open model, 109k stars on GitHub.
+Give Whisper large-v3 a try.
 
-✅ Offline on a laptop, nothing uploaded
+🎙️ A one-hour town hall in, a timestamped transcript out
 ```
 
 ✓
 
 ```
-🎹 Lyrics and a genre in, a full song with a singer out
+Want a summary of a scanned report without sending it anywhere?
 
-YuE is one of the few open music models that sings.
-It writes the voice and the band together, so the vocal sits on the beat.
-One line of text sets the genre, mood and voice.
+Give Qwen3-VL a try.
 
-✅ One GPU, nothing left the machine
-```
-
-✓
-
-```
-🖼️ 12 images from one prompt, and none of them left the machine
-
-FLUX.1 draws hands with five fingers and spells shop signs right, two things open image models kept missing.
-Made by the team behind Stable Diffusion.
-
-✅ 12 images in 90 seconds, no credits
+📄 A 40-page scan in, markdown with the tables still tables out
 ```
 
 ✗
 
 ```
 I built an example using Whisper large-v3, a speech recognition model that runs locally.
+
 github.com/hanyeol/model-compose
-```
-
-✗
-
-```
-🎙️ A one-hour meeting, transcribed in 4 minutes
-
-Whisper large-v3 is OpenAI's speech recognition model.
-
-✅ RTF 0.08, 14.2 GB peak video memory, 121 Tokens/s on the 4090
-```
-
-### 포스트 2
-
-✓
-
-```
-Hand it a meeting recording and get back a markdown summary with timestamps.
-Decisions and action items come out as their own lines, and the small talk does not make it in.
-Two people talking at once land in one line, since nothing here tells speakers apart.
-```
-
-✓
-
-```
-It reads a scanned report and returns markdown with the tables still tables.
-A page of figures stays a page of figures instead of collapsing into a wall of text.
-Two-column pages keep their reading order.
-Handwritten notes in the margin come back rough.
-```
-
-✓
-
-```
-Give it lyrics and a genre and it returns a finished track.
-The first bars come back while the rest is still rendering, so you know early whether the take is worth keeping.
-Tag the lyrics "[verse]" and "[chorus]", about 30 seconds of singing each, or the song loses its shape.
-```
-
-✗
-
-```
-The workflow is three components in one YAML file, and model-compose runs it with one command.
-```
-
-✗
-
-```
-Check out the video below 👇
-This seamless pipeline unlocks next-level transcription.
-```
-
-✗
-
-```
-It beats every cloud API on accuracy and it is completely free.
-```
-
-### 포스트 3
-
-✓
-
-```
-🎬 A two-hour podcast in, a summary with timestamps out
-```
-
-✓
-
-```
-📄 The markdown it wrote, unedited
 ```
 
 ✗
@@ -132,42 +50,59 @@ It beats every cloud API on accuracy and it is completely free.
 Watch the magic happen below 👇🔥
 ```
 
-✗
-
-```
-Real-time in the GIF, and just as fast on any laptop
-```
-
-✗
-
-```
-🎬 Rendered in 12 seconds flat
-```
-
-### 포스트 4
+### 포스트 2
 
 ✓
 
 ```
-The same 30-minute clip on three machines, fastest first.
+Whisper large-v3 is the open speech model from OpenAI.
 
-RTX 4090 | whisper-large-v3 | 0.08 Output RTF
-DGX Spark | whisper-large-v3 | 0.12 Output RTF
-MacBook M1 | whisper-large-v3-4bit | 0.31 Output RTF
+It keeps up with heavy accents and 99 languages, and every line comes back timestamped.
+
+✅ MIT · 3.09 GB checkpoint · 109K stars
+```
+
+✓
+
+```
+YuE2-3B is an open music model that can sing.
+
+Give it a style prompt and lyrics, and it generates 48 kHz stereo audio with vocals and instruments together.
+
+It can plan an ABC score first, or generate audio directly.
+
+✅ CC BY-NC 4.0 · 7.30 GB checkpoint · 10K stars
+```
+
+✗
+
+```
+Whisper large-v3 is OpenAI's speech recognition model.
+It keeps up with heavy accents and 99 languages.
+
+✅ RTF 0.08, 14.2 GB peak video memory, 121 Tokens/s on the 4090
+```
+
+✗
+
+```
+The workflow is three components in one YAML file, and model-compose runs it with one command.
+```
+
+### 포스트 3
+
+✓
+
+```
+So how fast is it?
+
+Same 30-minute clip, three machines; fastest first.
+
+🔥 RTX 4090 | whisper-large-v3 | 0.08 Output RTF
+💻 DGX Spark | whisper-large-v3 | 0.12 Output RTF
+💻 MacBook M1 | whisper-large-v3-4bit | 0.31 Output RTF
 
 Greedy decoding, fp16 on the RTX 4090 and DGX Spark, 4-bit on the MacBook.
-```
-
-✓
-
-```
-The same prompt on three machines, fastest first.
-
-RTX 4090 | qwen3-8b | 121 Tokens/s
-DGX Spark | qwen3-8b | 94 Tokens/s
-MacBook M1 | qwen3-8b-4bit | 38 Tokens/s
-
-Batch size 1, 512 tokens out, greedy decoding.
 ```
 
 ✗
@@ -183,35 +118,27 @@ MacBook M1 | qwen3-8b-4bit | 38 Tokens/s
 ✗
 
 ```
-MacBook M1 | qwen3-8b-4bit | 38 tok/sec
-DGX Spark | qwen3-8b | 94 tok/sec
-RTX 4090 | qwen3-8b | 121 tok/sec
+So how fast is it?
+
+Same prompt, three machines; fastest first.
+
+💻 MacBook M1 | qwen3-8b-4bit | 38 tok/sec
+💻 DGX Spark | qwen3-8b | 94 tok/sec
+🔥 RTX 4090 | qwen3-8b | 121 tok/sec
 ```
 
-✗
-
-```
-The same 30-minute clip on three machines, fastest first.
-
-RTX 4090 | whisper-large-v3 | 0.08 Output RTF
-DGX Spark | whisper-large-v3 | 0.12 Output RTF
-MacBook M1 | whisper-large-v3-4bit | 0.31 Output RTF
-```
-
-### 포스트 5
+### 포스트 4
 
 ✓
 
 ```
-Your GPU is sitting idle, give it something to do.
+And you can transcribe as many hours as you want.
 
-➡️ github.com/MindrLabs/text-generation-qwen3
-```
+Drop in a whole season of a podcast; there is no per-minute bill.
 
-✓
+Not a developer?
 
-```
-Clone it and point it at your own recordings tonight.
+Just send the link below to Claude or ChatGPT; ask it to run Whisper for you.
 
 ➡️ github.com/MindrLabs/speech-recognition-whisper
 ```
@@ -221,12 +148,6 @@ Clone it and point it at your own recordings tonight.
 ```
 Clone it and point it at your own recordings tonight.
 
-➡️ github.com/hanyeol/model-compose
-```
-
-✗
-
-```
 ➡️ github.com/MindrLabs/speech-recognition-whisper
 ➡️ huggingface.co/openai/whisper-large-v3
 ```
@@ -234,13 +155,11 @@ Clone it and point it at your own recordings tonight.
 ✗
 
 ```
-➡️ The YAML that ran all of this is one file in the repo.
+And you can transcribe as many hours as you want.
 
-github.com/MindrLabs/image-generation-flux
-```
+Not a developer?
 
-✗
+Just send the link below to Claude or ChatGPT; ask it to run Whisper for you.
 
-```
 ➡️ github.com/hanyeol/model-compose/tree/main/releases/meeting-transcriber
 ```

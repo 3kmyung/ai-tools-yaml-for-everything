@@ -1,15 +1,16 @@
 ## 스레드
 
-같은 작업을 로컬(Local) 모델(Model)과 클라우드 서비스(Cloud Service)의 모델로 비교하는 포스트 6개다. 비교할 클라우드 서비스가 요청에 없으면 `AskUserQuestion`으로 묻는다.
+같은 작업을 로컬(Local) 모델(Model)과 클라우드 서비스(Cloud Service)의 모델로 비교하는 포스트 4개다. 비교할 클라우드 서비스가 요청에 없으면 `AskUserQuestion`으로 묻는다.
 
-| 포스트 | 내용 |
-| :---: | --- |
-| 1 | 두 결과물을 비교하게 만드는 캡션 |
-| 2 | 클라우드 서비스의 모델이 아닌 로컬 모델만 소개하는 산문, 핵심 장점 체크리스트 한 줄 |
-| 3 | 이것으로 무엇을 할 수 있는지, 독자가 체감하는 장점 |
-| 4 | GIF에 보이는 실제 입력과 결과를 담은 캡션 |
-| 5 | 로컬 모델의 기계별 숫자 행과 그 행들의 조건, 기계당 한 행, 숫자는 README 콜아웃(Callout)이 읽은 처리량 열 |
-| 6 | 서비스 링크 `github.com/MindrLabs/<example>` |
+| 포스트 | 내용 | 첨부 |
+| :---: | --- | --- |
+| 1 | 클라우드 대안을 찾는지 묻는 질문, 사용 권유, 비교 캡션 | 로컬 결과물, 클라우드 결과물 |
+| 2 | 로컬 모델 소개(e.g., 입력과 출력, 차별점, 모드), 사실 체크리스트 | 데모 GIF |
+| 3 | 로컬 모델 성능(e.g., 속도 질문, 조건, 기계별 숫자 행) | |
+| 4 | 무제한 반복, 비개발자에게 AI 어시스턴트(AI Assistant)로 실행하라는 안내, `github.com/MindrLabs/<example>` | |
+
+- 체크리스트는 라이선스(License), 체크포인트(Checkpoint) 크기, 스타(Star) 수를 이은 `✅` 한 줄
+- 숫자 행은 기계당 한 행, 값은 README 콜아웃(Callout)이 읽은 처리량 열
 
 ## 예시
 
@@ -18,43 +19,35 @@
 ✓
 
 ```
-🎧 YuE vs. Suno, same lyrics and genre
+Anyone else looking for a Suno alternative?
+
+Give YuE2 a try.
+
+🎧 YuE2 running on your own machine vs. Suno; same lyrics, same style
 ```
 
 ✓
 
 ```
-🎙️ Whisper large-v3 on a laptop vs. OpenAI's API, one hour of audio
-```
+Anyone else tired of paying OpenAI by the minute for transcripts?
 
-✓
+Give Whisper large-v3 a try.
 
-```
-🖼️ 4-bit FLUX on a desk GPU vs. Midjourney, same prompt
-```
-
-✗
-
-```
-🖼️ Can you tell which one is AI?
+🎙️ Whisper running on your own laptop vs. OpenAI's API; same hour of audio
 ```
 
 ✗
 
 ```
-🎧 YuE on the left sounds better, obviously
+🎧 YuE2 on your own machine vs. Suno, same lyrics and style
 ```
 
 ✗
 
 ```
-Suno is dead. YuE runs locally and beats it for free.
-```
+OpenAI's API is dead. Whisper runs locally and beats it for free.
 
-✗
-
-```
-🎧 Same lyrics, same genre, two songs. One came from Suno, the other from a GPU under my desk. Listen before you guess.
+🎙️ Read both and guess which one came from the cloud
 ```
 
 ### 포스트 2
@@ -62,20 +55,31 @@ Suno is dead. YuE runs locally and beats it for free.
 ✓
 
 ```
-Whisper large-v3 is the open model from the family behind OpenAI's speech API.
-It keeps up with heavy accents and 99 languages, and every line comes back timestamped.
-This run uses a 4-bit decoder.
+YuE2-3B is an open music model that can sing.
 
-✅ 4 minutes on a laptop, nothing uploaded
+Give it a style prompt and lyrics, and it generates 48 kHz stereo audio with vocals and instruments together.
+
+It can plan an ABC score first, or generate audio directly.
+
+✅ CC BY-NC 4.0 · 7.30 GB checkpoint · 10K stars
 ```
 
 ✓
 
 ```
-YuE is one of the few open music models that sings.
-It writes the voice and the band together, so the vocal sits on the beat.
-One line of text sets the genre, mood and voice.
-Apache-2.0, 9.7k stars.
+Whisper large-v3 is the open model from the family behind OpenAI's speech API.
+
+It keeps up with heavy accents and 99 languages, and every line comes back timestamped.
+
+✅ MIT · 3.09 GB checkpoint · 109K stars
+```
+
+✗
+
+```
+YuE2-3B is an open music model that sings.
+A style prompt and lyrics come back as 48 kHz stereo, vocal and band together.
+CC BY-NC 4.0, 7.30 GB checkpoint, 10k stars.
 
 ✅ No account, no credits, nothing uploaded
 ```
@@ -83,16 +87,9 @@ Apache-2.0, 9.7k stars.
 ✗
 
 ```
-🎙️ Whisper large-v3 vs OpenAI API
-
-0.08 RTF vs $0.006 per minute
-```
-
-✗
-
-```
 Suno is the closed one everyone compares against.
-YuE is one of the few open ones that sings.
+
+YuE2 is one of the few open ones that sings.
 ```
 
 ### 포스트 3
@@ -100,35 +97,36 @@ YuE is one of the few open ones that sings.
 ✓
 
 ```
-Hand it a meeting recording and get back a markdown summary with timestamps.
-Decisions and action items come out as their own lines, and the small talk does not make it in.
-Two people talking at once land in one line, since nothing here tells speakers apart.
-```
+So how fast is it?
 
-✓
+Same lyrics, three machines; fastest first.
 
-```
-Give it lyrics and a genre and it returns a finished track.
-Tag the lyrics "[verse]" and "[chorus]", about 30 seconds of singing each, or the song loses its shape.
-Rerun the same lyrics as often as you like, since nothing is counting credits.
-```
+🔥 RTX 4090 | YuE2-3B | 0.361 Output RTF
+💻 DGX Spark | YuE2-3B | 1.46 Output RTF
+💻 MacBook M1 | YuE2-3B | 13.0 Output RTF
 
-✗
-
-```
-It beats every cloud API on accuracy and it is completely free.
+Medians over 20 lyric sets on the RTX 4090 and DGX Spark, and 1 on the MacBook, with VAE decoding on CPU.
 ```
 
 ✗
 
 ```
-Cloud APIs are a privacy nightmare. Local is the future.
+The same lyrics on three machines, fastest first.
+
+RTX 4090 | YuE2-3B | 0.361 Output RTF
+DGX Spark | YuE2-3B | 1.46 Output RTF
+MacBook M1 | YuE2-3B | 13.0 Output RTF
 ```
 
 ✗
 
 ```
-Suno returns a song in under a minute, YuE takes three.
+So how fast is it?
+
+Same lyrics; local vs. cloud.
+
+🔥 RTX 4090 | YuE2-3B | 0.361 Output RTF
+☁️ Suno | v4.5 | about 30 s per song
 ```
 
 ### 포스트 4
@@ -136,96 +134,13 @@ Suno returns a song in under a minute, YuE takes three.
 ✓
 
 ```
-🎬 A one-hour town hall in, a timestamped summary out
-```
+And you can iterate as much as you want.
 
-✓
+Change a word in the style prompt and run it again; there are no credits to burn.
 
-```
-🪗 A sea shanty from eight lines of lyrics, 2 min 10 s of song out
-```
+Not a developer?
 
-✗
-
-```
-🎹 Style and lyrics in, a score and a song out
-```
-
-✗
-
-```
-🎬 The local run, recorded at the speed it ran
-```
-
-✗
-
-```
-Watch the magic happen below 👇🔥
-```
-
-✗
-
-```
-Real-time in the GIF, and just as fast on any laptop
-```
-
-### 포스트 5
-
-✓
-
-```
-The same 30-minute clip on three machines, fastest first.
-
-RTX 4090 | whisper-large-v3 | 0.08 Output RTF
-DGX Spark | whisper-large-v3 | 0.12 Output RTF
-MacBook M1 | whisper-large-v3-4bit | 0.31 Output RTF
-
-Greedy decoding, fp16 on the RTX 4090 and DGX Spark, 4-bit on the MacBook.
-```
-
-✓
-
-```
-The same lyrics and genre on two machines, fastest first.
-
-RTX 4090 | YuE-s1-7B | 3 min 10 s per song
-RTX 4070 Laptop | YuE-s1-7B-4bit | 11 min 40 s per song
-
-2 verses and 1 chorus, 90 s of audio out.
-```
-
-✗
-
-```
-RTX 4090 | whisper-large-v3 | 0.08 Output RTF
-OpenAI API | whisper-1 | $0.006 per minute
-```
-
-✗
-
-```
-Machine | Model | Value
---- | --- | ---
-RTX 4090 | YuE-s1-7B | 3 min 10 s per song
-RTX 4070 Laptop | YuE-s1-7B-4bit | 11 min 40 s per song
-```
-
-✗
-
-```
-The same 30-minute clip on three machines, fastest first.
-
-RTX 4090 | whisper-large-v3 | 0.08 Output RTF
-DGX Spark | whisper-large-v3 | 0.12 Output RTF
-MacBook M1 | whisper-large-v3-4bit | 0.31 Output RTF
-```
-
-### 포스트 6
-
-✓
-
-```
-Try your own lyrics next and hear what comes out.
+Just send the link below to Claude or ChatGPT; ask it to run YuE2 for you.
 
 ➡️ github.com/MindrLabs/music-generation-yue2
 ```
@@ -233,38 +148,33 @@ Try your own lyrics next and hear what comes out.
 ✓
 
 ```
-No API key, no per-minute bill, and no cap on how many hours you transcribe.
+And you can transcribe as many hours as you want.
+
+Drop in a whole season of a podcast; there is no per-minute bill.
+
+Not a developer?
+
+Just send the link below to Claude or ChatGPT; ask it to run Whisper for you.
 
 ➡️ github.com/MindrLabs/speech-recognition-whisper
-```
-
-✓
-
-```
-Cancel your Midjourney plan and run it yourself.
-
-➡️ github.com/MindrLabs/image-generation-flux
 ```
 
 ✗
 
 ```
-Try your own lyrics next and hear what comes out.
+Write a chorus tonight and let your own machine sing it back.
+
+➡️ github.com/MindrLabs/music-generation-yue2
+```
+
+✗
+
+```
+And you can iterate as much as you want.
+
+Not a developer?
+
+Just send the link below to Claude or ChatGPT; ask it to run YuE2 for you.
 
 ➡️ github.com/hanyeol/model-compose
-```
-
-✗
-
-```
-➡️ github.com/MindrLabs/speech-recognition-whisper
-➡️ platform.openai.com/docs/guides/speech-to-text
-```
-
-✗
-
-```
-➡️ The YAML that ran the local side is one file in the repo.
-
-github.com/MindrLabs/image-generation-flux
 ```
