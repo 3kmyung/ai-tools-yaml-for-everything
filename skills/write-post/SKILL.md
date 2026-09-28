@@ -23,7 +23,7 @@ allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, AskUserQuestion, Skill,
 
 ### 2. 작성
 
-`유형`으로 정한 유형의 `${CLAUDE_SKILL_DIR}/references/<type>.md`를 읽고 그 파일의 `스레드`와 `예시`대로 쓴다. X 전용, 영어, 각 포스트는 X의 가중 280자 제한 안이다.
+`유형`으로 정한 유형의 `${CLAUDE_SKILL_DIR}/references/<type>.md`를 읽고 그 파일의 `스레드`와 `예시`대로 쓴다. X 전용, 영어, 각 포스트는 X Premium 장문의 가중 25,000자 제한 안이다.
 
 ### 3. 분량 검사
 
